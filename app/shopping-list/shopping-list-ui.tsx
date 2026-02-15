@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { addItem, toggleItem, deleteItem, importWeekIngredients } from './actions'
+import { addItem, toggleItem, deleteItem, importWeekIngredients, clearList } from './actions'
 import { Plus, Trash2, Check, ShoppingBag, Loader2, Sparkles, Eraser } from 'lucide-react'
 
 export default function ShoppingListClient({ initialItems }: { initialItems: any[] }) {
