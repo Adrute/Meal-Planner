@@ -38,6 +38,13 @@ export async function processMultipleInvoices(formData: FormData) {
             const invoiceMatch = cleanText.match(/Factura\s*nº\s*([A-Z0-9]+)/i)
             const invoiceNumber = invoiceMatch ? invoiceMatch[1] : `DOC-${Date.now()}`
 
+            const dateMatch = cleanText.match(/Fecha\s*emisi[oó]n:\s*(\d{2})\.(\d{2})\.(\d{4})/i)
+            let issueDate = new Date().toISOString().split('T')[0]
+            if (dateMatch) {
+                issueDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`
+            }
+
+            // IMPORTES
             const elecMatch = cleanText.match(/Electricidad\s+([\d,]+)\s*€/i)
             const elecAmount = elecMatch ? parseFloat(elecMatch[1].replace(',', '.')) : 0
 
@@ -50,23 +57,33 @@ export async function processMultipleInvoices(formData: FormData) {
             const taxesMatch = cleanText.match(/Tasas e impuestos\s+([\d,]+)\s*€/i)
             const taxesAmount = taxesMatch ? parseFloat(taxesMatch[1].replace(',', '.')) : 0
 
+            // NUEVO: EXTRACCIÓN DE CONSUMOS (kWh)
+            // Buscamos números seguidos de "kWh" cerca de las palabras clave de luz y gas.
+            // Si el formato de tu PDF es muy puñetero, ajustaremos esta regla.
+            const elecKwhMatch = cleanText.match(/(?:Electricidad|Energía).*?([\d,]+)\s*kWh/i) || cleanText.match(/([\d,]+)\s*kWh/i)
+            const elecKwh = elecKwhMatch ? parseFloat(elecKwhMatch[1].replace(',', '.')) : 0
+
+            // Para el gas, asumiendo que el segundo bloque de kWh suele ser el gas
+            const kwhMatches = [...cleanText.matchAll(/([\d,]+)\s*kWh/gi)]
+            const gasKwh = kwhMatches.length > 1 ? parseFloat(kwhMatches[1][1].replace(',', '.')) : 0
+
             const totalAmount = elecAmount + gasAmount + servAmount + taxesAmount
 
             if (totalAmount === 0) {
-                // Hacemos un log del texto limpio por si falla alguna regex
-                console.log(`TEXTO LIMPIO DE ${file.name}:`, cleanText.substring(0, 1000));
                 errorMessages.push(`No detecté los importes en ${file.name}`);
                 continue;
             }
 
             const invoiceData = {
                 invoice_number: invoiceNumber,
-                issue_date: new Date().toISOString().split('T')[0],
+                issue_date: issueDate,
                 total_amount: totalAmount,
                 elec_amount: elecAmount,
                 gas_amount: gasAmount,
                 services_amount: servAmount,
-                taxes_amount: taxesAmount
+                taxes_amount: taxesAmount,
+                elec_kwh: elecKwh, // Guardamos el consumo de luz
+                gas_kwh: gasKwh    // Guardamos el consumo de gas
             }
 
             // Guardar en Supabase
