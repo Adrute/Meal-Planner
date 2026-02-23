@@ -1,128 +1,126 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { logout } from "./login/actions";
-import { 
-  LayoutDashboard, 
-  UtensilsCrossed, 
-  Wallet, 
-  Zap, 
-  Settings, 
-  LogOut,
-  Command
-} from "lucide-react";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { Home, Utensils, ShoppingBasket, Wallet, Zap, CalendarHeart, LogOut, BookOpen } from 'lucide-react'
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = { title: "Home OS", description: "Gestión integral del hogar" };
-export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false };
+export const metadata: Metadata = {
+  title: 'Hogar | Panel de Control',
+  description: 'Gestión integral de la familia, comidas y finanzas',
+}
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('meal_session')?.value
-  const user = sessionCookie ? JSON.parse(sessionCookie) : null
-  const isAdmin = user?.role === 'admin'
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  // 1. Verificamos la sesión con Supabase
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 2. Función real para cerrar sesión
+  async function signOut() {
+    'use server'
+    const supabaseServer = await createClient()
+    await supabaseServer.auth.signOut()
+    redirect('/login')
+  }
 
   return (
-    <html lang="es" className="h-full bg-slate-50">
-      <body className={`${inter.variable} font-sans antialiased h-full text-slate-900 flex`}>
-        
-        {/* SIDEBAR (Solo PC) - TEMA CLARO */}
-        {user && (
-          <aside className="hidden md:flex w-64 flex-col bg-white border-r border-slate-200 h-screen sticky top-0 z-50">
-            <div className="p-6 border-b border-slate-100 flex items-center gap-3 text-slate-800">
-              <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
-                <Command size={24} />
-              </div>
-              <div className="leading-none">
-                <span className="font-black text-lg tracking-tight block">Home OS</span>
-                <span className="text-xs text-slate-500 font-medium">{user.username}</span>
-              </div>
-            </div>
+    <html lang="es">
+      <body className={`${inter.className} bg-slate-50 text-slate-900`}>
 
-            <nav className="flex-1 p-4 space-y-6 overflow-y-auto custom-scrollbar">
-              <div className="space-y-1">
-                <DesktopNavLink href="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+        {user ? (
+          <div className="flex min-h-screen">
+
+            {/* --- MENÚ LATERAL (TEMA CLARO) --- */}
+            <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200">
+              <div className="p-8">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Mi<span className="text-emerald-500">Hogar</span></h2>
               </div>
 
-              <div>
-                <h4 className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Módulos</h4>
-                <div className="space-y-1">
-                  <DesktopNavLink href="/planner" icon={<UtensilsCrossed size={20} />} label="Comidas" />
-                  <DesktopNavLink href="/finances" icon={<Wallet size={20} />} label="Finanzas" />
-                  <DesktopNavLink href="/utilities" icon={<Zap size={20} />} label="Suministros" />
-                </div>
-              </div>
+              <nav className="flex-1 px-4 space-y-2">
+                <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <Home size={20} /> <span>Inicio</span>
+                </Link>
+                <Link href="/meals" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <Utensils size={20} /> <span>Comidas</span>
+                </Link>
+                <Link href="/recipes" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <BookOpen size={20} /> <span>Recetas</span>
+                </Link>
+                <Link href="/shopping-list" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <ShoppingBasket size={20} /> <span>Compra</span>
+                </Link>
+                <Link href="/finances" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <Wallet size={20} /> <span>Finanzas</span>
+                </Link>
+                <Link href="/utilities" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <Zap size={20} /> <span>Suministros</span>
+                </Link>
+                <Link href="/services" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <CalendarHeart size={20} /> <span>Bonos</span>
+                </Link>
+              </nav>
 
-              {isAdmin && (
-                <div>
-                  <h4 className="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Sistema</h4>
-                  <div className="space-y-1">
-                    <DesktopNavLink href="/admin" icon={<Settings size={20} />} label="Configuración" />
-                  </div>
-                </div>
-              )}
+              <div className="p-4 border-t border-slate-100">
+                {/* Formulario que ejecuta el cierre de sesión */}
+                <form action={signOut}>
+                  <button type="submit" className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors text-left">
+                    <LogOut size={18} /> <span className="truncate">Cerrar Sesión</span>
+                  </button>
+                </form>
+              </div>
+            </aside>
+
+            {/* --- CONTENIDO PRINCIPAL --- */}
+            <main className="flex-1 h-screen overflow-y-auto pb-20 md:pb-0">
+              {children}
+            </main>
+
+            {/* --- MENÚ MÓVIL CLARO --- */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-between items-center px-2 py-2 pb-safe z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] overflow-x-auto gap-1">
+              <Link href="/" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-emerald-500 transition-colors">
+                <Home size={20} />
+                <span className="text-[9px] font-bold mt-1">Inicio</span>
+              </Link>
+              <Link href="/meals" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-orange-500 transition-colors">
+                <Utensils size={20} />
+                <span className="text-[9px] font-bold mt-1">Comidas</span>
+              </Link>
+              <Link href="/finances" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-blue-500 transition-colors">
+                <Wallet size={20} />
+                <span className="text-[9px] font-bold mt-1">Finanzas</span>
+              </Link>
+              <Link href="/utilities" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-yellow-500 transition-colors">
+                <Zap size={20} />
+                <span className="text-[9px] font-bold mt-1">Luz/Gas</span>
+              </Link>
+              <Link href="/services" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-emerald-500 transition-colors">
+                <CalendarHeart size={20} />
+                <span className="text-[9px] font-bold mt-1">Bonos</span>
+              </Link>
+              
+              {/* Botón de Cerrar Sesión Móvil */}
+              <form action={signOut} className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-red-500 transition-colors">
+                <button type="submit" className="flex flex-col items-center outline-none">
+                  <LogOut size={20} />
+                  <span className="text-[9px] font-bold mt-1">Salir</span>
+                </button>
+              </form>
             </nav>
 
-            <div className="p-4 border-t border-slate-100">
-              <form action={logout}>
-                <button className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors">
-                    <LogOut size={18} />
-                    <span>Cerrar Sesión</span>
-                </button>
-              </form>
-            </div>
-          </aside>
-        )}
-
-        <main className={`flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 ${!user ? 'h-full' : ''}`}>
-          <div className="flex-1 overflow-y-auto pb-24 md:pb-10">
-            <div className="max-w-full mx-auto w-full">
-               {children}
-            </div>
           </div>
-        </main>
-
-        {/* BOTTOM NAV (Móvil) - TEMA CLARO */}
-        {user && (
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white text-slate-400 pb-safe z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] border-t border-slate-100">
-            <div className="flex justify-around items-center h-16 px-1">
-              <MobileNavLink href="/" icon={<LayoutDashboard size={20} />} label="Inicio" />
-              <MobileNavLink href="/planner" icon={<UtensilsCrossed size={20} />} label="Comidas" />
-              <MobileNavLink href="/finances" icon={<Wallet size={20} />} label="Finanzas" />
-              <MobileNavLink href="/utilities" icon={<Zap size={20} />} label="Hogar" />
-              
-              <form action={logout} className="h-full">
-                <button type="submit" className="flex flex-col items-center justify-center w-full h-full gap-1 px-3 hover:text-red-500 active:text-red-600 transition-colors">
-                  <LogOut size={20} />
-                  <span className="text-[9px] font-bold uppercase tracking-wide">Salir</span>
-                </button>
-              </form>
-            </div>
-          </nav>
+        ) : (
+          <main className="min-h-screen flex items-center justify-center">
+            {children}
+          </main>
         )}
-
       </body>
     </html>
-  );
-}
-
-function DesktopNavLink({ href, icon, label }: any) {
-  return (
-    <Link href={href} className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-all group font-bold text-sm">
-      <span className="group-hover:scale-110 transition-all">{icon}</span>
-      {label}
-    </Link>
-  );
-}
-
-function MobileNavLink({ href, icon, label }: any) {
-  return (
-    <Link href={href} className="flex flex-col items-center justify-center w-full h-full gap-1 px-3 hover:text-emerald-600 active:text-emerald-700 transition-colors">
-      <div>{icon}</div>
-      <span className="text-[9px] font-bold uppercase tracking-wide">{label}</span>
-    </Link>
-  );
+  )
 }

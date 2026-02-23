@@ -40,24 +40,22 @@ export async function signup(formData: FormData) {
   redirect('/')
 }
 
-// Acción de Login
 export async function login(formData: FormData) {
-  const username = formData.get('username') as string
+  'use server'
+  const email = formData.get('email') as string
   const password = formData.get('password') as string
   const supabase = await createClient()
 
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('username', username)
-    .eq('password', password)
-    .single()
+  // Supabase se encarga de verificar el hash y generar la cookie segura automáticamente
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-  if (error || !user) {
-    return { error: 'Usuario o contraseña incorrectos' }
+  if (error) {
+    return { error: 'Credenciales incorrectas' }
   }
 
-  await createSession(user)
   redirect('/')
 }
 
@@ -70,10 +68,10 @@ export async function logout() {
 
 // Función auxiliar para crear la cookie
 async function createSession(user: any) {
-  const sessionData = JSON.stringify({ 
-    id: user.id, 
-    username: user.username, 
-    role: user.role 
+  const sessionData = JSON.stringify({
+    id: user.id,
+    username: user.username,
+    role: user.role
   })
 
   const cookieStore = await cookies()
