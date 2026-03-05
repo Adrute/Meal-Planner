@@ -3,60 +3,124 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-// Función para añadir ingredientes a la lista sin duplicar y asignando la tienda
-export async function addSmartIngredients(ingredientsToAdd: { name: string, quantity: string }[]) {
+// 1. AÑADIR ITEM MANUAL
+export async function addItem(name: string) {
   const supabase = await createClient()
+  const { error } = await supabase
+    .from('shopping_list_items')
+    .insert({ name, is_manual: true, checked: false })
 
-  // 1. Obtenemos todo el catálogo de preferencias para saber dónde comprar cada cosa
-  const { data: catalog } = await supabase.from('ingredients').select('*')
-  
-  // 2. Obtenemos la lista de la compra actual (solo los no comprados) para no duplicar
-  const { data: currentList } = await supabase
-    .from('shopping_list')
-    .select('name')
-    .eq('is_completed', false)
-
-  const currentNames = currentList?.map(item => item.name.toLowerCase()) || []
-
-  // 3. Filtramos y preparamos los nuevos elementos
-  const newItems = []
-  
-  for (const item of ingredientsToAdd) {
-    const itemNameLower = item.name.toLowerCase()
-    
-    // Si ya está en la lista de la compra activa, lo ignoramos (Deduplicación)
-    if (currentNames.includes(itemNameLower)) continue
-
-    // Buscamos si tenemos una tienda preferida en el catálogo
-    const catalogItem = catalog?.find(c => c.name.toLowerCase() === itemNameLower)
-    const store = catalogItem ? catalogItem.preferred_store : 'Supermercado'
-
-    newItems.push({
-      name: item.name,
-      quantity: item.quantity,
-      store: store,
-      is_completed: false
-    })
-  }
-
-  // 4. Insertamos solo los ingredientes nuevos ya categorizados
-  if (newItems.length > 0) {
-    await supabase.from('shopping_list').insert(newItems)
-  }
-
+  if (error) console.error('Error al añadir:', error)
   revalidatePath('/shopping-list')
 }
 
-// Función para marcar como comprado
-export async function toggleItem(id: string, currentState: boolean) {
+// 2. TACHAR/DESTACHAR ITEM
+export async function toggleItem(id: string, checked: boolean) {
   const supabase = await createClient()
-  await supabase.from('shopping_list').update({ is_completed: !currentState }).eq('id', id)
+  const { error } = await supabase
+    .from('shopping_list_items')
+    .update({ checked })
+    .eq('id', id)
+
+  if (error) console.error('Error al actualizar:', error)
   revalidatePath('/shopping-list')
 }
 
-// Función para limpiar los comprados
-export async function clearCompleted() {
+// 3. BORRAR ITEM INDIVIDUAL
+export async function deleteItem(id: string) {
   const supabase = await createClient()
-  await supabase.from('shopping_list').delete().eq('is_completed', true)
+  const { error } = await supabase
+    .from('shopping_list_items')
+    .delete()
+    .eq('id', id)
+
+  if (error) console.error('Error al borrar:', error)
   revalidatePath('/shopping-list')
+}
+
+// 4. VACIAR TODA LA LISTA (El que faltaba)
+export async function clearList() {
+  const supabase = await createClient()
+  // Borramos todos los registros de la tabla
+  const { error } = await supabase
+    .from('shopping_list_items')
+    .delete()
+    .neq('name', 'NUNCA_EXISTIRA_ESTO') // Truco para borrar todo sin filtrar por ID
+
+  if (error) console.error('Error al vaciar lista:', error)
+  revalidatePath('/shopping-list')
+}
+
+// 5. IMPORTAR INGREDIENTES DESDE EL PLANIFICADOR
+export async function importWeekIngredients() {
+  const supabase = await createClient()
+
+  const todayStr = new Date().toISOString().split('T')[0]
+  const nextWeek = new Date()
+  nextWeek.setDate(nextWeek.getDate() + 7)
+  const nextWeekStr = nextWeek.toISOString().split('T')[0]
+
+  // 1. Obtener los IDs de las recetas planificadas
+  const { data: plan, error: planError } = await supabase
+    .from('weekly_plan')
+    .select('recipe_id')
+    .gte('day_date', todayStr)
+    .lte('day_date', nextWeekStr)
+
+  if (planError) return { error: `Error en plan: ${planError.message}` }
+  if (!plan || plan.length === 0) return { error: 'No hay nada planificado para esta semana.' }
+
+  const recipeIds = Array.from(new Set(plan.map(p => p.recipe_id))).filter(Boolean)
+
+  // 2. Obtener los nombres de los ingredientes a través de la tabla intermedia
+  // Consultamos 'recipe_ingredients' y saltamos a la tabla 'ingredients' para el nombre
+  const { data: recipeData, error: recipeError } = await supabase
+    .from('recipe_ingredients')
+    .select(`
+      ingredients (
+        name
+      )
+    `)
+    .in('recipe_id', recipeIds)
+
+  if (recipeError) return { error: `Error en ingredientes: ${recipeError.message}` }
+
+  // 3. Extraer y limpiar los nombres
+  const allIngredients: string[] = []
+  recipeData.forEach((item: any) => {
+    // Dependiendo de cómo esté la FK, puede venir como objeto o array
+    const ingredientName = Array.isArray(item.ingredients) 
+      ? item.ingredients[0]?.name 
+      : item.ingredients?.name
+
+    if (ingredientName) {
+      allIngredients.push(ingredientName)
+    }
+  })
+
+  if (allIngredients.length === 0) {
+    return { error: 'Las recetas no tienen ingredientes vinculados en la tabla recipe_ingredients.' }
+  }
+
+ // 4. Insertar en la lista de la compra
+  const itemsToInsert = allIngredients.map(name => ({
+    name: name,
+    is_manual: false,
+    checked: false
+    // Si tu tabla tiene columnas obligatorias como 'user_id', 
+    // deberíamos añadirlas aquí.
+  }))
+
+  const { error: insertError } = await supabase
+    .from('shopping_list_items')
+    .insert(itemsToInsert)
+
+  if (insertError) {
+    console.error('DETALLE DEL ERROR AL INSERTAR:', insertError)
+    // Esto nos dirá si falta una columna o si es un tema de permisos
+    return { error: `Error al volcar: ${insertError.message} (${insertError.details || 'sin detalles'})` }
+  }
+
+  revalidatePath('/shopping-list')
+  return { success: true, count: itemsToInsert.length }
 }

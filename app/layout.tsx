@@ -4,7 +4,7 @@ import './globals.css'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Home, Utensils, ShoppingBasket, Wallet, Zap, CalendarHeart, LogOut, BookOpen } from 'lucide-react'
+import { Home, Utensils, ShoppingBasket, Wallet, Zap, CalendarHeart, LogOut, BookOpen, UtensilsCrossed } from 'lucide-react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -65,6 +65,9 @@ export default async function RootLayout({
                 <Link href="/services" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
                   <CalendarHeart size={20} /> <span>Bonos</span>
                 </Link>
+                <Link href="/restaurants" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors font-medium">
+                  <UtensilsCrossed size={20} /> <span>Restaurantes</span>
+                </Link>
               </nav>
 
               <div className="p-4 border-t border-slate-100">
@@ -103,6 +106,10 @@ export default async function RootLayout({
               <Link href="/services" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-emerald-500 transition-colors">
                 <CalendarHeart size={20} />
                 <span className="text-[9px] font-bold mt-1">Bonos</span>
+              </Link>
+              <Link href="/restaurants" className="flex flex-col items-center p-2 min-w-[50px] text-slate-400 hover:text-emerald-500 transition-colors">
+                <UtensilsCrossed size={20} />
+                <span className="text-[9px] font-bold mt-1">Restaurantes</span>
               </Link>
               
               {/* Botón de Cerrar Sesión Móvil */}
