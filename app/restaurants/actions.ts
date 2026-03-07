@@ -12,7 +12,7 @@ export async function addRestaurant(restaurantData: {
   allergens: string[]
   is_favorite: boolean
   food_type: string
-  reservation_date: string | null
+  website: string
 }) {
   const supabase = await createClient()
   
@@ -24,8 +24,7 @@ export async function addRestaurant(restaurantData: {
     comments: restaurantData.comments,
     allergens: restaurantData.allergens,
     is_favorite: restaurantData.is_favorite,
-    food_type: restaurantData.food_type,
-    reservation_date: restaurantData.reservation_date || null
+    food_type: restaurantData.food_type
   }])
 
   revalidatePath('/restaurants')
@@ -83,4 +82,16 @@ export async function updateReservationDate(id: string, newDate: string) {
   const supabase = await createClient()
   await supabase.from('reservations').update({ reservation_date: newDate }).eq('id', id)
   revalidatePath('/', 'layout')
+}
+
+export async function deleteList(listId: string) {
+  const supabase = await createClient()
+  await supabase.from('restaurant_lists').delete().eq('id', listId)
+  revalidatePath('/restaurants')
+}
+
+export async function updateTagColor(tag: string, color: string) {
+  const supabase = await createClient()
+  await supabase.from('tag_colors').upsert({ tag, color })
+  revalidatePath('/restaurants')
 }

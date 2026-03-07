@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { CalendarDays, X, Plus } from 'lucide-react'
+import { CalendarDays, X, Plus, Loader2 } from 'lucide-react' // <-- Añadido Loader2
 import { addReservation, cancelReservation } from '../actions'
 
 export default function ReservationManager({ restaurantId, initialReservations }: { restaurantId: string, initialReservations: any[] }) {
@@ -12,7 +12,7 @@ export default function ReservationManager({ restaurantId, initialReservations }
     if (!date) return
     startTransition(async () => {
       // TRUCO DE ZONA HORARIA: Convertimos la hora local al estándar UTC absoluto antes de enviarla
-      const isoDate = new Date(date).toISOString() 
+      const isoDate = new Date(date).toISOString()
       await addReservation(restaurantId, isoDate)
       setDate('')
     })
@@ -33,7 +33,7 @@ export default function ReservationManager({ restaurantId, initialReservations }
       <h2 className="text-lg font-black text-purple-900 flex items-center gap-2 mb-6">
         <CalendarDays className="text-purple-500" /> Próximas Reservas
       </h2>
-      
+
       {sortedReservations.length > 0 ? (
         <div className="space-y-3 mb-6">
           {sortedReservations.map(res => {
@@ -47,7 +47,7 @@ export default function ReservationManager({ restaurantId, initialReservations }
                   </span>
                 </div>
                 <button onClick={() => handleCancel(res.id)} disabled={isPending} className="text-purple-300 hover:text-rose-500 hover:bg-white p-2 rounded-xl transition-colors disabled:opacity-50 shadow-sm" title="Cancelar Reserva">
-                  <X size={18} />
+                  {isPending ? <Loader2 size={18} className="animate-spin text-purple-400" /> : <X size={18} />}
                 </button>
               </div>
             )
@@ -60,15 +60,15 @@ export default function ReservationManager({ restaurantId, initialReservations }
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100">
-        <input 
-          type="datetime-local" 
+        <input
+          type="datetime-local"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           min={new Date().toISOString().slice(0, 16)}
           className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 outline-none text-slate-700 bg-slate-50 text-sm font-bold transition-colors"
         />
-        <button onClick={handleAdd} disabled={!date || isPending} className="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors disabled:bg-purple-200 disabled:text-purple-400 flex items-center justify-center gap-2 shadow-sm">
-          {isPending ? 'Guardando...' : <><Plus size={18} /> Añadir Reserva</>}
+        <button onClick={handleAdd} disabled={!date || isPending} className="bg-purple-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors disabled:bg-purple-200 disabled:text-purple-400 flex items-center justify-center gap-2 shadow-sm min-w-[160px]">
+          {isPending ? <><Loader2 size={18} className="animate-spin" /> Guardando...</> : <><Plus size={18} /> Añadir Reserva</>}
         </button>
       </div>
     </div>

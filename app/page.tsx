@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+// IMPORTAMOS NUESTRO NUEVO WIDGET
+import UpcomingReservationsWidget from '@/components/UpcomingReservationsWidget'
+
 export const dynamic = 'force-dynamic'
 
 export default async function HomeDashboard() {
@@ -100,7 +103,7 @@ export default async function HomeDashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 animate-in fade-in">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 animate-in fade-in">
 
       <header className="mb-10">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
@@ -109,11 +112,11 @@ export default async function HomeDashboard() {
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
-      {/* --- INICIO DE LA CUADRÍCULA SUPERIOR (3 COLUMNAS) --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* --- INICIO DE LA CUADRÍCULA SUPERIOR (AHORA 4 COLUMNAS EN LG, 2 EN MD) --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* WIDGET 1: COMIDAS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -142,7 +145,7 @@ export default async function HomeDashboard() {
         </div>
 
         {/* WIDGET 2: FINANZAS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -167,7 +170,7 @@ export default async function HomeDashboard() {
         </div>
 
         {/* WIDGET 3: SUMINISTROS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -216,6 +219,9 @@ export default async function HomeDashboard() {
             )}
           </div>
         </div>
+
+        {/* WIDGET 4: RESERVAS DE RESTAURANTES */}
+        <UpcomingReservationsWidget />
 
       </div>
       {/* --- FIN DE LA CUADRÍCULA SUPERIOR --- */}
