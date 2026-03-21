@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // 1. AÑADIR ITEM MANUAL
-export async function addItem(name: string) {
+export async function addItem(name: string, store: string = 'Sin tienda') {
   const supabase = await createClient()
   const { error } = await supabase
     .from('shopping_list_items')
-    .insert({ name, is_manual: true, checked: false })
+    .insert({ name, store, is_manual: true, checked: false })
 
   if (error) console.error('Error al añadir:', error)
   revalidatePath('/shopping-list')
@@ -50,7 +50,7 @@ export async function clearList() {
   revalidatePath('/shopping-list')
 }
 
-// 5. IMPORTAR INGREDIENTES DESDE EL PLANIFICADOR
+// 5. IMPORTAR INGREDIENTES DESDE EL PLANIFICADOR (con tienda)
 export async function importWeekIngredients() {
   const supabase = await createClient()
 
@@ -71,29 +71,35 @@ export async function importWeekIngredients() {
 
   const recipeIds = Array.from(new Set(plan.map(p => p.recipe_id))).filter(Boolean)
 
-  // 2. Obtener los nombres de los ingredientes a través de la tabla intermedia
-  // Consultamos 'recipe_ingredients' y saltamos a la tabla 'ingredients' para el nombre
+  // 2. Obtener nombre y tienda de los ingredientes a través de la tabla intermedia
   const { data: recipeData, error: recipeError } = await supabase
     .from('recipe_ingredients')
     .select(`
       ingredients (
-        name
+        name,
+        preferred_store
       )
     `)
     .in('recipe_id', recipeIds)
 
   if (recipeError) return { error: `Error en ingredientes: ${recipeError.message}` }
 
-  // 3. Extraer y limpiar los nombres
-  type IngredientRow = { ingredients: { name: string } | { name: string }[] | null }
-  const allIngredients: string[] = []
-  recipeData.forEach((item: IngredientRow) => {
-    const ingredientName = Array.isArray(item.ingredients)
-      ? item.ingredients[0]?.name
-      : item.ingredients?.name
+  // 3. Extraer y limpiar los datos
+  type IngredientRow = {
+    ingredients: { name: string; preferred_store: string | null } | { name: string; preferred_store: string | null }[] | null
+  }
 
-    if (ingredientName) {
-      allIngredients.push(ingredientName)
+  const allIngredients: { name: string; store: string }[] = []
+  recipeData.forEach((item: IngredientRow) => {
+    const ingredient = Array.isArray(item.ingredients)
+      ? item.ingredients[0]
+      : item.ingredients
+
+    if (ingredient?.name) {
+      allIngredients.push({
+        name: ingredient.name,
+        store: ingredient.preferred_store || 'Sin tienda',
+      })
     }
   })
 
@@ -101,13 +107,23 @@ export async function importWeekIngredients() {
     return { error: 'Las recetas no tienen ingredientes vinculados en la tabla recipe_ingredients.' }
   }
 
- // 4. Insertar en la lista de la compra
-  const itemsToInsert = allIngredients.map(name => ({
-    name: name,
+  // 4. Borrar los ítems importados anteriormente (is_manual = false)
+  //    Los ítems manuales del usuario se mantienen intactos
+  const { error: deleteError } = await supabase
+    .from('shopping_list_items')
+    .delete()
+    .eq('is_manual', false)
+
+  if (deleteError) {
+    return { error: `Error al limpiar importados anteriores: ${deleteError.message}` }
+  }
+
+  // 5. Insertar frescos con la tienda actual de cada ingrediente
+  const itemsToInsert = allIngredients.map(({ name, store }) => ({
+    name,
+    store,
     is_manual: false,
-    checked: false
-    // Si tu tabla tiene columnas obligatorias como 'user_id', 
-    // deberíamos añadirlas aquí.
+    checked: false,
   }))
 
   const { error: insertError } = await supabase
@@ -115,9 +131,7 @@ export async function importWeekIngredients() {
     .insert(itemsToInsert)
 
   if (insertError) {
-    console.error('DETALLE DEL ERROR AL INSERTAR:', insertError)
-    // Esto nos dirá si falta una columna o si es un tema de permisos
-    return { error: `Error al volcar: ${insertError.message} (${insertError.details || 'sin detalles'})` }
+    return { error: `Error al volcar: ${insertError.message}` }
   }
 
   revalidatePath('/shopping-list')

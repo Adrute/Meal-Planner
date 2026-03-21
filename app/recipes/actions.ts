@@ -8,23 +8,21 @@ import { revalidatePath } from 'next/cache'
 export async function createRecipe(data: RecipeFormValues) {
   const supabase = await createClient()
 
-  // 1. Validar que los datos son correctos
   const result = RecipeSchema.safeParse(data)
-  
   if (!result.success) {
     return { error: "Datos inválidos: Revisa los campos rojos." }
   }
-  
+
   const { name, steps, ingredients } = result.data
 
   try {
-    // 2. Insertar la Receta
+    // 1. Insertar la receta
     const { data: recipeData, error: recipeError } = await supabase
       .from('recipes')
       .insert({
         name,
-        steps: steps.map(s => s.text), // Guardamos array de textos
-        instructions: steps.map(s => s.text).join('\n'), 
+        steps: steps.map(s => s.text),
+        instructions: steps.map(s => s.text).join('\n'),
       })
       .select('id')
       .single()
@@ -32,41 +30,45 @@ export async function createRecipe(data: RecipeFormValues) {
     if (recipeError) throw new Error(`Error receta: ${recipeError.message}`)
     const recipeId = recipeData.id
 
-    // 3. Procesar Ingredientes uno a uno
+    // 2. Procesar ingredientes
     for (const item of ingredients) {
-      let ingredientId
+      let ingredientId: string
 
-      // a. Buscar si el ingrediente ya existe
-      const { data: existingIng } = await supabase
-        .from('ingredients')
-        .select('id')
-        .ilike('name', item.name)
-        .single()
-
-      if (existingIng) {
-        ingredientId = existingIng.id
+      if (item.ingredient_id) {
+        // Seleccionado del catálogo: usar directamente
+        ingredientId = item.ingredient_id
       } else {
-        // b. Si no existe, crearlo
-        const { data: newIng, error: createIngError } = await supabase
+        // Nuevo ingrediente: buscar por nombre o crear
+        const { data: existing } = await supabase
           .from('ingredients')
-          .insert({ 
-            name: item.name, 
-            preferred_store: item.store || 'General' 
-          })
           .select('id')
+          .ilike('name', item.name.trim())
           .single()
-        
-        if (createIngError) throw createIngError
-        ingredientId = newIng.id
+
+        if (existing) {
+          ingredientId = existing.id
+        } else {
+          const { data: newIng, error: createIngError } = await supabase
+            .from('ingredients')
+            .insert({
+              name: item.name.trim(),
+              preferred_store: item.store || null,
+            })
+            .select('id')
+            .single()
+
+          if (createIngError) throw createIngError
+          ingredientId = newIng.id
+        }
       }
 
-      // c. Vincular ingrediente con la receta
+      // 3. Vincular ingrediente con la receta
       await supabase
         .from('recipe_ingredients')
         .insert({
           recipe_id: recipeId,
           ingredient_id: ingredientId,
-          amount: item.amount
+          amount: item.amount,
         })
     }
 
@@ -75,7 +77,7 @@ export async function createRecipe(data: RecipeFormValues) {
     return { error: 'Hubo un error al guardar la receta en la base de datos.' }
   }
 
-  // 4. Redirigir al listado
   revalidatePath('/recipes')
+  revalidatePath('/ingredients')
   redirect('/recipes')
 }
