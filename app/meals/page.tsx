@@ -29,9 +29,8 @@ export default async function PlannerPage() {
     .select('id, name')
     .order('name')
 
-  // === CORRECCIÓN DEL ERROR DE TIPOS ===
   // Transformamos los datos para asegurar que 'recipes' sea un objeto y no un array
-  const cleanPlan = rawPlan?.map((item: any) => ({
+  const cleanPlan = rawPlan?.map((item) => ({
     day_date: item.day_date,
     meal_type: item.meal_type,
     recipe_id: item.recipe_id,

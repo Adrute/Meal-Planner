@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CheckCircle2, AlertCircle, Plus, Trash2, CalendarHeart } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
+import SubmitButton from '@/components/SubmitButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -118,9 +119,9 @@ export default async function ServicesDashboard() {
             <input type="date" name="payment_date" defaultValue={today} required className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 outline-none text-slate-600" />
           </div>
           <div className="md:col-span-5 mt-2">
-            <button type="submit" className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+            <SubmitButton className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800" loadingText="Creando...">
               Crear Bono
-            </button>
+            </SubmitButton>
           </div>
         </form>
       </div>
@@ -157,9 +158,9 @@ export default async function ServicesDashboard() {
                     )}
                     <form action={deleteService}>
                       <input type="hidden" name="id" value={service.id} />
-                      <button type="submit" className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar bono">
+                      <SubmitButton iconOnly className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar bono">
                         <Trash2 size={18} />
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 </div>
@@ -200,17 +201,17 @@ export default async function ServicesDashboard() {
                   <form action={renewService} className="w-full flex gap-2">
                     <input type="hidden" name="id" value={service.id} />
                     <input type="date" name="renewal_date" defaultValue={today} required className="px-3 py-3 rounded-xl border border-slate-200 text-sm outline-none text-slate-600 bg-slate-50" title="Fecha del nuevo pago" />
-                    <button type="submit" className="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                    <SubmitButton className="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800" loadingText="Renovando...">
                       Nuevo Pago
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : (
                   <form action={consumeSession} className="w-full flex gap-2">
                     <input type="hidden" name="id" value={service.id} />
                     <input type="date" name="consume_date" defaultValue={today} required className="px-3 py-3 rounded-xl border border-slate-200 text-sm outline-none text-slate-600 bg-slate-50" title="Fecha de la sesión" />
-                    <button type="submit" className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
+                    <SubmitButton className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50" loadingText="Consumiendo...">
                       <Plus size={18} /> Consumir
-                    </button>
+                    </SubmitButton>
                   </form>
                 )}
               </div>

@@ -44,7 +44,7 @@ export default async function RecipesPage() {
       {/* Grid de Recetas */}
       {recipes && recipes.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {recipes.map((recipe: any) => (
+          {recipes.map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
@@ -70,8 +70,15 @@ export default async function RecipesPage() {
   );
 }
 
+type Recipe = {
+  id: string
+  name: string
+  created_at: string
+  recipe_ingredients: [{ count: number }]
+}
+
 // Componente Tarjeta de Receta (Con Link integrado)
-function RecipeCard({ recipe }: { recipe: any }) {
+function RecipeCard({ recipe }: { recipe: Recipe }) {
   // Generamos un degradado visual basado en la longitud del nombre para variar
   const gradients = [
     "from-orange-400 to-orange-600",

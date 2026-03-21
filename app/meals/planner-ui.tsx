@@ -5,7 +5,7 @@ import { format, startOfWeek, addDays, isSameDay, parseISO, isBefore, endOfWeek 
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
 import { assignMeal, removeMeal, deleteWeekPlan } from './actions'
-import { Plus, X, ChefHat, CalendarPlus, Utensils, Moon, Search, Trash2, CheckCircle2 } from 'lucide-react'
+import { Plus, X, ChefHat, CalendarPlus, Utensils, Moon, Search, Trash2, CheckCircle2, Loader2 } from 'lucide-react'
 
 // --- Tipos ---
 type Recipe = { id: string; name: string }
@@ -182,10 +182,34 @@ export default function PlannerContainer({
 }
 
 // === COMPONENTE: BLOQUE DE SEMANA ===
-function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveWeek }: any) {
+type WeekBlockProps = {
+  startOfWeekDate: Date
+  plan: PlanItem[]
+  onSlotClick: (slot: { date: Date; type: 'Almuerzo' | 'Cena' }) => void
+  onDeleteMeal: (date: Date, type: string) => void
+  onRemoveWeek: () => void
+}
+
+function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveWeek }: WeekBlockProps) {
+  const [isRemovingWeek, setIsRemovingWeek] = useState(false)
+  const [deletingSlot, setDeletingSlot] = useState<string | null>(null)
+
   const days = Array.from({ length: 7 }).map((_, i) => addDays(startOfWeekDate, i))
   const endDate = endOfWeek(startOfWeekDate, { weekStartsOn: 1 })
   const isCurrentWeek = isSameDay(startOfWeek(new Date(), { weekStartsOn: 1 }), startOfWeekDate)
+
+  const handleRemoveWeekClick = async () => {
+    setIsRemovingWeek(true)
+    await onRemoveWeek()
+    setIsRemovingWeek(false)
+  }
+
+  const handleDeleteMealClick = async (day: Date, type: string) => {
+    const key = `${format(day, 'yyyy-MM-dd')}:${type}`
+    setDeletingSlot(key)
+    await onDeleteMeal(day, type)
+    setDeletingSlot(null)
+  }
 
   return (
     <section className="bg-white rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 border border-slate-200 shadow-sm transition-all hover:shadow-md">
@@ -201,12 +225,16 @@ function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveW
           </h2>
         </div>
 
-        <button 
-          onClick={onRemoveWeek}
-          className="flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl border border-transparent hover:border-red-100 transition-all self-start md:self-auto group"
+        <button
+          onClick={handleRemoveWeekClick}
+          disabled={isRemovingWeek}
+          className="flex items-center gap-2 text-xs font-bold text-red-400 hover:text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl border border-transparent hover:border-red-100 transition-all self-start md:self-auto group disabled:opacity-50"
         >
-          <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
-          <span>Borrar semana</span>
+          {isRemovingWeek
+            ? <Loader2 size={16} className="animate-spin" />
+            : <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+          }
+          <span>{isRemovingWeek ? 'Borrando...' : 'Borrar semana'}</span>
         </button>
       </div>
 
@@ -236,7 +264,7 @@ function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveW
 
               <div className="space-y-3 flex-1 flex flex-col">
                 {(['Almuerzo', 'Cena'] as const).map((type) => {
-                  const item = plan.find((p: any) => 
+                  const item = plan.find((p: PlanItem) =>
                     p.day_date === dateStr && p.meal_type.toLowerCase() === type.toLowerCase()
                   )
                   const isLunch = type === 'Almuerzo'
@@ -258,12 +286,16 @@ function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveW
                                 </span>
                              </div>
                              
-                             <button 
-                                onClick={(e) => { e.stopPropagation(); onDeleteMeal(day, type); }}
-                                className="text-slate-400 hover:text-red-500 hover:bg-white p-1 rounded-md transition-colors"
+                             <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteMealClick(day, type) }}
+                                disabled={deletingSlot === `${dateStr}:${type}`}
+                                className="text-slate-400 hover:text-red-500 hover:bg-white p-1 rounded-md transition-colors disabled:opacity-50"
                                 title="Borrar"
                               >
-                                <X size={16} />
+                                {deletingSlot === `${dateStr}:${type}`
+                                  ? <Loader2 size={16} className="animate-spin" />
+                                  : <X size={16} />
+                                }
                               </button>
                           </div>
                           
@@ -295,9 +327,23 @@ function WeekBlock({ startOfWeekDate, plan, onSlotClick, onDeleteMeal, onRemoveW
 }
 
 // === MODAL BUSCADOR ===
-function RecipeSelectorModal({ recipes, slot, onClose, onSelect }: any) {
+type RecipeSelectorModalProps = {
+  recipes: Recipe[]
+  slot: { date: Date; type: 'Almuerzo' | 'Cena' }
+  onClose: () => void
+  onSelect: (id: string) => Promise<void>
+}
+
+function RecipeSelectorModal({ recipes, slot, onClose, onSelect }: RecipeSelectorModalProps) {
    const [search, setSearch] = useState('')
+   const [isSelecting, setIsSelecting] = useState(false)
    const filtered = recipes.filter((r: Recipe) => r.name.toLowerCase().includes(search.toLowerCase()))
+
+   const handleSelect = async (recipeId: string) => {
+     setIsSelecting(true)
+     await onSelect(recipeId)
+     setIsSelecting(false)
+   }
 
    return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in">
@@ -332,9 +378,9 @@ function RecipeSelectorModal({ recipes, slot, onClose, onSelect }: any) {
                  </div>
                ) : (
                  filtered.map((r: Recipe) => (
-                    <button key={r.id} onClick={() => onSelect(r.id)} className="w-full text-left p-3 hover:bg-emerald-50 rounded-xl flex items-center gap-3 group transition-colors border border-transparent hover:border-emerald-100">
+                    <button key={r.id} onClick={() => handleSelect(r.id)} disabled={isSelecting} className="w-full text-left p-3 hover:bg-emerald-50 rounded-xl flex items-center gap-3 group transition-colors border border-transparent hover:border-emerald-100 disabled:opacity-50">
                        <div className="bg-slate-100 text-slate-400 p-2.5 rounded-lg group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
-                         <ChefHat size={18}/>
+                         {isSelecting ? <Loader2 size={18} className="animate-spin" /> : <ChefHat size={18}/>}
                        </div>
                        <span className="text-sm font-bold text-slate-700 group-hover:text-emerald-900">{r.name}</span>
                     </button>

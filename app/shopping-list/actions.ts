@@ -38,14 +38,13 @@ export async function deleteItem(id: string) {
   revalidatePath('/shopping-list')
 }
 
-// 4. VACIAR TODA LA LISTA (El que faltaba)
+// 4. VACIAR TODA LA LISTA
 export async function clearList() {
   const supabase = await createClient()
-  // Borramos todos los registros de la tabla
   const { error } = await supabase
     .from('shopping_list_items')
     .delete()
-    .neq('name', 'NUNCA_EXISTIRA_ESTO') // Truco para borrar todo sin filtrar por ID
+    .not('id', 'is', null)
 
   if (error) console.error('Error al vaciar lista:', error)
   revalidatePath('/shopping-list')
@@ -86,11 +85,11 @@ export async function importWeekIngredients() {
   if (recipeError) return { error: `Error en ingredientes: ${recipeError.message}` }
 
   // 3. Extraer y limpiar los nombres
+  type IngredientRow = { ingredients: { name: string } | { name: string }[] | null }
   const allIngredients: string[] = []
-  recipeData.forEach((item: any) => {
-    // Dependiendo de cómo esté la FK, puede venir como objeto o array
-    const ingredientName = Array.isArray(item.ingredients) 
-      ? item.ingredients[0]?.name 
+  recipeData.forEach((item: IngredientRow) => {
+    const ingredientName = Array.isArray(item.ingredients)
+      ? item.ingredients[0]?.name
       : item.ingredients?.name
 
     if (ingredientName) {
