@@ -165,29 +165,11 @@ export async function deleteRule(id: string) {
 
 export async function reapplyRules() {
   const supabase = await createClient()
-  const [{ data: rules }, { data: transactions }] = await Promise.all([
-    supabase.from('category_rules').select('*'),
-    supabase.from('bank_transactions').select('id, concepto_original, categoria, subcategoria'),
-  ])
-  if (!rules || rules.length === 0) return { success: true, count: 0 }
-
-  let count = 0
-  for (const tx of (transactions || [])) {
-    const match = rules.find(r => tx.concepto_original.toUpperCase().includes(r.pattern.toUpperCase()))
-    if (match) {
-      const changed = match.categoria !== tx.categoria || (match.subcategoria || null) !== tx.subcategoria
-      if (changed) {
-        await supabase
-          .from('bank_transactions')
-          .update({ categoria: match.categoria, subcategoria: match.subcategoria || null })
-          .eq('id', tx.id)
-        count++
-      }
-    }
-  }
+  const { data, error } = await supabase.rpc('apply_category_rules')
+  if (error) return { success: false, count: 0, error: error.message }
   revalidatePath('/finances')
   revalidatePath('/')
-  return { success: true, count }
+  return { success: true, count: data as number }
 }
 
 // ─── CATEGORÍAS ───────────────────────────────────────────────────────────────

@@ -5,8 +5,16 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, ReferenceLine, Legend,
 } from 'recharts'
+import { Layers } from 'lucide-react'
 
 type MonthlyEntry = { label: string; gastos: number; ingresos: number }
+type SubcatEvolution = Record<string, { data: Record<string, number | string>[]; subcats: string[] }>
+
+// Paleta de colores para subcategorías
+const SUBCAT_COLORS = [
+  '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6',
+  '#0ea5e9', '#ec4899', '#14b8a6', '#f97316', '#64748b',
+]
 
 export default function EvolutionChart({
   monthlyData,
@@ -15,6 +23,7 @@ export default function EvolutionChart({
   defaultActiveCats,
   catColors,
   mediaGastos,
+  subcatEvolution,
 }: {
   monthlyData: MonthlyEntry[]
   catEvolution: Record<string, number | string>[]
@@ -22,6 +31,7 @@ export default function EvolutionChart({
   defaultActiveCats: string[]
   catColors: Record<string, string>
   mediaGastos: number
+  subcatEvolution: SubcatEvolution
 }) {
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set(defaultActiveCats))
 
@@ -29,7 +39,7 @@ export default function EvolutionChart({
     setActiveCats(prev => {
       const next = new Set(prev)
       if (next.has(cat)) {
-        if (next.size <= 1) return prev // mantener al menos una
+        if (next.size <= 1) return prev
         next.delete(cat)
       } else {
         next.add(cat)
@@ -39,6 +49,12 @@ export default function EvolutionChart({
   }
 
   const visibleCats = allCats.filter(c => activeCats.has(c))
+
+  // Modo subcategoría: cuando solo hay 1 categoría activa y tiene subcats con datos
+  const isSubcatMode = activeCats.size === 1
+  const singleCat = isSubcatMode ? [...activeCats][0] : null
+  const subcatData = singleCat ? subcatEvolution[singleCat] : null
+  const showSubcats = isSubcatMode && subcatData && subcatData.subcats.length > 1
 
   return (
     <div className="space-y-4">
@@ -69,9 +85,17 @@ export default function EvolutionChart({
       {/* Evolución categorías con toggles */}
       {allCats.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
-            Evolución por categoría · últimos 12 meses
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">
+              Evolución por categoría · últimos 12 meses
+            </h3>
+            {showSubcats && (
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-full">
+                <Layers size={11} />
+                Vista por subcategoría
+              </div>
+            )}
+          </div>
 
           {/* Toggle pills */}
           <div className="flex flex-wrap gap-2 mb-5">
@@ -96,25 +120,51 @@ export default function EvolutionChart({
           </div>
 
           <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={catEvolution}>
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
-              <Tooltip
-                formatter={(value, name) => [`${Number(value ?? 0).toFixed(0)} €`, String(name ?? '')]}
-                contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
-              />
-              {visibleCats.map(cat => (
-                <Line
-                  key={cat}
-                  type="monotone"
-                  dataKey={cat}
-                  stroke={catColors[cat] ?? '#94a3b8'}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
+            {showSubcats ? (
+              // ── Modo subcategoría ──
+              <LineChart data={subcatData!.data}>
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
+                <Tooltip
+                  formatter={(value, name) => [`${Number(value ?? 0).toFixed(0)} €`, String(name ?? '')]}
+                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
                 />
-              ))}
-            </LineChart>
+                <Legend formatter={v => <span style={{ fontSize: 11, color: '#64748b' }}>{v}</span>} />
+                {subcatData!.subcats.map((sub, i) => (
+                  <Line
+                    key={sub}
+                    type="monotone"
+                    dataKey={sub}
+                    stroke={SUBCAT_COLORS[i % SUBCAT_COLORS.length]}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                ))}
+              </LineChart>
+            ) : (
+              // ── Modo categoría (normal) ──
+              <LineChart data={catEvolution}>
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
+                <Tooltip
+                  formatter={(value, name) => [`${Number(value ?? 0).toFixed(0)} €`, String(name ?? '')]}
+                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
+                />
+                <Legend formatter={v => <span style={{ fontSize: 11, color: '#64748b' }}>{v}</span>} />
+                {visibleCats.map(cat => (
+                  <Line
+                    key={cat}
+                    type="monotone"
+                    dataKey={cat}
+                    stroke={catColors[cat] ?? '#94a3b8'}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                ))}
+              </LineChart>
+            )}
           </ResponsiveContainer>
         </div>
       )}

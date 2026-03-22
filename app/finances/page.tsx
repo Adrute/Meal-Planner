@@ -146,6 +146,28 @@ export default async function FinancesPage({
     return entry
   })
 
+  // ── Evolución por subcategoría (para modo detalle al seleccionar 1 categoría) ──
+  const subcatEvolution: Record<string, { data: Record<string, number | string>[]; subcats: string[] }> = {}
+  for (const cat of catStats) {
+    const catObj = categories.find(c => c.name === cat.cat)
+    const subcatNames = catObj?.transaction_subcategories.map(s => s.name) ?? []
+    const data = monthlyEvolution.map(m => {
+      const monthTx = all.filter(t => t.fecha_operacion.startsWith(m.key) && t.categoria === cat.cat && t.importe < 0)
+      const entry: Record<string, number | string> = { label: m.label }
+      for (const sub of subcatNames) {
+        entry[sub] = Math.abs(monthTx.filter(t => t.subcategoria === sub).reduce((s, t) => s + Number(t.importe), 0))
+      }
+      const unassigned = Math.abs(monthTx.filter(t => !subcatNames.includes(t.subcategoria ?? '')).reduce((s, t) => s + Number(t.importe), 0))
+      if (unassigned > 0.01) entry['Sin subcategoría'] = unassigned
+      return entry
+    })
+    const activeSubcats = [
+      ...subcatNames.filter(s => data.some(m => (m[s] as number) > 0)),
+      ...(data.some(m => ((m['Sin subcategoría'] ?? 0) as number) > 0) ? ['Sin subcategoría'] : []),
+    ]
+    subcatEvolution[cat.cat] = { data, subcats: activeSubcats }
+  }
+
   const hasData = all.length > 0
 
   return (
@@ -265,6 +287,7 @@ export default async function FinancesPage({
             defaultActiveCats={defaultActiveCats}
             catColors={catColors}
             mediaGastos={mediaGastos}
+            subcatEvolution={subcatEvolution}
           />
         </>
       )}

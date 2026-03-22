@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import {
   importTransactions, updateTransaction, deleteTransaction,
@@ -209,6 +210,7 @@ export default function FinancesUI({
 // ─── PANEL DE REGLAS ──────────────────────────────────────────────────────────
 
 function RulesPanel({ rules, categories }: { rules: Rule[]; categories: Category[] }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isReapplying, setIsReapplying] = useState(false)
   const [reapplyMsg, setReapplyMsg] = useState<string | null>(null)
@@ -217,9 +219,14 @@ function RulesPanel({ rules, categories }: { rules: Rule[]; categories: Category
     setIsReapplying(true)
     setReapplyMsg(null)
     const res = await reapplyRules()
+    router.refresh()
     setIsReapplying(false)
-    setReapplyMsg(res.count === 0 ? 'No había movimientos que actualizar.' : `${res.count} movimientos recategorizados.`)
-    setTimeout(() => setReapplyMsg(null), 4000)
+    if ('error' in res && res.error) {
+      setReapplyMsg(`Error: ${res.error}`)
+    } else {
+      setReapplyMsg(res.count === 0 ? 'No había movimientos que actualizar.' : `${res.count} movimientos recategorizados.`)
+    }
+    setTimeout(() => setReapplyMsg(null), 6000)
   }
 
   return (
@@ -260,6 +267,7 @@ function RulesPanel({ rules, categories }: { rules: Rule[]; categories: Category
 }
 
 function RuleRow({ rule }: { rule: Rule }) {
+  const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const colorClass = CATEGORY_COLORS[rule.categoria] ?? 'bg-gray-100 text-gray-600'
   return (
@@ -271,7 +279,7 @@ function RuleRow({ rule }: { rule: Rule }) {
         <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-md ${colorClass}`}>{rule.categoria}</span>
         {rule.subcategoria && <span className="text-[9px] text-slate-400 mt-0.5">{rule.subcategoria}</span>}
       </div>
-      <button onClick={async () => { setIsDeleting(true); await deleteRule(rule.id) }} disabled={isDeleting} className="p-1 text-slate-300 hover:text-red-500 transition-colors disabled:opacity-50 shrink-0">
+      <button onClick={async () => { setIsDeleting(true); await deleteRule(rule.id); router.refresh() }} disabled={isDeleting} className="p-1 text-slate-300 hover:text-red-500 transition-colors disabled:opacity-50 shrink-0">
         {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
       </button>
     </div>
