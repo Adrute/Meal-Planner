@@ -66,7 +66,7 @@ export default function CategoryDetailUI({
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
             <Tooltip
-              formatter={(value: number) => [`${value.toFixed(0)} €`]}
+              formatter={(value) => [`${Number(value ?? 0).toFixed(0)} €`]}
               contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
             />
             <Bar dataKey="total" name="Gastos" radius={[5, 5, 0, 0]}>

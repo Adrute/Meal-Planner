@@ -53,7 +53,7 @@ export default function EvolutionChart({
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
             <Tooltip
-              formatter={(value: number, name: string) => [`${value.toFixed(0)} €`, name]}
+              formatter={(value, name) => [`${Number(value ?? 0).toFixed(0)} €`, String(name ?? '')]}
               contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
             />
             <Legend formatter={v => <span style={{ fontSize: 11, color: '#64748b' }}>{v}</span>} />
@@ -100,7 +100,7 @@ export default function EvolutionChart({
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} tickFormatter={v => `${v}€`} />
               <Tooltip
-                formatter={(value: number, name: string) => [`${value.toFixed(0)} €`, name]}
+                formatter={(value, name) => [`${Number(value ?? 0).toFixed(0)} €`, String(name ?? '')]}
                 contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 12 }}
               />
               {visibleCats.map(cat => (
