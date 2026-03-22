@@ -1,11 +1,105 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import SubmitButton from '@/components/SubmitButton'
-
-// IMPORTAMOS NUESTRO NUEVO WIDGET
 import UpcomingReservationsWidget from '@/components/UpcomingReservationsWidget'
+
+async function FinancesWidget() {
+  const supabase = await createClient()
+  const now = new Date()
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+
+  const { data: thisMonth } = await supabase
+    .from('bank_transactions')
+    .select('importe, categoria')
+    .gte('fecha_operacion', `${currentMonth}-01`)
+
+  const { data: prevMonthTx } = await supabase
+    .from('bank_transactions')
+    .select('importe, categoria')
+    .gte('fecha_operacion', `${prevMonth}-01`)
+    .lt('fecha_operacion', `${currentMonth}-01`)
+
+  const gastosMes = Math.abs((thisMonth || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+  const ingresosMes = (thisMonth || []).filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
+  const gastosPrev = Math.abs((prevMonthTx || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+  const diff = gastosPrev > 0 ? ((gastosMes - gastosPrev) / gastosPrev) * 100 : 0
+
+  // Top 3 categorías del mes anterior
+  const catMap: Record<string, number> = {}
+  for (const t of (prevMonthTx || []).filter(t => t.importe < 0)) {
+    catMap[t.categoria] = (catMap[t.categoria] || 0) + Math.abs(Number(t.importe))
+  }
+  const top3Cats = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 3)
+
+  const hasData = (thisMonth || []).length > 0 || (prevMonthTx || []).length > 0
+
+  return (
+    <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
+      <div>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600"><Wallet size={20} /></div>
+            <h2 className="font-bold text-lg text-slate-800">Finanzas</h2>
+          </div>
+          <Link href="/finances" className="text-slate-400 hover:text-blue-600 transition-colors">
+            <ArrowRight size={20} />
+          </Link>
+        </div>
+
+        {hasData ? (
+          <div className="space-y-4 mb-6">
+            <div>
+              <span className="text-sm font-medium text-slate-500">Gasto este mes</span>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-4xl font-black text-slate-900">{gastosMes.toFixed(0)} €</span>
+              </div>
+              {gastosPrev > 0 && (
+                <p className={`text-xs font-bold mt-1 ${diff > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {diff > 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(1)}% vs mes anterior
+                </p>
+              )}
+            </div>
+            {top3Cats.length > 0 && (
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Top categorías · mes anterior</p>
+                <div className="space-y-2">
+                  {top3Cats.map(([cat, amount], i) => (
+                    <div key={cat} className="flex items-center gap-2">
+                      <span className="text-xs font-black text-slate-300 w-4 shrink-0">{i + 1}</span>
+                      <span className="text-sm font-bold text-slate-700 flex-1 truncate">{cat}</span>
+                      <span className="text-sm font-black text-slate-800 shrink-0">{amount.toFixed(0)} €</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mb-6">
+            <span className="text-sm font-medium text-slate-500">Gasto este mes</span>
+            <div className="mt-1">
+              <span className="text-4xl font-black text-slate-900">-- €</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {hasData ? (
+        <Link href="/finances" className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-slate-200">
+          <TrendingDown size={18} /> Ver movimientos
+        </Link>
+      ) : (
+        <Link href="/finances" className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-slate-200">
+          Conectar movimientos →
+        </Link>
+      )}
+    </div>
+  )
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -146,29 +240,7 @@ export default async function HomeDashboard() {
         </div>
 
         {/* WIDGET 2: FINANZAS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600"><Wallet size={20} /></div>
-                <h2 className="font-bold text-lg text-slate-800">Finanzas</h2>
-              </div>
-              <Link href="/finances" className="text-slate-400 hover:text-blue-600 transition-colors">
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-
-            <div className="mb-6">
-              <span className="text-sm font-medium text-slate-500">Gasto este mes</span>
-              <div className="mt-1">
-                <span className="text-4xl font-black text-slate-900">-- €</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
-            <span className="text-sm text-slate-400 font-medium">Conecta tus movimientos CSV</span>
-          </div>
-        </div>
+        <FinancesWidget />
 
         {/* WIDGET 3: SUMINISTROS */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
