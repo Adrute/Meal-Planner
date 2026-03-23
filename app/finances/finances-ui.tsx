@@ -6,12 +6,13 @@ import * as XLSX from 'xlsx'
 import {
   importTransactions, updateTransaction, deleteTransaction,
   deleteAllTransactions, createRule, deleteRule, reapplyRules,
+  bulkUpdateCategory,
 } from './actions'
 import { CATEGORY_COLORS, type Category } from './constants'
 import {
   Upload, Trash2, Loader2, Pencil, Check, X,
   ChevronDown, Search, Filter, BookMarked, RefreshCw, Tag, ArrowRight,
-  Download, FileText, FileSpreadsheet,
+  Download, FileText, FileSpreadsheet, CheckSquare, Square,
 } from 'lucide-react'
 
 type Transaction = {
@@ -44,6 +45,7 @@ export default function FinancesUI({
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState('Todas')
   const [subcatFilter, setSubcatFilter] = useState('Todas')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const handleCatFilterChange = (cat: string) => {
     setCatFilter(cat)
@@ -96,6 +98,15 @@ export default function FinancesUI({
   }
 
   const categoryNames = categories.map(c => c.name)
+
+  const toggleSelect = (id: string) => setSelectedIds(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+  const allSelected = filtered.length > 0 && filtered.every(t => selectedIds.has(t.id))
+  const toggleSelectAll = () => setSelectedIds(allSelected ? new Set() : new Set(filtered.map(t => t.id)))
+  const clearSelection = () => setSelectedIds(new Set())
 
   return (
     <div className="space-y-6">
@@ -182,9 +193,21 @@ export default function FinancesUI({
             )}
           </div>
 
-          <div className="text-xs font-bold text-slate-400 ml-1">
-            {filtered.length} movimientos · Gastos: <span className="text-red-500">{Math.abs(filtered.filter(t => t.importe < 0).reduce((s, t) => s + t.importe, 0)).toFixed(2)} €</span>
-            {' · '}Ingresos: <span className="text-emerald-600">{filtered.filter(t => t.importe > 0).reduce((s, t) => s + t.importe, 0).toFixed(2)} €</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleSelectAll}
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            >
+              {allSelected
+                ? <CheckSquare size={15} className="text-blue-500" />
+                : <Square size={15} />
+              }
+              {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
+            </button>
+            <span className="text-xs font-bold text-slate-400">
+              {filtered.length} movimientos · Gastos: <span className="text-red-500">{Math.abs(filtered.filter(t => t.importe < 0).reduce((s, t) => s + t.importe, 0)).toFixed(2)} €</span>
+              {' · '}Ingresos: <span className="text-emerald-600">{filtered.filter(t => t.importe > 0).reduce((s, t) => s + t.importe, 0).toFixed(2)} €</span>
+            </span>
           </div>
 
           <div className="space-y-4">
@@ -195,12 +218,28 @@ export default function FinancesUI({
                 </p>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
                   {items.map(t => (
-                    <TransactionRow key={t.id} transaction={t} categories={categories} />
+                    <TransactionRow
+                      key={t.id}
+                      transaction={t}
+                      categories={categories}
+                      isSelected={selectedIds.has(t.id)}
+                      onToggleSelect={toggleSelect}
+                    />
                   ))}
                 </div>
               </div>
             ))}
           </div>
+
+          {selectedIds.size > 0 && (
+            <BulkActionBar
+              count={selectedIds.size}
+              categories={categories}
+              selectedIds={selectedIds}
+              onClear={clearSelection}
+              onDone={clearSelection}
+            />
+          )}
         </>
       )}
     </div>
@@ -288,7 +327,12 @@ function RuleRow({ rule }: { rule: Rule }) {
 
 // ─── FILA DE TRANSACCIÓN ──────────────────────────────────────────────────────
 
-export function TransactionRow({ transaction: t, categories }: { transaction: Transaction; categories: Category[] }) {
+export function TransactionRow({ transaction: t, categories, isSelected = false, onToggleSelect }: {
+  transaction: Transaction
+  categories: Category[]
+  isSelected?: boolean
+  onToggleSelect?: (id: string) => void
+}) {
   const [isEditing, setIsEditing] = useState(false)
   const [concepto, setConcepto] = useState(t.concepto)
   const [categoria, setCategoria] = useState(t.categoria)
@@ -334,8 +378,18 @@ export function TransactionRow({ transaction: t, categories }: { transaction: Tr
   const isIncome = t.importe > 0
 
   return (
-    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''}`}>
+    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-blue-50/60' : ''}`}>
       <div className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50">
+
+        {/* Checkbox selección */}
+        {onToggleSelect && (
+          <button
+            onClick={() => onToggleSelect(t.id)}
+            className={`shrink-0 transition-colors ${isSelected ? 'text-blue-500' : 'text-slate-200 hover:text-slate-400 opacity-0 group-hover:opacity-100'}`}
+          >
+            {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+          </button>
+        )}
 
         {/* Categoría + subcategoría */}
         {isEditing ? (
@@ -455,6 +509,95 @@ function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-')
   const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
   return `${parseInt(day)} ${months[parseInt(month) - 1]} ${year}`
+}
+
+// ─── BARRA DE ACCIÓN MASIVA ───────────────────────────────────────────────────
+
+function BulkActionBar({ count, categories, selectedIds, onClear, onDone }: {
+  count: number
+  categories: Category[]
+  selectedIds: Set<string>
+  onClear: () => void
+  onDone: () => void
+}) {
+  const router = useRouter()
+  const [categoria, setCategoria] = useState(categories[0]?.name ?? '')
+  const [subcategoria, setSubcategoria] = useState('')
+  const [isApplying, setIsApplying] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  const subcats = categories.find(c => c.name === categoria)?.transaction_subcategories ?? []
+
+  const handleCatChange = (cat: string) => {
+    setCategoria(cat)
+    setSubcategoria('')
+  }
+
+  const handleApply = async () => {
+    setIsApplying(true)
+    const res = await bulkUpdateCategory([...selectedIds], categoria, subcategoria || null)
+    router.refresh()
+    setIsApplying(false)
+    if ('error' in res && res.error) {
+      setMsg(`Error: ${res.error}`)
+    } else {
+      setMsg(`${count} movimientos actualizados`)
+      setTimeout(() => { setMsg(null); onDone() }, 2000)
+    }
+  }
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-200">
+      <div className="flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-slate-900/30 flex-wrap">
+
+        {/* Contador */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="bg-blue-500 text-white text-xs font-black px-2 py-0.5 rounded-full">{count}</span>
+          <span className="text-sm font-bold text-slate-300">seleccionados</span>
+        </div>
+
+        <div className="w-px h-5 bg-slate-700 shrink-0" />
+
+        {/* Selectores */}
+        <select
+          value={categoria}
+          onChange={e => handleCatChange(e.target.value)}
+          className="text-sm font-bold bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-blue-500 cursor-pointer text-white"
+        >
+          {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+        </select>
+
+        {subcats.length > 0 && (
+          <select
+            value={subcategoria}
+            onChange={e => setSubcategoria(e.target.value)}
+            className="text-sm bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-blue-500 cursor-pointer text-slate-300"
+          >
+            <option value="">Sin subcategoría</option>
+            {subcats.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+          </select>
+        )}
+
+        {/* Aplicar */}
+        <button
+          onClick={handleApply}
+          disabled={isApplying}
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50 shrink-0"
+        >
+          {isApplying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+          Aplicar
+        </button>
+
+        {/* Mensaje */}
+        {msg && <span className="text-xs font-bold text-emerald-400">{msg}</span>}
+
+        {/* Cerrar */}
+        <button onClick={onClear} className="p-1.5 text-slate-400 hover:text-white transition-colors shrink-0">
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 // ─── EXPORTACIÓN ──────────────────────────────────────────────────────────────

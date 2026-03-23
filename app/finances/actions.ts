@@ -157,6 +157,19 @@ export async function createRule(pattern: string, categoria: string, subcategori
   return { success: true }
 }
 
+export async function bulkUpdateCategory(ids: string[], categoria: string, subcategoria: string | null) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('bank_transactions')
+    .update({ categoria, subcategoria: subcategoria || null })
+    .in('id', ids)
+  if (error) return { error: error.message }
+  revalidatePath('/finances')
+  revalidatePath('/finances/categoria', 'layout')
+  revalidatePath('/')
+  return { success: true }
+}
+
 export async function deleteRule(id: string) {
   const supabase = await createClient()
   await supabase.from('category_rules').delete().eq('id', id)
