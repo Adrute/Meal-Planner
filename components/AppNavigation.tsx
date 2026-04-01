@@ -113,7 +113,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       </aside>
 
       {/* Mobile top header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 flex items-center px-4 h-14 shadow-sm">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-[199] bg-white border-b border-slate-200 flex items-center px-4 h-14 shadow-sm">
         <button
           onClick={() => setOpen(true)}
           className="p-2 rounded-xl hover:bg-slate-100 text-slate-600 -ml-2"
@@ -129,14 +129,14 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       {/* Mobile overlay */}
       {open && (
         <div
-          className="md:hidden fixed inset-0 bg-black/40 z-50"
+          className="md:hidden fixed inset-0 bg-black/40 z-[200]"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* Mobile sliding sidebar */}
       <div
-        className={`md:hidden fixed top-0 left-0 h-full w-72 bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed top-0 left-0 h-full w-72 bg-white z-[201] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
