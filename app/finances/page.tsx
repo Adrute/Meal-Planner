@@ -5,7 +5,7 @@ import FinancesUI from './finances-ui'
 import EvolutionChart from './finances-chart'
 import MonthSelector from './month-selector'
 import CategoryBreakdown, { type CatStat } from './category-breakdown'
-import CategoriesManager from './categories-manager'
+import FinancesHeader from './finances-header'
 
 export const dynamic = 'force-dynamic'
 
@@ -174,7 +174,7 @@ export default async function FinancesPage({
     <div className="max-w-5xl mx-auto px-4 py-10 pb-24 md:pb-10 animate-in fade-in space-y-8">
 
       {/* HEADER */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-3 rounded-2xl text-blue-600"><Wallet size={28} /></div>
           <div>
@@ -182,7 +182,10 @@ export default async function FinancesPage({
             <p className="text-slate-500 font-medium">Control mensual de gastos del hogar.</p>
           </div>
         </div>
-        {hasData && <MonthSelector availableMonths={availableMonths} selectedMonth={selectedMonth} />}
+        <div className="flex flex-col sm:items-end gap-3">
+          <FinancesHeader hasData={hasData} />
+          {hasData && <MonthSelector availableMonths={availableMonths} selectedMonth={selectedMonth} />}
+        </div>
       </header>
 
       {hasData && (
@@ -295,14 +298,12 @@ export default async function FinancesPage({
       {/* MOVIMIENTOS */}
       <div>
         <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Movimientos</p>
-        <div className="space-y-4">
-          <CategoriesManager categories={categories} />
-          <FinancesUI
-            transactions={selTx}
-            rules={rules || []}
-            categories={categories}
-          />
-        </div>
+        <FinancesUI
+          transactions={selTx}
+          allTransactions={all}
+          rules={rules || []}
+          categories={categories}
+        />
       </div>
 
     </div>

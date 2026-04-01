@@ -5,9 +5,27 @@ import { createCategory, deleteCategory, createSubcategory, deleteSubcategory } 
 import { COLOR_OPTIONS, type Category } from './constants'
 import { ChevronDown, ChevronRight, Layers, Plus, Trash2, Loader2, X } from 'lucide-react'
 
-export default function CategoriesManager({ categories }: { categories: Category[] }) {
+export default function CategoriesManager({ categories, embedded = false }: { categories: Category[]; embedded?: boolean }) {
   const [open, setOpen] = useState(false)
   const [expandedCat, setExpandedCat] = useState<string | null>(null)
+
+  const content = (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        {categories.map(cat => (
+          <CategoryRow
+            key={cat.id}
+            cat={cat}
+            isExpanded={expandedCat === cat.id}
+            onToggle={() => setExpandedCat(expandedCat === cat.id ? null : cat.id)}
+          />
+        ))}
+      </div>
+      <NewCategoryForm />
+    </div>
+  )
+
+  if (embedded) return content
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -26,22 +44,8 @@ export default function CategoriesManager({ categories }: { categories: Category
       </button>
 
       {open && (
-        <div className="border-t border-slate-100 p-5 space-y-3">
-
-          {/* Lista de categorías */}
-          <div className="space-y-1">
-            {categories.map(cat => (
-              <CategoryRow
-                key={cat.id}
-                cat={cat}
-                isExpanded={expandedCat === cat.id}
-                onToggle={() => setExpandedCat(expandedCat === cat.id ? null : cat.id)}
-              />
-            ))}
-          </div>
-
-          {/* Nueva categoría */}
-          <NewCategoryForm />
+        <div className="border-t border-slate-100 p-5">
+          {content}
         </div>
       )}
     </div>

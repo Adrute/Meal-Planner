@@ -142,6 +142,13 @@ export async function deleteAllTransactions() {
   revalidatePath('/')
 }
 
+export async function toggleNeedsReview(id: string, value: boolean) {
+  const supabase = await createClient()
+  await supabase.from('bank_transactions').update({ needs_review: value }).eq('id', id)
+  revalidatePath('/finances')
+  return { success: true }
+}
+
 // ─── REGLAS ───────────────────────────────────────────────────────────────────
 
 export async function createRule(pattern: string, categoria: string, subcategoria: string | null) {

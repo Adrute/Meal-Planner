@@ -1,19 +1,22 @@
 'use client'
 
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import {
-  importTransactions, updateTransaction, deleteTransaction,
-  deleteAllTransactions, createRule, deleteRule, reapplyRules,
-  bulkUpdateCategory,
+  updateTransaction, deleteTransaction,
+  createRule, deleteRule, reapplyRules,
+  bulkUpdateCategory, toggleNeedsReview,
 } from './actions'
 import { CATEGORY_COLORS, type Category } from './constants'
 import {
-  Upload, Trash2, Loader2, Pencil, Check, X,
+  Upload, Loader2, Pencil, Check, X,
   ChevronDown, Search, Filter, BookMarked, RefreshCw, Tag, ArrowRight,
-  Download, FileText, FileSpreadsheet, CheckSquare, Square,
+  Download, FileText, FileSpreadsheet, CheckSquare, Square, Flag, ClipboardList,
+  Layers, Trash2,
 } from 'lucide-react'
+import Modal from '@/components/Modal'
+import CategoriesManager from './categories-manager'
 
 type Transaction = {
   id: string
@@ -24,28 +27,34 @@ type Transaction = {
   categoria: string
   subcategoria: string | null
   tarjeta: string | null
+  needs_review?: boolean
 }
 
 type Rule = { id: string; pattern: string; categoria: string; subcategoria: string | null }
 
 export default function FinancesUI({
   transactions,
+  allTransactions,
   rules: initialRules,
   categories,
 }: {
   transactions: Transaction[]
+  allTransactions: Transaction[]
   rules: Rule[]
   categories: Category[]
 }) {
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [importMsg, setImportMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
-  const [isDeletingAll, setIsDeletingAll] = useState(false)
-
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState('Todas')
   const [subcatFilter, setSubcatFilter] = useState('Todas')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const [modalCats, setModalCats] = useState(false)
+  const [modalRules, setModalRules] = useState(false)
+  const [modalReview, setModalReview] = useState(false)
+  const [modalExport, setModalExport] = useState(false)
+
+  const pendingCount = allTransactions.filter(t => t.needs_review).length
+  const pendingInView = allTransactions.filter(t => t.needs_review)
 
   const handleCatFilterChange = (cat: string) => {
     setCatFilter(cat)
@@ -74,29 +83,6 @@ export default function FinancesUI({
     return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]))
   }, [filtered])
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setIsImporting(true)
-    setImportMsg(null)
-    const text = await file.text()
-    const lines = text.split('\n').filter(l => l.trim())
-    const res = await importTransactions(lines)
-    setIsImporting(false)
-    setImportMsg(res.error
-      ? { type: 'err', text: res.error }
-      : { type: 'ok', text: `${res.count} movimientos importados. Reglas aplicadas.` }
-    )
-    e.target.value = ''
-  }
-
-  const handleDeleteAll = async () => {
-    if (!confirm('¿Borrar TODOS los movimientos? Esta acción no se puede deshacer.')) return
-    setIsDeletingAll(true)
-    await deleteAllTransactions()
-    setIsDeletingAll(false)
-  }
-
   const categoryNames = categories.map(c => c.name)
 
   const toggleSelect = (id: string) => setSelectedIds(prev => {
@@ -109,43 +95,41 @@ export default function FinancesUI({
   const clearSelection = () => setSelectedIds(new Set())
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
-      {/* BARRA DE ACCIONES */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <input ref={fileRef} type="file" accept=".txt,.csv" className="hidden" onChange={handleImport} />
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={isImporting}
-          className="flex items-center gap-2 bg-blue-600 text-white font-bold px-5 py-3 rounded-2xl hover:bg-blue-700 transition-all disabled:opacity-50 shadow-lg shadow-blue-100"
-        >
-          {isImporting ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-          {isImporting ? 'Importando...' : 'Importar fichero'}
-        </button>
-        {transactions.length > 0 && (
-          <button
-            onClick={handleDeleteAll}
-            disabled={isDeletingAll}
-            className="flex items-center gap-2 text-slate-400 hover:text-red-500 font-bold px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:border-red-100 transition-all disabled:opacity-50"
-          >
-            {isDeletingAll ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-            Borrar todo
-          </button>
-        )}
-        {importMsg && (
-          <span className={`text-sm font-medium px-4 py-2 rounded-xl ${importMsg.type === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
-            {importMsg.text}
-          </span>
-        )}
+      {/* BARRA DE ACCIÓN */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <ActionButton icon={<Layers size={15} />} label="Categorías" onClick={() => setModalCats(true)} />
+        <ActionButton icon={<BookMarked size={15} />} label="Reglas" count={initialRules.length} onClick={() => setModalRules(true)} />
+        <ActionButton
+          icon={<ClipboardList size={15} />}
+          label="Revisión"
+          count={pendingCount}
+          countColor="bg-amber-100 text-amber-600"
+          onClick={() => setModalReview(true)}
+          disabled={pendingCount === 0}
+        />
         {filtered.length > 0 && (
-          <div className="ml-auto">
-            <ExportMenu transactions={filtered} />
-          </div>
+          <ActionButton icon={<Download size={15} />} label="Exportar" onClick={() => setModalExport(true)} />
         )}
       </div>
 
-      {/* PANEL DE REGLAS */}
-      <RulesPanel rules={initialRules} categories={categories} />
+      {/* MODALES */}
+      <Modal isOpen={modalCats} onClose={() => setModalCats(false)} title="Categorías y subcategorías" size="lg">
+        <CategoriesManager categories={categories} embedded />
+      </Modal>
+
+      <Modal isOpen={modalRules} onClose={() => setModalRules(false)} title="Reglas de categorización" size="lg">
+        <RulesPanelContent rules={initialRules} categories={categories} onClose={() => setModalRules(false)} />
+      </Modal>
+
+      <Modal isOpen={modalReview} onClose={() => setModalReview(false)} title={`Pendientes de revisión · ${pendingCount}`} size="lg">
+        <ReviewPanelContent transactions={pendingInView} categories={categories} />
+      </Modal>
+
+      <Modal isOpen={modalExport} onClose={() => setModalExport(false)} title="Exportar movimientos" size="sm">
+        <ExportOptions transactions={filtered} onClose={() => setModalExport(false)} />
+      </Modal>
 
       {transactions.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-200">
@@ -246,11 +230,10 @@ export default function FinancesUI({
   )
 }
 
-// ─── PANEL DE REGLAS ──────────────────────────────────────────────────────────
+// ─── CONTENIDO MODAL REGLAS ───────────────────────────────────────────────────
 
-function RulesPanel({ rules, categories }: { rules: Rule[]; categories: Category[] }) {
+function RulesPanelContent({ rules, categories, onClose: _onClose }: { rules: Rule[]; categories: Category[]; onClose: () => void }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
   const [isReapplying, setIsReapplying] = useState(false)
   const [reapplyMsg, setReapplyMsg] = useState<string | null>(null)
 
@@ -269,38 +252,23 @@ function RulesPanel({ rules, categories }: { rules: Rule[]; categories: Category
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors">
-        <div className="flex items-center gap-3">
-          <BookMarked size={16} className="text-blue-500" />
-          <span className="text-sm font-black text-slate-700">Reglas de categorización</span>
-          {rules.length > 0 && (
-            <span className="bg-blue-100 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-full">{rules.length}</span>
-          )}
-        </div>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="border-t border-slate-100 p-5 space-y-4">
-          <p className="text-xs text-slate-400">Si el concepto contiene el patrón, se asigna esa categoría y subcategoría automáticamente al importar.</p>
-          {rules.length === 0
-            ? <p className="text-sm text-slate-300 text-center py-4">Sin reglas. Edita un movimiento para crear una.</p>
-            : <div className="space-y-2">{rules.map(r => <RuleRow key={r.id} rule={r} />)}</div>
-          }
-          <div className="flex items-center gap-3 pt-2 border-t border-slate-50">
-            <button
-              onClick={handleReapply}
-              disabled={isReapplying || rules.length === 0}
-              className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors"
-            >
-              {isReapplying ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              Reaplicar a todos los movimientos
-            </button>
-            {reapplyMsg && <span className="text-xs text-emerald-600 font-bold">{reapplyMsg}</span>}
-          </div>
-        </div>
-      )}
+    <div className="space-y-4">
+      <p className="text-xs text-slate-400">Si el concepto contiene el patrón, se asigna esa categoría automáticamente al importar.</p>
+      {rules.length === 0
+        ? <p className="text-sm text-slate-300 text-center py-8">Sin reglas. Edita un movimiento para crear una.</p>
+        : <div className="space-y-2">{rules.map(r => <RuleRow key={r.id} rule={r} />)}</div>
+      }
+      <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+        <button
+          onClick={handleReapply}
+          disabled={isReapplying || rules.length === 0}
+          className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors"
+        >
+          {isReapplying ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          Reaplicar a todos los movimientos
+        </button>
+        {reapplyMsg && <span className="text-xs text-emerald-600 font-bold">{reapplyMsg}</span>}
+      </div>
     </div>
   )
 }
@@ -327,12 +295,14 @@ function RuleRow({ rule }: { rule: Rule }) {
 
 // ─── FILA DE TRANSACCIÓN ──────────────────────────────────────────────────────
 
-export function TransactionRow({ transaction: t, categories, isSelected = false, onToggleSelect }: {
+export function TransactionRow({ transaction: t, categories, isSelected = false, onToggleSelect, hideFlag = false }: {
   transaction: Transaction
   categories: Category[]
   isSelected?: boolean
   onToggleSelect?: (id: string) => void
+  hideFlag?: boolean
 }) {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [concepto, setConcepto] = useState(t.concepto)
   const [categoria, setCategoria] = useState(t.categoria)
@@ -341,6 +311,16 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const [rulePattern, setRulePattern] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isFlagging, setIsFlagging] = useState(false)
+  const [flagged, setFlagged] = useState(t.needs_review ?? false)
+
+  const handleToggleFlag = async () => {
+    setIsFlagging(true)
+    setFlagged(v => !v)
+    await toggleNeedsReview(t.id, !flagged)
+    router.refresh()
+    setIsFlagging(false)
+  }
 
   // Subcategorías disponibles para la categoría seleccionada
   const subcats = categories.find(c => c.name === categoria)?.transaction_subcategories ?? []
@@ -378,7 +358,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const isIncome = t.importe > 0
 
   return (
-    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-blue-50/60' : ''}`}>
+    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-blue-50/60' : ''} ${flagged && !isSelected ? 'bg-amber-50/40' : ''}`}>
       <div className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50">
 
         {/* Checkbox selección */}
@@ -459,6 +439,16 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
             </>
           ) : (
             <>
+              {!hideFlag && (
+                <button
+                  onClick={handleToggleFlag}
+                  disabled={isFlagging}
+                  title={flagged ? 'Quitar de revisión' : 'Marcar para revisar'}
+                  className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${flagged ? 'text-amber-500' : 'text-slate-200 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
+                >
+                  {isFlagging ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />}
+                </button>
+              )}
               <button onClick={handleEdit} className="p-1.5 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
                 <Pencil size={14} />
               </button>
@@ -501,6 +491,52 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── ACTION BUTTON ────────────────────────────────────────────────────────────
+
+function ActionButton({ icon, label, count, countColor = 'bg-blue-100 text-blue-600', onClick, disabled = false }: {
+  icon: React.ReactNode; label: string; count?: number
+  countColor?: string; onClick: () => void; disabled?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 transition-all text-sm font-bold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {icon}
+      {label}
+      {count !== undefined && count > 0 && (
+        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${countColor}`}>{count}</span>
+      )}
+    </button>
+  )
+}
+
+// ─── CONTENIDO MODAL REVISIÓN ─────────────────────────────────────────────────
+
+function ReviewPanelContent({ transactions, categories }: { transactions: Transaction[]; categories: Category[] }) {
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <ClipboardList size={32} className="mx-auto text-slate-200 mb-3" />
+        <p className="text-slate-400 text-sm">No hay movimientos pendientes de revisión en el mes actual.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-slate-400 mb-4">
+        Categoriza estos movimientos y pulsa <Flag size={10} className="inline text-amber-500" /> para quitarlos de la lista.
+      </p>
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
+        {transactions.map(t => (
+          <TransactionRow key={t.id} transaction={t} categories={categories} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -611,18 +647,7 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-function ExportMenu({ transactions }: { transactions: Transaction[] }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
+function ExportOptions({ transactions, onClose }: { transactions: Transaction[]; onClose: () => void }) {
   const handleCSV = () => {
     const headers = ['Fecha', 'Concepto', 'Concepto original', 'Importe', 'Categoría', 'Subcategoría', 'Tarjeta']
     const rows = transactions.map(t => [
@@ -633,13 +658,12 @@ function ExportMenu({ transactions }: { transactions: Transaction[] }) {
       .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n')
     downloadBlob(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }), 'movimientos.csv')
-    setOpen(false)
+    onClose()
   }
 
   const handleExcel = () => {
     const wb = XLSX.utils.book_new()
 
-    // Hoja 1 — Movimientos en bruto
     const movRows = [
       ['Fecha', 'Concepto', 'Concepto original', 'Importe (€)', 'Categoría', 'Subcategoría', 'Tarjeta'],
       ...transactions.map(t => [
@@ -651,7 +675,6 @@ function ExportMenu({ transactions }: { transactions: Transaction[] }) {
     ws1['!cols'] = [{ wch: 12 }, { wch: 40 }, { wch: 50 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 12 }]
     XLSX.utils.book_append_sheet(wb, ws1, 'Movimientos')
 
-    // Hoja 2 — Por categoría y subcategoría
     const catMap: Record<string, { gastos: number; ingresos: number; n: number }> = {}
     const subcatMap: Record<string, number> = {}
     for (const t of transactions) {
@@ -680,7 +703,6 @@ function ExportMenu({ transactions }: { transactions: Transaction[] }) {
     ws2['!cols'] = [{ wch: 18 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 12 }]
     XLSX.utils.book_append_sheet(wb, ws2, 'Por categoría')
 
-    // Hoja 3 — Evolución mensual
     const monthMap: Record<string, { gastos: number; ingresos: number }> = {}
     for (const t of transactions) {
       const m = t.fecha_operacion.substring(0, 7)
@@ -699,45 +721,32 @@ function ExportMenu({ transactions }: { transactions: Transaction[] }) {
     XLSX.utils.book_append_sheet(wb, ws3, 'Evolución mensual')
 
     XLSX.writeFile(wb, 'finanzas.xlsx')
-    setOpen(false)
+    onClose()
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div className="space-y-3">
+      <p className="text-xs text-slate-400">{transactions.length} movimientos con el filtro actual.</p>
       <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 text-slate-600 font-bold px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 transition-all"
+        onClick={handleCSV}
+        className="flex items-center gap-4 w-full px-4 py-4 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-colors text-left"
       >
-        <Download size={16} />
-        Exportar
-        <ChevronDown size={13} className={`text-slate-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="absolute top-full mt-2 right-0 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-20 w-52">
-          <button
-            onClick={handleCSV}
-            className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
-          >
-            <FileText size={16} className="text-slate-400 shrink-0" />
-            <div>
-              <p className="font-bold">CSV</p>
-              <p className="text-[10px] text-slate-400">Datos en bruto del filtro</p>
-            </div>
-          </button>
-          <div className="border-t border-slate-100" />
-          <button
-            onClick={handleExcel}
-            className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
-          >
-            <FileSpreadsheet size={16} className="text-emerald-500 shrink-0" />
-            <div>
-              <p className="font-bold">Excel (.xlsx)</p>
-              <p className="text-[10px] text-slate-400">Movimientos + análisis</p>
-            </div>
-          </button>
+        <FileText size={22} className="text-slate-400 shrink-0" />
+        <div>
+          <p className="font-bold text-slate-700 text-sm">CSV</p>
+          <p className="text-xs text-slate-400">Datos en bruto del filtro actual</p>
         </div>
-      )}
+      </button>
+      <button
+        onClick={handleExcel}
+        className="flex items-center gap-4 w-full px-4 py-4 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-colors text-left"
+      >
+        <FileSpreadsheet size={22} className="text-emerald-500 shrink-0" />
+        <div>
+          <p className="font-bold text-slate-700 text-sm">Excel (.xlsx)</p>
+          <p className="text-xs text-slate-400">Movimientos + desglose + evolución mensual</p>
+        </div>
+      </button>
     </div>
   )
 }

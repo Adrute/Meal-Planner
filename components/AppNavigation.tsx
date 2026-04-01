@@ -112,14 +112,19 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
         </div>
       </aside>
 
-      {/* Mobile hamburger button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-40 bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm"
-        aria-label="Abrir menú"
-      >
-        <Menu size={20} className="text-slate-600" />
-      </button>
+      {/* Mobile top header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 flex items-center px-4 h-14 shadow-sm">
+        <button
+          onClick={() => setOpen(true)}
+          className="p-2 rounded-xl hover:bg-slate-100 text-slate-600 -ml-2"
+          aria-label="Abrir menú"
+        >
+          <Menu size={22} />
+        </button>
+        <h2 className="text-xl font-black text-slate-900 tracking-tight ml-3">
+          Mi<span className="text-emerald-500">Hogar</span>
+        </h2>
+      </header>
 
       {/* Mobile overlay */}
       {open && (
