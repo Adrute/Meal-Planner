@@ -1,12 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
-// CAMBIO IMPORTANTE: Importación con llaves {}
+import { redirect } from 'next/navigation'
 import { DeletePlansButton, DeleteRecipeButton } from './admin-client'
-import { Database, Trash2 } from 'lucide-react'
+import { Database, Trash2, Users } from 'lucide-react'
+import UserManager from './user-manager'
 
 export const dynamic = 'force-dynamic'
 
+const ADMIN_EMAIL = 'claudrian1992@gmail.com'
+
 export default async function AdminPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== ADMIN_EMAIL) redirect('/')
+
+  // 0. Usuarios registrados
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, email, display_name, permissions')
+    .order('email')
 
   // 1. Obtener Estadísticas
   const { count: recipeCount } = await supabase.from('recipes').select('*', { count: 'exact', head: true })
@@ -31,6 +42,20 @@ export default async function AdminPage() {
         <Database className="text-emerald-600" />
         Panel de Administración
       </h1>
+
+      {/* GESTIÓN DE USUARIOS */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+            <Users size={22} />
+          </div>
+          <div>
+            <h2 className="font-bold text-lg">Gestión de usuarios</h2>
+            <p className="text-sm text-slate-500">Añade o elimina accesos a la plataforma.</p>
+          </div>
+        </div>
+        <UserManager profiles={profiles || []} currentUserId={user.id} />
+      </div>
 
       {/* PANEL DE MANTENIMIENTO */}
       <div className="grid md:grid-cols-2 gap-6 mb-12">
