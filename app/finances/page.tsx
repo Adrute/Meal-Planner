@@ -58,9 +58,21 @@ export default async function FinancesPage({
   const selTx  = isAllTime ? all : all.filter(t => t.fecha_operacion.startsWith(selectedMonth))
   const compTx = isAllTime ? [] : all.filter(t => t.fecha_operacion.startsWith(compMonth))
 
+  // ── Categorías de ingreso (para distinguir reembolsos de ingresos reales) ──
+  const incomeCatNames = new Set(categories.filter(c => c.is_income).map(c => c.name))
+
+  // Reembolsos = positivos en categorías de gasto (ej: te devuelven parte de una compra)
+  const netCat = (tx: typeof all, catName: string) => {
+    const gastosBrutos = Math.abs(tx.filter(t => t.categoria === catName && t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+    const reembolsos   = tx.filter(t => t.categoria === catName && t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
+    return Math.max(0, gastosBrutos - reembolsos)
+  }
+
   // ── Métricas globales del mes ──
-  const gastos   = Math.abs(selTx.filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
-  const ingresos = selTx.filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
+  // Ingresos reales: solo positivos en categorías marcadas como ingreso
+  const ingresos = selTx.filter(t => t.importe > 0 && incomeCatNames.has(t.categoria)).reduce((s, t) => s + Number(t.importe), 0)
+  // Gastos netos: gasto bruto de cada categoría de gasto, restando reembolsos de esa misma categoría
+  const gastos = categories.filter(c => !c.is_income).reduce((s, cat) => s + netCat(selTx, cat.name), 0)
   const balance  = ingresos - gastos
   const tasaAhorro  = ingresos > 0 ? (balance / ingresos) * 100 : 0
   const diasMes     = isAllTime ? 0 : daysInMonth(selectedMonth)
@@ -69,26 +81,24 @@ export default async function FinancesPage({
     ? (mesesConDatos > 0 ? gastos / mesesConDatos : 0)
     : gastos / diasMes
 
-  const gastosComp = Math.abs(compTx.filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+  const gastosComp = categories.filter(c => !c.is_income).reduce((s, cat) => s + netCat(compTx, cat.name), 0)
   const diffGastos = gastosComp > 0 ? ((gastos - gastosComp) / gastosComp) * 100 : 0
 
   // ── Desglose por categoría con subcategorías ──
   const catStats: CatStat[] = categories
     .filter(c => !c.is_income)
     .map(cat => {
-      const cur  = Math.abs(selTx.filter(t => t.categoria === cat.name && t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
-      const prev = Math.abs(compTx.filter(t => t.categoria === cat.name && t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+      const cur  = netCat(selTx, cat.name)
+      const prev = netCat(compTx, cat.name)
       const diff = prev > 0 ? ((cur - prev) / prev) * 100 : null
       const pct  = gastos > 0 ? (cur / gastos) * 100 : 0
 
-      // Subcategorías con datos
+      // Subcategorías: también netas (gasto - reembolsos de esa subcategoría)
       const subcats = cat.transaction_subcategories
         .map(sub => {
-          const subCur = Math.abs(
-            selTx
-              .filter(t => t.categoria === cat.name && t.subcategoria === sub.name && t.importe < 0)
-              .reduce((s, t) => s + Number(t.importe), 0)
-          )
+          const subGasto = Math.abs(selTx.filter(t => t.categoria === cat.name && t.subcategoria === sub.name && t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
+          const subReemb = selTx.filter(t => t.categoria === cat.name && t.subcategoria === sub.name && t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
+          const subCur = Math.max(0, subGasto - subReemb)
           return { name: sub.name, cur: subCur, pct: cur > 0 ? (subCur / cur) * 100 : 0 }
         })
         .filter(s => s.cur > 0)
@@ -120,8 +130,8 @@ export default async function FinancesPage({
     const tx = all.filter(t => t.fecha_operacion.startsWith(key))
     return {
       label, key,
-      gastos:   Math.abs(tx.filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0)),
-      ingresos: tx.filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0),
+      gastos:   categories.filter(c => !c.is_income).reduce((s, cat) => s + netCat(tx, cat.name), 0),
+      ingresos: tx.filter(t => t.importe > 0 && incomeCatNames.has(t.categoria)).reduce((s, t) => s + Number(t.importe), 0),
     }
   })
 
