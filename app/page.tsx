@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import SubmitButton from '@/components/SubmitButton'
 import UpcomingReservationsWidget from '@/components/UpcomingReservationsWidget'
+import { sendBonoAgotadoEmail } from '@/lib/email'
 
 async function FinancesWidget() {
   const supabase = await createClient()
@@ -166,16 +167,25 @@ export default async function HomeDashboard() {
     const consume_date = formData.get('consume_date') as string
     const supabaseServer = await createClient()
 
-    const { data } = await supabaseServer.from('service_passes').select('used_sessions, session_dates').eq('id', id).single()
+    const { data } = await supabaseServer
+      .from('service_passes')
+      .select('used_sessions, total_sessions, session_dates, service_name, amount_paid')
+      .eq('id', id)
+      .single()
 
     if (data) {
       const currentDates = data.session_dates || []
       currentDates.push(consume_date)
+      const newUsed = data.used_sessions + 1
 
       await supabaseServer.from('service_passes').update({
-        used_sessions: data.used_sessions + 1,
-        session_dates: currentDates
+        used_sessions: newUsed,
+        session_dates: currentDates,
       }).eq('id', id)
+
+      if (newUsed >= data.total_sessions) {
+        await sendBonoAgotadoEmail(data.service_name, data.total_sessions, data.amount_paid)
+      }
     }
     revalidatePath('/')
     revalidatePath('/services')
