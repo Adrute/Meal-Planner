@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CheckCircle2, AlertCircle, Plus, Trash2, CalendarHeart } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import SubmitButton from '@/components/SubmitButton'
+import { sendBonoAgotadoEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,20 +54,27 @@ export default async function ServicesDashboard() {
     const id = formData.get('id') as string
     const consume_date = formData.get('consume_date') as string
     const supabase = await createClient()
-    
-    // 1. Obtenemos el bono actual para leer el historial de fechas
-    const { data } = await supabase.from('service_passes').select('used_sessions, session_dates').eq('id', id).single()
-    
+
+    const { data } = await supabase
+      .from('service_passes')
+      .select('used_sessions, total_sessions, session_dates, service_name, amount_paid')
+      .eq('id', id)
+      .single()
+
     if (data) {
-      // 2. Añadimos la nueva fecha al historial
       const currentDates = data.session_dates || []
       currentDates.push(consume_date)
+      const newUsed = data.used_sessions + 1
 
-      // 3. Guardamos en base de datos
-      await supabase.from('service_passes').update({ 
-        used_sessions: data.used_sessions + 1,
-        session_dates: currentDates
+      await supabase.from('service_passes').update({
+        used_sessions: newUsed,
+        session_dates: currentDates,
       }).eq('id', id)
+
+      // Enviar email si el bono se agota con esta sesión
+      if (newUsed >= data.total_sessions) {
+        await sendBonoAgotadoEmail(data.service_name, data.total_sessions, data.amount_paid)
+      }
     }
 
     revalidatePath('/services')
