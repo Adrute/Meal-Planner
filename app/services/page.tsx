@@ -72,7 +72,9 @@ export default async function ServicesDashboard() {
       }).eq('id', id)
 
       // Enviar email si el bono se agota con esta sesión
+      console.log(`[Bono] ${data.service_name}: ${newUsed}/${data.total_sessions} sesiones`)
       if (newUsed >= data.total_sessions) {
+        console.log(`[Bono] Agotado, enviando email a ${process.env.NOTIFY_EMAIL ?? 'claudrian1992@gmail.com'}`)
         await sendBonoAgotadoEmail(data.service_name, data.total_sessions, data.amount_paid)
       }
     }
