@@ -16,8 +16,7 @@ export async function POST(req: NextRequest) {
 
     // Extract text from PDF server-side (no API call needed)
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfModule = require('pdf-parse')
-    const parsePdf = typeof pdfModule === 'function' ? pdfModule : (pdfModule.default ?? pdfModule)
+    const parsePdf = require('pdf-parse/lib/pdf-parse.js')
     const pdfData = await parsePdf(buffer)
 
     // Send extracted text to Groq
