@@ -14,12 +14,11 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Extract text from PDF server-side (no API call needed)
+    // pdf-parse v1.1.1 — serverExternalPackages en next.config.ts evita problemas de bundling
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const parsePdf = require('pdf-parse/lib/pdf-parse.js')
-    const pdfData = await parsePdf(buffer)
+    const pdfParse = require('pdf-parse')
+    const pdfData = await pdfParse(buffer)
 
-    // Send extracted text to Groq
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
     const completion = await groq.chat.completions.create({
