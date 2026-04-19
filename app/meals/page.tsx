@@ -1,49 +1,50 @@
 import { createClient } from '@/lib/supabase/server'
 import PlannerContainer from './planner-ui'
+import SchoolMenuSection from './school-menu-section'
+import HouseholdMembersSection from './household-members-section'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PlannerPage() {
   const supabase = await createClient()
 
-  // Filtramos desde ayer para no ver cosas muy viejas, pero mantener la semana en curso
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   const dateFilter = yesterday.toISOString().split('T')[0]
 
-  // 1. Obtener Planes
-  const { data: rawPlan } = await supabase
-    .from('weekly_plan')
-    .select(`
-      day_date, 
-      meal_type, 
-      recipe_id,
-      recipes (name)
-    `)
-    .gte('day_date', dateFilter)
-    .order('day_date', { ascending: true })
+  const [
+    { data: rawPlan },
+    { data: recipes },
+    { data: householdMembers },
+    { data: schoolMenuItems },
+  ] = await Promise.all([
+    supabase
+      .from('weekly_plan')
+      .select('day_date, meal_type, recipe_id, recipes (name)')
+      .gte('day_date', dateFilter)
+      .order('day_date', { ascending: true }),
+    supabase.from('recipes').select('id, name').order('name'),
+    supabase.from('household_members').select('*').order('created_at'),
+    supabase.from('school_menu_items').select('*').order('date'),
+  ])
 
-  // 2. Obtener Recetas para el selector
-  const { data: recipes } = await supabase
-    .from('recipes')
-    .select('id, name')
-    .order('name')
-
-  // Transformamos los datos para asegurar que 'recipes' sea un objeto y no un array
-  const cleanPlan = rawPlan?.map((item) => ({
+  const cleanPlan = rawPlan?.map(item => ({
     day_date: item.day_date,
     meal_type: item.meal_type,
     recipe_id: item.recipe_id,
-    // Si Supabase devuelve array, cogemos el primero. Si devuelve objeto, lo dejamos.
-    recipes: Array.isArray(item.recipes) ? item.recipes[0] : item.recipes
-  })) || []
+    recipes: Array.isArray(item.recipes) ? item.recipes[0] : item.recipes,
+  })) ?? []
 
   return (
-    <div className="p-4 md:p-8 pb-32 max-w-7xl mx-auto w-full">
-      <PlannerContainer 
-        recipes={recipes || []} 
-        initialPlan={cleanPlan} 
+    <div className="p-4 md:p-8 pb-32 max-w-7xl mx-auto w-full space-y-8">
+      <PlannerContainer
+        recipes={recipes ?? []}
+        initialPlan={cleanPlan}
+        householdMembers={householdMembers ?? []}
+        schoolMenuItems={schoolMenuItems ?? []}
       />
+      <SchoolMenuSection items={schoolMenuItems ?? []} />
+      <HouseholdMembersSection members={householdMembers ?? []} />
     </div>
   )
 }
