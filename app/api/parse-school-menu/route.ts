@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  if (!process.env.GEMINI_API_KEY) {
-    return NextResponse.json({ error: 'GEMINI_API_KEY no configurada' }, { status: 500 })
+  if (!process.env.GROQ_API_KEY) {
+    return NextResponse.json({ error: 'GROQ_API_KEY no configurada' }, { status: 500 })
   }
 
   try {
@@ -12,26 +12,50 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: 'No se recibió PDF' }, { status: 400 })
 
     const bytes = await file.arrayBuffer()
-    const base64 = Buffer.from(bytes).toString('base64')
+    const buffer = Buffer.from(bytes)
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }, { apiVersion: 'v1' })
+    // Extract text from PDF server-side (no API call needed)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdf = require('pdf-parse')
+    const pdfData = await pdf(buffer)
 
-    const result = await model.generateContent([
-      { inlineData: { mimeType: 'application/pdf', data: base64 } },
-      `Analiza este menú de comedor escolar español. Extrae los platos de cada día laborable (lunes a viernes).
-Para cada día, identifica la fecha exacta en formato YYYY-MM-DD (usando el año y mes que aparecen en el PDF), el primer plato, segundo plato y postre.
+    // Send extracted text to Groq
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      response_format: { type: 'json_object' },
+      temperature: 0.1,
+      messages: [
+        {
+          role: 'system',
+          content: 'Eres un extractor de datos de menús escolares españoles. Respondes siempre con JSON válido.',
+        },
+        {
+          role: 'user',
+          content: `Analiza este texto de un menú de comedor escolar español y extrae los platos de cada día laborable (lunes a viernes).
+
+TEXTO DEL PDF:
+${pdfData.text}
+
+Para cada día laborable, extrae:
+- La fecha exacta en formato YYYY-MM-DD (usa el año y mes que aparecen en el documento)
+- El primer plato (first_course)
+- El segundo plato (second_course)
+- El postre (dessert)
+
 Ignora días festivos, vacaciones y días sin datos.
-Responde ÚNICAMENTE con JSON válido sin markdown ni texto extra:
+
+Responde con este JSON exacto:
 {"menu":[{"date":"YYYY-MM-DD","first_course":"...","second_course":"...","dessert":"..."}]}`,
-    ])
+        },
+      ],
+    })
 
-    const text = result.response.text()
-    const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    const jsonMatch = clean.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return NextResponse.json({ error: 'No se pudo procesar el PDF' }, { status: 500 })
+    const content = completion.choices[0]?.message?.content
+    if (!content) return NextResponse.json({ error: 'Respuesta vacía de la IA' }, { status: 500 })
 
-    return NextResponse.json(JSON.parse(jsonMatch[0]))
+    return NextResponse.json(JSON.parse(content))
   } catch (e) {
     console.error('[parse-school-menu]', e)
     return NextResponse.json({ error: 'Error al procesar el PDF' }, { status: 500 })

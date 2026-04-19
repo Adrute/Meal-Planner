@@ -57,4 +57,5 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 RESEND_API_KEY
 NOTIFY_EMAIL (opcional, default: claudrian1992@gmail.com)
+GROQ_API_KEY  (planificador IA — tier gratuito en console.groq.com)
 ```
