@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { GraduationCap, Upload, ChevronDown, Check, AlertCircle, Loader2 } from 'lucide-react'
 import { saveSchoolMenuItems, type SchoolMenuItem } from './actions'
 import { format, parseISO } from 'date-fns'
@@ -27,6 +28,7 @@ function groupByWeek(items: SchoolMenuItem[]) {
 }
 
 export default function SchoolMenuSection({ items }: { items: SchoolMenuItem[] }) {
+  const router = useRouter()
   const [open, setOpen] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
   const [isParsing, setIsParsing] = useState(false)
@@ -70,6 +72,7 @@ export default function SchoolMenuSection({ items }: { items: SchoolMenuItem[] }
       setParsed(null)
       setSavedOk(true)
       setTimeout(() => setSavedOk(false), 3000)
+      router.refresh()
     })
   }
 

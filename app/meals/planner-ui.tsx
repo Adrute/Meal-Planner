@@ -224,7 +224,7 @@ function WeekBlock({
     setGenerationResult(null)
 
     const weekDates = days.slice(0, 5).map(d => format(d, 'yyyy-MM-dd'))
-    const weekSchoolMenu = schoolMenuItems.filter(s => weekDates.includes(s.date))
+    const weekSchoolMenu = schoolMenuItems.filter(s => weekDates.includes(s.date.slice(0, 10)))
 
     try {
       const res = await fetch('/api/generate-meal-plan', {
@@ -300,7 +300,7 @@ function WeekBlock({
         {days.map(day => {
           const isToday = isSameDay(day, new Date())
           const dateStr = format(day, 'yyyy-MM-dd')
-          const schoolMenu = schoolMenuItems.find(s => s.date === dateStr)
+          const schoolMenu = schoolMenuItems.find(s => s.date.slice(0, 10) === dateStr)
 
           return (
             <div
