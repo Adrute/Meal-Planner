@@ -12,20 +12,22 @@
 Antes de empezar cualquier tarea:
 1. **Crear rama** con prefijo según tipo: `feat/`, `fix/`, `refactor/`, `chore/`
 2. **Hacer el trabajo** en esa rama
-3. Al terminar: **merge a main**, **push** y **borrar la rama local**
+3. Al terminar: avisar al usuario para que pruebe en local
+4. Cuando el usuario dé el **OK explícito**: merge a main, push y borrar la rama local
 
 ```bash
 git checkout -b feat/nombre-descriptivo
 # ... trabajo ...
 git add <archivos relevantes>
 git commit -m "feat: descripción del cambio"
+# ← ESPERAR OK DEL USUARIO antes de continuar
 git checkout main
 git merge feat/nombre-descriptivo
 git push origin main
 git branch -d feat/nombre-descriptivo
 ```
 
-4. **Actualizar `CHANGELOG.md`** con la fecha y descripción de los cambios.
+5. **Actualizar `CHANGELOG.md`** con la fecha y descripción de los cambios.
 
 ## Changelog
 Cada vez que se completa una tarea, añadir una entrada en [CHANGELOG.md](./CHANGELOG.md) con el formato:
