@@ -1,4 +1,5 @@
 import Groq from 'groq-sdk'
+import { extractText, getDocumentProxy } from 'unpdf'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -12,12 +13,8 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: 'No se recibió PDF' }, { status: 400 })
 
     const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // pdf-parse v1.1.1 — serverExternalPackages en next.config.ts evita problemas de bundling
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse')
-    const pdfData = await pdfParse(buffer)
+    const pdf = await getDocumentProxy(new Uint8Array(bytes))
+    const { text } = await extractText(pdf, { mergePages: true })
 
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
@@ -35,7 +32,7 @@ export async function POST(req: NextRequest) {
           content: `Analiza este texto de un menú de comedor escolar español y extrae los platos de cada día laborable (lunes a viernes).
 
 TEXTO DEL PDF:
-${pdfData.text}
+${text}
 
 Para cada día laborable, extrae:
 - La fecha exacta en formato YYYY-MM-DD (usa el año y mes que aparecen en el documento)
