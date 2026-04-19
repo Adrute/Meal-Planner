@@ -71,7 +71,7 @@ Responde ÚNICAMENTE con JSON válido sin texto extra ni markdown:
 {"plan":[{"date":"YYYY-MM-DD","recipe_name":"Nombre del plato","recipe_id":"el-id-si-es-receta-guardada-o-null","is_new_recipe":false,"notes":"por qué complementa bien (muy breve)"}]}`
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     const result = await model.generateContent(prompt)
 
     const text = result.response.text()
