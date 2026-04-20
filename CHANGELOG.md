@@ -1,5 +1,15 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Planificador de comidas con IA
+- Importación de menú escolar mensual vía PDF (drag & drop) con extracción IA (Groq Llama 3.3)
+- El PDF guarda el mes completo; el planificador filtra la semana actual automáticamente
+- Generación de cenas complementarias con IA por semana (botón por WeekBlock)
+- La IA complementa el menú escolar (evita repetir proteína/legumbres) y respeta restricciones
+- Gestión de miembros del hogar con restricciones alimentarias (alergias, intolerancias, preferencias)
+- Muestra el menú del colegio dentro de cada día del planificador (badge "Cole")
+- Nuevas tablas Supabase: `household_members`, `school_menu_items`
+- Integración gratuita: Groq API (tier gratuito, sin tarjeta de crédito)
+
 ## [2026-04-19] Optimización del flujo de trabajo
 - Creado `CLAUDE.md` con instrucciones de trabajo para Claude Code
 - Creado `CHANGELOG.md` (este fichero)
