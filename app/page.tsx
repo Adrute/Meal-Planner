@@ -241,7 +241,12 @@ export default async function HomeDashboard() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600"><Utensils size={20} /></div>
-                <h2 className="font-bold text-lg text-slate-800">Menú de Hoy</h2>
+                <div>
+                  <h2 className="font-bold text-lg text-slate-800">Menú de Hoy</h2>
+                  <p className="text-xs text-slate-400 font-medium capitalize">
+                    {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </p>
+                </div>
               </div>
               <Link href="/meals" className="text-slate-400 hover:text-orange-600 transition-colors">
                 <ArrowRight size={20} />
