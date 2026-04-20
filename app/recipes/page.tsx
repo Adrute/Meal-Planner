@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, ChefHat, Clock, BookOpen, Star, Tag } from 'lucide-react'
+import { Plus, Clock, BookOpen, Star } from 'lucide-react'
 
 type Recipe = {
   id: string
@@ -112,15 +112,15 @@ export default async function RecipesPage({
           )}
         </div>
       ) : showGrouped ? (
-        <div className="space-y-10">
+        <div className="space-y-12">
           {Object.entries(grouped)
             .sort(([a], [b]) => a === 'Sin categoría' ? 1 : b === 'Sin categoría' ? -1 : a.localeCompare(b))
             .map(([cat, items]) => (
               <section key={cat}>
-                <div className="flex items-center gap-2 mb-4">
-                  <Tag size={14} className="text-slate-400" />
-                  <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">{cat}</h2>
-                  <span className="text-xs font-bold text-slate-300">({items.length})</span>
+                <div className="flex items-center gap-2 mb-5 pb-3 border-b border-slate-100">
+                  <span className="text-lg">{CATEGORY_EMOJI[cat] ?? '🍽️'}</span>
+                  <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest">{cat}</h2>
+                  <span className="text-xs font-bold text-slate-300 ml-1">({items.length})</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {items.map(r => <RecipeCard key={r.id} recipe={r} />)}
@@ -152,45 +152,49 @@ function FilterLink({ href, active, children }: { href: string; active: boolean;
   )
 }
 
-const GRADIENTS = [
-  'from-orange-400 to-orange-600',
-  'from-emerald-400 to-emerald-600',
-  'from-blue-400 to-blue-600',
-  'from-purple-400 to-purple-600',
-  'from-pink-400 to-pink-600',
-]
+const CATEGORY_EMOJI: Record<string, string> = {
+  'Pasta': '🍝',
+  'Arroces': '🍚',
+  'Carnes': '🥩',
+  'Pescado': '🐟',
+  'Verduras': '🥦',
+  'Legumbres': '🫘',
+  'Sopas': '🍲',
+  'Huevos': '🥚',
+  'Ensaladas': '🥗',
+  'Postres': '🍰',
+  'Otros': '🍴',
+  'Sin categoría': '🍽️',
+}
 
 function RecipeCard({ recipe }: { recipe: Recipe }) {
-  const gradient = GRADIENTS[recipe.name.length % GRADIENTS.length]
   const ingredientCount = recipe.recipe_ingredients?.[0]?.count || 0
+  const emoji = CATEGORY_EMOJI[recipe.category ?? ''] ?? '🍽️'
 
   return (
     <Link href={`/recipes/${recipe.id}`} className="block h-full">
-      <div className="group bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all relative h-full flex flex-col">
+      <div className="group bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all relative h-full flex flex-col gap-3">
         {recipe.is_favorite && (
-          <div className="absolute top-3 right-3 z-10 text-amber-400">
-            <Star size={16} fill="currentColor" />
+          <div className="absolute top-3 right-3 text-amber-400">
+            <Star size={15} fill="currentColor" />
           </div>
         )}
-        <div className={`h-28 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-3 text-white shrink-0 group-hover:scale-[1.02] transition-transform duration-300`}>
-          <ChefHat size={32} className="opacity-90 drop-shadow-md" />
+
+        {/* Emoji grande como visual principal */}
+        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
+          {emoji}
         </div>
-        <div className="flex flex-col flex-1 justify-between">
-          <h3 className="font-bold text-slate-800 text-base leading-tight mb-2 line-clamp-2">{recipe.name}</h3>
+
+        <div className="flex flex-col flex-1 justify-between gap-2">
+          <h3 className="font-bold text-slate-800 text-base leading-snug line-clamp-2 pr-4">{recipe.name}</h3>
           <div className="flex items-center gap-2 flex-wrap">
-            {recipe.category && (
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                {recipe.category}
+            {recipe.prep_time ? (
+              <span className="flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                <Clock size={11} /> {recipe.prep_time} min
               </span>
-            )}
-            {recipe.prep_time && (
-              <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400">
-                <Clock size={10} /> {recipe.prep_time} min
-              </span>
-            )}
-            {!recipe.prep_time && (
-              <span className="text-[10px] font-medium text-slate-400">
-                📦 {ingredientCount} ingr.
+            ) : (
+              <span className="text-[11px] font-medium text-slate-400">
+                {ingredientCount} ingredientes
               </span>
             )}
           </div>
