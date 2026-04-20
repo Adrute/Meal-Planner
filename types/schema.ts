@@ -14,7 +14,8 @@ export const RecipeSchema = z.object({
   ingredients: z.array(z.object({
     ingredient_id: z.string().optional(),
     name: z.string().min(2, "Nombre del ingrediente requerido"),
-    amount: z.string().min(1, "Cantidad requerida (ej: 200g)"),
+    amount: z.string().min(1, "Introduce la cantidad"),
+    unit: z.string().optional(),
     store: z.string().optional(),
   })).min(1, "Añade al menos un ingrediente"),
 });

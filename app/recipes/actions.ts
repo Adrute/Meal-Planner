@@ -37,10 +37,11 @@ async function upsertIngredients(
       }
     }
 
+    const fullAmount = item.unit ? `${item.amount} ${item.unit}` : item.amount
     await supabase.from('recipe_ingredients').insert({
       recipe_id: recipeId,
       ingredient_id: ingredientId,
-      amount: item.amount,
+      amount: fullAmount,
     })
   }
 }

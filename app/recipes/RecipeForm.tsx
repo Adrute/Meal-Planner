@@ -11,6 +11,25 @@ import { IngredientCombobox } from '@/components/IngredientCombobox'
 
 const CATEGORIES = ['Pasta', 'Arroces', 'Carnes', 'Pescado', 'Verduras', 'Legumbres', 'Sopas', 'Huevos', 'Ensaladas', 'Postres', 'Otros']
 
+const UNITS = [
+  { label: '—', value: '' },
+  { label: 'g', value: 'g' },
+  { label: 'kg', value: 'kg' },
+  { label: 'ml', value: 'ml' },
+  { label: 'cl', value: 'cl' },
+  { label: 'dl', value: 'dl' },
+  { label: 'l', value: 'l' },
+  { label: 'taza(s)', value: 'tazas' },
+  { label: 'cda.', value: 'cucharadas' },
+  { label: 'cdita.', value: 'cucharaditas' },
+  { label: 'ud(s)', value: 'uds' },
+  { label: 'diente(s)', value: 'dientes' },
+  { label: 'lata(s)', value: 'latas' },
+  { label: 'puñado(s)', value: 'puñados' },
+  { label: 'rodaja(s)', value: 'rodajas' },
+  { label: 'al gusto', value: 'al gusto' },
+]
+
 type Props = {
   ingredients: CatalogIngredient[]
   mode: 'create' | 'edit'
@@ -26,7 +45,7 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
     resolver: zodResolver(RecipeSchema),
     defaultValues: defaultValues ?? {
       steps: [{ text: '' }],
-      ingredients: [{ ingredient_id: '', name: '', amount: '', store: '' }],
+      ingredients: [{ ingredient_id: '', name: '', amount: '', unit: '', store: '' }],
     },
   })
 
@@ -104,7 +123,7 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
             </div>
             <button
               type="button"
-              onClick={() => appendIng({ ingredient_id: '', name: '', amount: '', store: '' })}
+              onClick={() => appendIng({ ingredient_id: '', name: '', amount: '', unit: '', store: '' })}
               className="text-emerald-600 text-sm font-bold flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
             >
               <Plus size={16} /> Añadir
@@ -117,8 +136,16 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
                 <input
                   {...register(`ingredients.${index}.amount`)}
                   placeholder="Cant."
-                  className="w-20 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none"
+                  className="w-16 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none"
                 />
+                <select
+                  {...register(`ingredients.${index}.unit`)}
+                  className="w-24 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none text-slate-600"
+                >
+                  {UNITS.map(u => (
+                    <option key={u.value} value={u.value}>{u.label}</option>
+                  ))}
+                </select>
                 <Controller
                   control={control}
                   name={`ingredients.${index}.name`}
