@@ -29,20 +29,26 @@ export async function POST(req: NextRequest) {
         },
         {
           role: 'user',
-          content: `Analiza este texto de un menú de comedor escolar español y extrae los platos de cada día laborable (lunes a viernes).
+          content: `El siguiente texto ha sido extraído de un PDF de menú mensual de comedor escolar español. El texto puede estar desordenado porque proviene de un layout de tabla/calendario.
 
 TEXTO DEL PDF:
 ${text}
 
-Para cada día laborable, extrae:
-- La fecha exacta en formato YYYY-MM-DD (usa el año y mes que aparecen en el documento)
+Tu tarea: extraer los platos de TODOS los días laborables del mes completo (normalmente 18-23 días repartidos en 4 semanas). NO te detengas tras la primera semana.
+
+Pasos:
+1. Identifica el año y mes en el encabezado (ej: "2026 ABR" = abril 2026, "2026 MAY" = mayo 2026)
+2. Busca TODOS los números de día que aparezcan (6, 7, 8, 9, 10, 13, 14... hasta el final del mes)
+3. Para cada número de día asocia los platos que aparezcan a su lado o cerca
+4. Ignora días festivos o vacaciones (cuando el texto lo indique explícitamente)
+
+Para cada día laborable del mes, extrae:
+- La fecha en formato YYYY-MM-DD
 - El primer plato (first_course)
 - El segundo plato (second_course)
 - El postre (dessert)
 
-Ignora días festivos, vacaciones y días sin datos.
-
-Responde con este JSON exacto:
+Responde ÚNICAMENTE con JSON válido, sin texto extra:
 {"menu":[{"date":"YYYY-MM-DD","first_course":"...","second_course":"...","dessert":"..."}]}`,
         },
       ],
