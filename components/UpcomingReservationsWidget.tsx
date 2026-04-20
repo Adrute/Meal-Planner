@@ -21,7 +21,7 @@ export default async function UpcomingReservationsWidget() {
         <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mb-3">
            <CalendarClock className="text-purple-300" size={24} />
         </div>
-        <h3 className="text-sm font-black text-slate-700 mb-1">Sin visitas a la vista</h3>
+        <h3 className="text-sm font-black text-slate-700 mb-1">Sin planes a la vista</h3>
         <p className="text-xs text-slate-500 font-medium">No tienes reservas próximas programadas.</p>
       </div>
     )
@@ -36,7 +36,7 @@ export default async function UpcomingReservationsWidget() {
       
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-          <CalendarClock className="text-purple-500" /> Próximas Visitas
+          <CalendarClock className="text-purple-500" /> Próximos Planes
         </h2>
         
         {/* Enlace de "Ver todas" si hay más de 3 */}

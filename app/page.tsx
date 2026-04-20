@@ -232,8 +232,8 @@ export default async function HomeDashboard() {
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
-      {/* --- INICIO DE LA CUADRÍCULA SUPERIOR (AHORA 4 COLUMNAS EN LG, 2 EN MD) --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* --- FILA 1: MENÚ + PRÓXIMOS PLANES --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         {/* WIDGET 1: COMIDAS */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
@@ -302,10 +302,18 @@ export default async function HomeDashboard() {
           </Link>
         </div>
 
-        {/* WIDGET 2: FINANZAS */}
+        {/* WIDGET 2: PRÓXIMOS PLANES */}
+        <UpcomingReservationsWidget />
+
+      </div>
+
+      {/* --- FILA 2: FINANZAS + SUMINISTROS --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+        {/* WIDGET 3: FINANZAS */}
         <FinancesWidget />
 
-        {/* WIDGET 3: SUMINISTROS */}
+        {/* WIDGET 4: SUMINISTROS */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-6">
@@ -356,11 +364,8 @@ export default async function HomeDashboard() {
           </div>
         </div>
 
-        {/* WIDGET 4: RESERVAS DE RESTAURANTES */}
-        <UpcomingReservationsWidget />
-
       </div>
-      {/* --- FIN DE LA CUADRÍCULA SUPERIOR --- */}
+      {/* --- FIN DE FINANZAS + SUMINISTROS --- */}
 
 
       {/* --- INICIO DEL MÓDULO DE BONOS (VISTA DETALLADA) --- */}
