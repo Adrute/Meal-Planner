@@ -1,10 +1,10 @@
 'use client'
 
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useForm, useFieldArray, Controller, FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { RecipeSchema, RecipeFormValues, CatalogIngredient } from '@/types/schema'
 import { createRecipe, updateRecipe } from './actions'
-import { Plus, Trash2, Save, ChevronLeft, Clock, Tag } from 'lucide-react'
+import { Plus, Trash2, Save, ChevronLeft, Clock, Tag, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { IngredientCombobox } from '@/components/IngredientCombobox'
@@ -30,6 +30,26 @@ const UNITS = [
   { label: 'al gusto', value: 'al gusto' },
 ]
 
+function getValidationSummary(errors: FieldErrors<RecipeFormValues>): string[] {
+  const msgs: string[] = []
+  if (errors.name) msgs.push(errors.name.message ?? 'El nombre es obligatorio.')
+  if (errors.steps?.root || errors.steps?.message) {
+    msgs.push('Añade al menos un paso de preparación.')
+  } else if (Array.isArray(errors.steps)) {
+    const hasEmptyStep = errors.steps.some(s => s?.text)
+    if (hasEmptyStep) msgs.push('Hay pasos vacíos — escribe algo en cada paso o elimínalo.')
+  }
+  if (errors.ingredients?.root || (errors.ingredients as any)?.message) {
+    msgs.push('Añade al menos un ingrediente.')
+  } else if (Array.isArray(errors.ingredients)) {
+    const hasEmptyName = errors.ingredients.some(i => i?.name)
+    const hasEmptyAmount = errors.ingredients.some(i => i?.amount)
+    if (hasEmptyName) msgs.push('Faltan nombres de ingredientes.')
+    if (hasEmptyAmount) msgs.push('Faltan cantidades en algún ingrediente.')
+  }
+  return msgs
+}
+
 type Props = {
   ingredients: CatalogIngredient[]
   mode: 'create' | 'edit'
@@ -40,6 +60,7 @@ type Props = {
 export default function RecipeForm({ ingredients, mode, recipeId, defaultValues }: Props) {
   const [isPending, startTransition] = useTransition()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const { register, control, handleSubmit, setValue, formState: { errors } } = useForm<RecipeFormValues>({
     resolver: zodResolver(RecipeSchema),
@@ -54,6 +75,7 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
 
   const onSubmit = (data: RecipeFormValues) => {
     setServerError(null)
+    setValidationErrors([])
     startTransition(async () => {
       const res = mode === 'edit' && recipeId
         ? await updateRecipe(recipeId, data)
@@ -61,6 +83,18 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
       if (res?.error) setServerError(res.error)
     })
   }
+
+  const onValidationError = (errs: FieldErrors<RecipeFormValues>) => {
+    setValidationErrors(getValidationSummary(errs))
+  }
+
+  const hasStepErrors = Array.isArray(errors.steps)
+    ? errors.steps.some(s => s?.text)
+    : !!errors.steps
+
+  const hasIngredientErrors = Array.isArray(errors.ingredients)
+    ? errors.ingredients.some(i => i?.name || i?.amount)
+    : !!errors.ingredients
 
   return (
     <div className="max-w-2xl mx-auto p-4 pb-24">
@@ -73,7 +107,7 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onValidationError)} className="space-y-6">
 
         {/* Nombre */}
         <div className="space-y-2">
@@ -81,9 +115,13 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
           <input
             {...register('name')}
             placeholder="Ej: Macarrones con tomate"
-            className="w-full p-4 rounded-xl border border-slate-200 bg-white font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+            className={`w-full p-4 rounded-xl border bg-white font-medium focus:ring-2 focus:ring-emerald-500 outline-none transition-colors ${errors.name ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
           />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-sm flex items-center gap-1.5">
+              <AlertCircle size={14} /> {errors.name.message}
+            </p>
+          )}
         </div>
 
         {/* Categoría + Tiempo */}
@@ -115,7 +153,7 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
         </div>
 
         {/* Ingredientes */}
-        <section className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+        <section className={`bg-white p-5 rounded-2xl border shadow-sm transition-colors ${hasIngredientErrors ? 'border-red-200' : 'border-slate-100'}`}>
           <div className="flex justify-between items-center mb-5">
             <div>
               <h2 className="font-bold text-lg">🍅 Ingredientes</h2>
@@ -131,54 +169,66 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
           </div>
 
           <div className="space-y-3">
-            {ingFields.map((field, index) => (
-              <div key={field.id} className="flex gap-2 items-start">
-                <input
-                  {...register(`ingredients.${index}.amount`)}
-                  placeholder="Cant."
-                  className="w-16 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none"
-                />
-                <select
-                  {...register(`ingredients.${index}.unit`)}
-                  className="w-24 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none text-slate-600"
-                >
-                  {UNITS.map(u => (
-                    <option key={u.value} value={u.value}>{u.label}</option>
-                  ))}
-                </select>
-                <Controller
-                  control={control}
-                  name={`ingredients.${index}.name`}
-                  render={({ field: nameField }) => (
-                    <IngredientCombobox
-                      ingredients={ingredients}
-                      value={nameField.value}
-                      error={!!errors.ingredients?.[index]?.name}
-                      onChange={(name, ingredientId, store) => {
-                        nameField.onChange(name)
-                        setValue(`ingredients.${index}.ingredient_id`, ingredientId ?? '')
-                        setValue(`ingredients.${index}.store`, store ?? '')
-                      }}
+            {ingFields.map((field, index) => {
+              const ingError = Array.isArray(errors.ingredients) ? errors.ingredients[index] : undefined
+              return (
+                <div key={field.id} className="flex gap-2 items-start">
+                  <div className="flex flex-col gap-1">
+                    <input
+                      {...register(`ingredients.${index}.amount`)}
+                      placeholder="Cant."
+                      className={`w-16 shrink-0 p-3 rounded-xl border text-sm bg-slate-50 focus:border-emerald-400 outline-none transition-colors ${ingError?.amount ? 'border-red-300' : 'border-slate-200'}`}
                     />
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => removeIng(index)}
-                  disabled={ingFields.length === 1}
-                  className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-0"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
+                  </div>
+                  <select
+                    {...register(`ingredients.${index}.unit`)}
+                    className="w-24 shrink-0 p-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:border-emerald-400 outline-none text-slate-600"
+                  >
+                    {UNITS.map(u => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
+                  </select>
+                  <Controller
+                    control={control}
+                    name={`ingredients.${index}.name`}
+                    render={({ field: nameField }) => (
+                      <IngredientCombobox
+                        ingredients={ingredients}
+                        value={nameField.value}
+                        error={!!ingError?.name}
+                        onChange={(name, ingredientId, store) => {
+                          nameField.onChange(name)
+                          setValue(`ingredients.${index}.ingredient_id`, ingredientId ?? '')
+                          setValue(`ingredients.${index}.store`, store ?? '')
+                        }}
+                      />
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeIng(index)}
+                    disabled={ingFields.length === 1}
+                    className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-0"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </section>
 
         {/* Pasos */}
-        <section className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+        <section className={`bg-white p-5 rounded-2xl border shadow-sm transition-colors ${hasStepErrors ? 'border-red-200' : 'border-slate-100'}`}>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-lg">👨‍🍳 Pasos</h2>
+            <div>
+              <h2 className="font-bold text-lg">👨‍🍳 Pasos</h2>
+              {hasStepErrors && (
+                <p className="text-xs text-red-500 mt-0.5 flex items-center gap-1">
+                  <AlertCircle size={12} /> Rellena todos los pasos o elimina los vacíos
+                </p>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => appendStep({ text: '' })}
@@ -189,33 +239,53 @@ export default function RecipeForm({ ingredients, mode, recipeId, defaultValues 
           </div>
 
           <div className="space-y-3">
-            {stepFields.map((field, index) => (
-              <div key={field.id} className="flex gap-3 items-start">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold mt-3 shrink-0">
-                  {index + 1}
-                </span>
-                <textarea
-                  {...register(`steps.${index}.text`)}
-                  placeholder={`Describe el paso ${index + 1}...`}
-                  rows={2}
-                  className="flex-1 p-3 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeStep(index)}
-                  disabled={stepFields.length === 1}
-                  className="mt-2 text-slate-300 hover:text-red-500 transition-colors disabled:opacity-0"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+            {stepFields.map((field, index) => {
+              const stepError = Array.isArray(errors.steps) ? errors.steps[index]?.text : undefined
+              return (
+                <div key={field.id} className="flex gap-3 items-start">
+                  <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold mt-3 shrink-0 ${stepError ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'}`}>
+                    {index + 1}
+                  </span>
+                  <textarea
+                    {...register(`steps.${index}.text`)}
+                    placeholder={`Describe el paso ${index + 1}...`}
+                    rows={2}
+                    className={`flex-1 p-3 rounded-xl border text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none transition-colors ${stepError ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeStep(index)}
+                    disabled={stepFields.length === 1}
+                    className="mt-2 text-slate-300 hover:text-red-500 transition-colors disabled:opacity-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </section>
 
+        {/* Banner de errores de validación */}
+        {validationErrors.length > 0 && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex gap-3">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-700 mb-1">Revisa el formulario antes de guardar:</p>
+              <ul className="space-y-0.5">
+                {validationErrors.map((msg, i) => (
+                  <li key={i} className="text-sm text-red-600">· {msg}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de error del servidor */}
         {serverError && (
-          <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium text-center border border-red-100">
-            {serverError}
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex gap-3">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm font-bold text-red-700">{serverError}</p>
           </div>
         )}
 
