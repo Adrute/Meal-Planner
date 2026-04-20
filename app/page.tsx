@@ -1,4 +1,4 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -107,6 +107,21 @@ export const dynamic = 'force-dynamic'
 export default async function HomeDashboard() {
   const supabase = await createClient()
   const today = new Date().toISOString().split('T')[0]
+
+  // 0. Menú de hoy
+  const { data: todayMeals } = await supabase
+    .from('weekly_plan')
+    .select('meal_type, recipes(name)')
+    .eq('day_date', today)
+
+  const { data: todaySchoolMenu } = await supabase
+    .from('school_menu_items')
+    .select('first_course, second_course, dessert')
+    .eq('date', today)
+    .maybeSingle()
+
+  const todayAlmuerzo = todayMeals?.find(m => m.meal_type.toLowerCase() === 'almuerzo')
+  const todayCena = todayMeals?.find(m => m.meal_type.toLowerCase() === 'cena')
 
   // 1. Cargar facturas
   const { data: invoices } = await supabase
@@ -233,14 +248,47 @@ export default async function HomeDashboard() {
               </Link>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 mb-6">
+              {todaySchoolMenu && (
+                <div className="border-l-2 border-emerald-400 pl-4 py-1">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <GraduationCap size={11} className="text-emerald-500" />
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Cole</span>
+                  </div>
+                  <p className="font-semibold text-slate-800 text-sm leading-tight">{todaySchoolMenu.first_course}</p>
+                  {todaySchoolMenu.second_course && (
+                    <p className="text-xs text-slate-500 leading-tight mt-0.5">{todaySchoolMenu.second_course}</p>
+                  )}
+                  {todaySchoolMenu.dessert && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">{todaySchoolMenu.dessert}</p>
+                  )}
+                </div>
+              )}
               <div className="border-l-2 border-orange-400 pl-4 py-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Almuerzo</span>
-                <p className="font-semibold text-slate-800 text-sm">Arroz Thai</p>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Utensils size={11} className="text-orange-500" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
+                </div>
+                {todayAlmuerzo ? (
+                  <p className="font-semibold text-slate-800 text-sm leading-tight">
+                    {(todayAlmuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-300 italic">Sin planificar</p>
+                )}
               </div>
-              <div className="border-l-2 border-slate-200 pl-4 py-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Cena</span>
-                <p className="font-semibold text-slate-800 text-sm">Espagueti con salsa casera</p>
+              <div className="border-l-2 border-indigo-300 pl-4 py-1">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Moon size={11} className="text-indigo-500" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
+                </div>
+                {todayCena ? (
+                  <p className="font-semibold text-slate-800 text-sm leading-tight">
+                    {(todayCena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-300 italic">Sin planificar</p>
+                )}
               </div>
             </div>
           </div>
