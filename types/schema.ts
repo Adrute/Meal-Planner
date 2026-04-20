@@ -5,7 +5,7 @@ export const RecipeSchema = z.object({
 
   category: z.string().optional(),
 
-  prep_time: z.number().int().min(1).optional(),
+  prep_time: z.number().int().min(1).optional().catch(undefined),
 
   steps: z.array(z.object({
     text: z.string().min(1, "El paso no puede estar vacío")
