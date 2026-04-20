@@ -1,5 +1,11 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Dashboard reestructurado + Menú de Hoy mejorado
+- Widget "Menú de Hoy" muestra datos reales: menú escolar (Cole), almuerzo y cena del planificador
+- Se muestra el día y fecha actual en el widget
+- "Próximas Visitas" renombrado a "Próximos Planes"
+- Nuevo layout en dos filas: Menú+Planes arriba, Finanzas+Suministros debajo
+
 ## [2026-04-21] Planificador de comidas con IA
 - Importación de menú escolar mensual vía PDF (drag & drop) con extracción IA (Groq Llama 3.3)
 - El PDF guarda el mes completo; el planificador filtra la semana actual automáticamente
