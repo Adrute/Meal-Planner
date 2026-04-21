@@ -1,5 +1,14 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Salud: hidratación y mejoras de UI
+- Nueva sección de hidratación: contador de vasos +/-, barra de progreso, objetivo de 8 vasos, historial
+- Gráfica de líneas para hidratación (sky blue) con línea de referencia del objetivo
+- Permiso `health` añadido al panel de administración de usuarios
+- Enlace "Salud" con icono HeartPulse añadido al menú lateral
+- Botones de submit visibles desde el inicio (formularios movidos antes de las gráficas)
+- Gráfica de distancia en running convertida a línea
+- SQL requerido: tabla `hydration_logs` con RLS (ver docs)
+
 ## [2026-04-21] Módulo Salud
 - Nueva sección `/health` con permiso `health`
 - Seguimiento de peso: registro diario, gráfica de evolución, stats (actual/inicio/diferencia)
