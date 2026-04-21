@@ -16,6 +16,33 @@ type SchoolItem = {
 
 type Recipe = { id: string; name: string }
 
+// Maps a school meal description to the protein/food groups it contains
+function buildDayContext(date: string, item: SchoolItem | undefined): string {
+  if (!item) return `- ${date}: sin menú escolar registrado → propón cena equilibrada`
+  const courses = [item.first_course, item.second_course].filter(Boolean).join(' + ')
+  return `- ${date}: ${courses} (postre: ${item.dessert ?? '-'})`
+}
+
+function buildMembersText(members: Member[]): string {
+  if (members.length === 0) {
+    return '- 2 adultos y 1 niña de 18 meses (sin restricciones configuradas)'
+  }
+  return members.map(m => {
+    const role = m.role === 'child' ? 'niño/a' : 'adulto'
+    if (m.restrictions.length === 0) return `- ${m.name} (${role}): sin restricciones`
+
+    const alergias = m.restrictions.filter(r => r.type === 'alergia').map(r => r.food)
+    const intolerancias = m.restrictions.filter(r => r.type === 'intolerancia').map(r => r.food)
+    const preferencias = m.restrictions.filter(r => r.type === 'preferencia').map(r => r.food)
+
+    const parts: string[] = []
+    if (alergias.length) parts.push(`ALERGIA (nunca usar): ${alergias.join(', ')}`)
+    if (intolerancias.length) parts.push(`INTOLERANCIA (evitar siempre): ${intolerancias.join(', ')}`)
+    if (preferencias.length) parts.push(`no le gusta: ${preferencias.join(', ')}`)
+    return `- ${m.name} (${role}): ${parts.join(' | ')}`
+  }).join('\n')
+}
+
 export async function POST(req: NextRequest) {
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: 'GROQ_API_KEY no configurada' }, { status: 500 })
@@ -29,19 +56,14 @@ export async function POST(req: NextRequest) {
       members: Member[]
     }
 
-    const membersText = members.length > 0
-      ? members.map(m => {
-          const role = m.role === 'child' ? 'niño/a (18 meses)' : 'adulto'
-          const restr = m.restrictions.length > 0
-            ? m.restrictions.map(r => `${r.food} (${r.type})`).join(', ')
-            : 'sin restricciones'
-          return `- ${m.name} (${role}): ${restr}`
-        }).join('\n')
-      : '- 2 adultos y 1 niña de 18 meses (sin restricciones configuradas)'
+    const membersText = buildMembersText(members)
 
-    const schoolMenuText = schoolMenu.length > 0
-      ? schoolMenu.map(s => `- ${s.date}: ${s.first_course ?? '-'} / ${s.second_course ?? '-'} (postre: ${s.dessert ?? '-'})`).join('\n')
-      : 'No hay menú escolar importado para esta semana.'
+    const schoolMenuText = weekDates
+      .map(date => {
+        const item = schoolMenu.find(s => s.date.slice(0, 10) === date)
+        return buildDayContext(date, item)
+      })
+      .join('\n')
 
     const recipesText = recipes.length > 0
       ? recipes.map(r => `  - id:${r.id} | ${r.name}`).join('\n')
@@ -56,30 +78,52 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'system',
-          content: 'Eres nutricionista experto en alimentación familiar española. Respondes siempre con JSON válido.',
+          content: 'Eres nutricionista experto en alimentación familiar española. Tu prioridad absoluta es respetar alergias e intolerancias. Respondes siempre con JSON válido.',
         },
         {
           role: 'user',
-          content: `FAMILIA:
+          content: `MIEMBROS DE LA FAMILIA:
 ${membersText}
 
-COMEDOR ESCOLAR esta semana (lo que come la niña en el cole):
+MENÚ DEL COMEDOR ESCOLAR esta semana (lo que comen los niños al mediodía):
 ${schoolMenuText}
 
-MIS RECETAS GUARDADAS:
+MIS RECETAS GUARDADAS (úsalas cuando encajen):
 ${recipesText}
 
-TAREA: Propón la CENA para los días: ${weekDates.join(', ')}
+TAREA: Propón la CENA para cada día listado arriba.
 
-CRITERIOS:
-1. Complementa el cole: si comió legumbres → evita legumbres en cena; si comió carne → prefiere pescado o huevo; si comió pasta → evita pasta
-2. Respeta TODAS las restricciones de todos los miembros
-3. Apta para bebé de 18 meses: sin picante, sin mariscos enteros, sin frutos secos enteros
-4. Variada: no repitas proteína principal dos días seguidos
-5. Usa mis recetas guardadas cuando encajen; si no, propón un plato nuevo
+REGLAS — síguelas en este orden de prioridad:
 
-Responde con este JSON exacto:
-{"plan":[{"date":"YYYY-MM-DD","recipe_name":"Nombre del plato","recipe_id":"el-id-si-es-receta-guardada-o-null","is_new_recipe":false,"notes":"por qué complementa bien (muy breve)"}]}`,
+1. RESTRICCIONES (prioridad máxima, sin excepciones)
+   - ALERGIA: ese alimento NUNCA puede aparecer en la cena, ni como ingrediente secundario
+   - INTOLERANCIA: ese alimento no debe aparecer en ningún caso
+   - Preferencia: intenta evitarlo salvo que no haya alternativa razonable
+
+2. COMPLEMENTAR EL MENÚ DEL COLE (por día)
+   Analiza qué grupos de alimentos comió cada niño en el colegio y evita repetirlos en la cena:
+   - Huevos/tortilla/revuelto → NO más huevos en cena (tortilla = huevos)
+   - Carne (pollo, ternera, cerdo, pavo…) → prefiere pescado, legumbres o huevo en cena
+   - Pescado → prefiere carne o huevo en cena
+   - Legumbres (lentejas, garbanzos, alubias…) → NO legumbres en cena
+   - Pasta/arroz/patata → evita repetir ese mismo carbohidrato en cena
+   - Si no hay menú escolar ese día → propón cena equilibrada libremente
+
+3. APTO PARA BEBÉ (si hay niño/a en la familia)
+   - Sin picante, sin sal añadida en exceso
+   - Sin mariscos enteros, sin frutos secos enteros, sin miel
+   - Texturas blandas o fácilmente aplastables
+
+4. VARIEDAD a lo largo de la semana
+   - No repitas la misma proteína principal dos días seguidos
+   - Alterna entre carnes, pescados, huevos y legumbres
+
+5. RECETAS GUARDADAS
+   - Usa una receta guardada si encaja con las reglas anteriores
+   - Si no encaja ninguna, propón un plato nuevo sencillo
+
+Responde con este JSON exacto, un objeto por cada fecha:
+{"plan":[{"date":"YYYY-MM-DD","recipe_name":"Nombre del plato","recipe_id":"id-si-es-receta-guardada-o-null","is_new_recipe":false,"notes":"en 1 frase: qué comió en el cole y por qué esta cena complementa"}]}`,
         },
       ],
     })
