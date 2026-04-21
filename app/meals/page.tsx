@@ -20,7 +20,7 @@ export default async function PlannerPage() {
   ] = await Promise.all([
     supabase
       .from('weekly_plan')
-      .select('day_date, meal_type, recipe_id, recipes (name)')
+      .select('day_date, meal_type, recipe_id, ai_notes, recipes (name)')
       .gte('day_date', dateFilter)
       .order('day_date', { ascending: true }),
     supabase.from('recipes').select('id, name').order('name'),
@@ -32,6 +32,7 @@ export default async function PlannerPage() {
     day_date: item.day_date,
     meal_type: item.meal_type,
     recipe_id: item.recipe_id,
+    ai_notes: item.ai_notes ?? null,
     recipes: Array.isArray(item.recipes) ? item.recipes[0] : item.recipes,
   })) ?? []
 

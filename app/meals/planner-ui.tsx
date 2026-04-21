@@ -11,7 +11,7 @@ import {
 } from './actions'
 import {
   Plus, X, ChefHat, CalendarPlus, Utensils, Moon, Search, Trash2,
-  CheckCircle2, Loader2, Sparkles, GraduationCap,
+  CheckCircle2, Loader2, Sparkles, GraduationCap, Info,
 } from 'lucide-react'
 
 type Recipe = { id: string; name: string }
@@ -19,6 +19,7 @@ type PlanItem = {
   day_date: string
   meal_type: string
   recipe_id: string
+  ai_notes?: string | null
   recipes?: { name: string } | null
 }
 
@@ -199,6 +200,7 @@ function WeekBlock({
   const [deletingSlot, setDeletingSlot] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationResult, setGenerationResult] = useState<string | null>(null)
+  const [aiNoteModal, setAiNoteModal] = useState<{ name: string; notes: string } | null>(null)
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -240,7 +242,7 @@ function WeekBlock({
       }
 
       for (const meal of data.plan) {
-        await assignMealByName(meal.date, 'Cena', meal.recipe_name, meal.recipe_id)
+        await assignMealByName(meal.date, 'Cena', meal.recipe_name, meal.recipe_id, meal.notes)
       }
 
       setGenerationResult(`✓ ${data.plan.length} cenas generadas`)
@@ -355,16 +357,27 @@ function WeekBlock({
                                 {type}
                               </span>
                             </div>
-                            <button
-                              onClick={e => { e.stopPropagation(); handleDeleteMealClick(day, type) }}
-                              disabled={deletingSlot === `${dateStr}:${type}`}
-                              className="text-slate-400 hover:text-red-500 hover:bg-white p-1 rounded-md transition-colors disabled:opacity-50"
-                            >
-                              {deletingSlot === `${dateStr}:${type}`
-                                ? <Loader2 size={16} className="animate-spin" />
-                                : <X size={16} />
-                              }
-                            </button>
+                            <div className="flex items-center gap-0.5">
+                              {!isLunch && item.ai_notes && (
+                                <button
+                                  onClick={e => { e.stopPropagation(); setAiNoteModal({ name: item.recipes?.name || 'Cena', notes: item.ai_notes! }) }}
+                                  className="text-violet-400 hover:text-violet-600 hover:bg-white p-1 rounded-md transition-colors"
+                                  title="Ver explicación de la IA"
+                                >
+                                  <Info size={14} />
+                                </button>
+                              )}
+                              <button
+                                onClick={e => { e.stopPropagation(); handleDeleteMealClick(day, type) }}
+                                disabled={deletingSlot === `${dateStr}:${type}`}
+                                className="text-slate-400 hover:text-red-500 hover:bg-white p-1 rounded-md transition-colors disabled:opacity-50"
+                              >
+                                {deletingSlot === `${dateStr}:${type}`
+                                  ? <Loader2 size={16} className="animate-spin" />
+                                  : <X size={16} />
+                                }
+                              </button>
+                            </div>
                           </div>
                           <Link href={`/recipes/${item.recipe_id}`} className="block">
                             <h4 className="font-bold text-slate-800 text-sm leading-tight hover:underline decoration-slate-400 underline-offset-2">
@@ -389,6 +402,31 @@ function WeekBlock({
           )
         })}
       </div>
+
+      {/* Modal nota IA */}
+      {aiNoteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="absolute inset-0" onClick={() => setAiNoteModal(null)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7 animate-in zoom-in-95">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="bg-violet-100 p-2 rounded-xl text-violet-600 shrink-0">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-0.5">Sugerencia IA</p>
+                <h3 className="font-bold text-slate-800 text-base leading-snug">{aiNoteModal.name}</h3>
+              </div>
+            </div>
+            <p className="text-slate-600 text-sm leading-relaxed">{aiNoteModal.notes}</p>
+            <button
+              onClick={() => setAiNoteModal(null)}
+              className="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

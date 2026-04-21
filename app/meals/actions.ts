@@ -40,7 +40,8 @@ export async function assignMealByName(
   date: string,
   mealType: string,
   recipeName: string,
-  existingRecipeId?: string | null
+  existingRecipeId?: string | null,
+  aiNotes?: string | null,
 ) {
   const supabase = await createClient()
 
@@ -58,7 +59,7 @@ export async function assignMealByName(
   if (!recipeId) return { error: 'No se pudo crear la receta' }
 
   await supabase.from('weekly_plan').upsert(
-    { day_date: date, meal_type: mealType, recipe_id: recipeId },
+    { day_date: date, meal_type: mealType, recipe_id: recipeId, ai_notes: aiNotes ?? null },
     { onConflict: 'day_date, meal_type' }
   )
 
