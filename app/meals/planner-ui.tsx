@@ -405,25 +405,30 @@ function WeekBlock({
 
       {/* Modal nota IA */}
       {aiNoteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="absolute inset-0" onClick={() => setAiNoteModal(null)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7 animate-in zoom-in-95">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="bg-violet-100 p-2 rounded-xl text-violet-600 shrink-0">
-                <Sparkles size={18} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95">
+            {/* Header violeta */}
+            <div className="bg-violet-600 px-6 pt-6 pb-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={14} className="text-violet-200" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-violet-200">Por qué esta cena</span>
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-0.5">Sugerencia IA</p>
-                <h3 className="font-bold text-slate-800 text-base leading-snug">{aiNoteModal.name}</h3>
-              </div>
+              <h3 className="font-bold text-white text-lg leading-snug">{aiNoteModal.name}</h3>
             </div>
-            <p className="text-slate-600 text-sm leading-relaxed">{aiNoteModal.notes}</p>
-            <button
-              onClick={() => setAiNoteModal(null)}
-              className="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
-            >
-              Cerrar
-            </button>
+            {/* Cuerpo */}
+            <div className="px-6 py-5">
+              <p className="text-slate-600 text-sm leading-relaxed">{aiNoteModal.notes}</p>
+            </div>
+            {/* Footer */}
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setAiNoteModal(null)}
+                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-colors text-sm"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
