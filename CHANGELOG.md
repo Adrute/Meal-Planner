@@ -1,5 +1,13 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Salud: mejoras running y historial de peso
+- Running: input de duración cambiado a min:seg (guardado como minutos decimales)
+- Running: desglose de KM por mes con barras de progreso
+- Running: gráfica muestra solo evolución del ritmo con línea de media
+- Peso: historial muestra diferencia vs registro anterior (+/- kg con icono y color)
+- Peso: historial con scroll limitado (max-h-60)
+- Requiere migración SQL: `ALTER TABLE running_logs ALTER COLUMN duration_minutes TYPE numeric(8,4);`
+
 ## [2026-04-21] Salud: hidratación y mejoras de UI
 - Nueva sección de hidratación: contador de vasos +/-, barra de progreso, objetivo de 8 vasos, historial
 - Gráfica de líneas para hidratación (sky blue) con línea de referencia del objetivo
