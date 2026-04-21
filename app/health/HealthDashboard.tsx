@@ -106,10 +106,6 @@ function WeightSection({ logs }: { logs: WeightLog[] }) {
         </div>
       )}
 
-      <div className="p-6 border-b border-slate-100">
-        <WeightChart logs={logs} />
-      </div>
-
       <form onSubmit={handleAdd} className="p-6 border-b border-slate-100 space-y-3">
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Añadir registro</p>
         <div className="flex gap-2 flex-wrap">
@@ -128,6 +124,12 @@ function WeightSection({ logs }: { logs: WeightLog[] }) {
           {saving ? 'Guardando...' : 'Añadir registro de peso'}
         </button>
       </form>
+
+      {logs.length >= 2 && (
+        <div className="p-6 border-b border-slate-100">
+          <WeightChart logs={logs} />
+        </div>
+      )}
 
       {logs.length > 0 && (
         <div className="p-6">
@@ -222,10 +224,6 @@ function HydrationSection({ logs }: { logs: HydrationLog[] }) {
         </div>
       )}
 
-      <div className="p-6 border-b border-slate-100">
-        <HydrationChart logs={logs} />
-      </div>
-
       {/* Control de vasos */}
       <div className="p-6 border-b border-slate-100 space-y-4">
         <div className="flex items-center justify-between">
@@ -250,21 +248,27 @@ function HydrationSection({ logs }: { logs: HydrationLog[] }) {
         </div>
 
         {/* Botones +/- */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4">
           <button onClick={() => handleSet(glassesToShow - 1)} disabled={glassesToShow <= 0 || saving}
-            className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xl rounded-xl transition-colors disabled:opacity-40">
+            className="w-16 h-14 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-2xl rounded-2xl transition-colors disabled:opacity-40 shrink-0">
             −
           </button>
-          <div className="flex-1 flex items-center justify-center gap-1.5 text-sky-500">
+          <div className="flex items-center justify-center gap-1.5 text-sky-400">
             {saving && <Loader2 size={14} className="animate-spin" />}
-            <Droplets size={18} />
+            <Droplets size={20} />
           </div>
           <button onClick={() => handleSet(glassesToShow + 1)} disabled={saving}
-            className="flex-1 py-3 bg-sky-500 hover:bg-sky-600 text-white font-black text-xl rounded-xl transition-colors disabled:opacity-40">
+            className="w-16 h-14 flex items-center justify-center bg-sky-500 hover:bg-sky-600 text-white font-black text-2xl rounded-2xl transition-colors disabled:opacity-40 shrink-0">
             +
           </button>
         </div>
       </div>
+
+      {logs.length >= 2 && (
+        <div className="p-6 border-b border-slate-100">
+          <HydrationChart logs={logs} />
+        </div>
+      )}
 
       {logs.length > 0 && (
         <div className="p-6">
@@ -364,10 +368,6 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
         </div>
       )}
 
-      <div className="p-6 border-b border-slate-100">
-        <RunningChart logs={logs} />
-      </div>
-
       <form onSubmit={handleAdd} className="p-6 border-b border-slate-100 space-y-3">
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Añadir salida</p>
         <div className="flex gap-2 flex-wrap">
@@ -408,6 +408,12 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
           {saving ? 'Guardando...' : 'Añadir salida'}
         </button>
       </form>
+
+      {logs.length > 0 && (
+        <div className="p-6 border-b border-slate-100">
+          <RunningChart logs={logs} />
+        </div>
+      )}
 
       {logs.length > 0 && (
         <div className="p-6">
