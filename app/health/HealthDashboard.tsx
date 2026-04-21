@@ -34,8 +34,10 @@ function formatPace(minPerKm: number) {
 }
 
 function formatDuration(mins: number) {
-  if (mins < 60) return `${mins} min`
-  return `${Math.floor(mins / 60)}h ${mins % 60}min`
+  const m = Math.floor(mins)
+  const s = Math.round((mins - m) * 60)
+  if (s === 0) return `${m}min`
+  return `${m}min ${s}s`
 }
 
 // ─── Weight section ───────────────────────────────────────────────────────────
@@ -304,20 +306,20 @@ function HydrationSection({ logs }: { logs: HydrationLog[] }) {
 function RunningSection({ logs }: { logs: RunningLog[] }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
-  const [date, setDate]       = useState(today)
+  const [date, setDate]         = useState(today)
   const [distance, setDistance] = useState('')
-  const [hours, setHours]     = useState('')
-  const [minutes, setMinutes] = useState('')
-  const [feeling, setFeeling] = useState<number>(3)
-  const [notes, setNotes]     = useState('')
-  const [error, setError]     = useState<string | null>(null)
-  const [saving, setSaving]   = useState(false)
+  const [mins, setMins]         = useState('')
+  const [secs, setSecs]         = useState('')
+  const [feeling, setFeeling]   = useState<number>(3)
+  const [notes, setNotes]       = useState('')
+  const [error, setError]       = useState<string | null>(null)
+  const [saving, setSaving]     = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    const km      = parseFloat(distance)
-    const totalMin = (parseInt(hours || '0') * 60) + parseInt(minutes || '0')
+    const km       = parseFloat(distance)
+    const totalMin = parseInt(mins || '0') + parseInt(secs || '0') / 60
     if (!date || isNaN(km) || km <= 0 || totalMin <= 0) {
       setError('Introduce fecha, distancia y duración válidas'); return
     }
@@ -325,7 +327,7 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
     const res = await addRunningLog({ date, distance_km: km, duration_minutes: totalMin, feeling, notes: notes || undefined })
     setSaving(false)
     if (res?.error) { setError(res.error); return }
-    setDistance(''); setHours(''); setMinutes(''); setNotes(''); setFeeling(3)
+    setDistance(''); setMins(''); setSecs(''); setNotes(''); setFeeling(3)
     startTransition(() => router.refresh())
   }
 
@@ -340,6 +342,14 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
   const avgPace  = logs.length > 0
     ? logs.reduce((s, l) => s + l.duration_minutes / l.distance_km, 0) / logs.length
     : null
+
+  const monthlyKm = Object.entries(
+    logs.reduce<Record<string, number>>((acc, l) => {
+      const key = l.date.slice(0, 7)
+      acc[key] = (acc[key] || 0) + l.distance_km
+      return acc
+    }, {})
+  ).sort(([a], [b]) => b.localeCompare(a))
 
   return (
     <section className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -377,12 +387,12 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
             placeholder="Km" step="0.01" min="0.1"
             className="w-24 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
           <div className="flex items-center gap-1">
-            <input type="number" value={hours} onChange={e => setHours(e.target.value)}
-              placeholder="h" min="0" max="10"
-              className="w-16 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 text-center" />
+            <input type="number" value={mins} onChange={e => setMins(e.target.value)}
+              placeholder="min" min="0" max="999"
+              className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 text-center" />
             <span className="text-slate-400 text-sm font-bold">:</span>
-            <input type="number" value={minutes} onChange={e => setMinutes(e.target.value)}
-              placeholder="min" min="0" max="59"
+            <input type="number" value={secs} onChange={e => setSecs(e.target.value)}
+              placeholder="seg" min="0" max="59"
               className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 text-center" />
           </div>
         </div>
@@ -412,6 +422,27 @@ function RunningSection({ logs }: { logs: RunningLog[] }) {
       {logs.length > 0 && (
         <div className="p-6 border-b border-slate-100">
           <RunningChart logs={logs} />
+        </div>
+      )}
+
+      {monthlyKm.length > 0 && (
+        <div className="p-6 border-b border-slate-100">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">KM por mes</p>
+          <div className="space-y-2">
+            {monthlyKm.map(([key, km]) => {
+              const label = new Date(`${key}-15`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+              const pct   = Math.min((km / Math.max(...monthlyKm.map(([, v]) => v))) * 100, 100)
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-slate-500 w-24 capitalize shrink-0">{label}</span>
+                  <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className="h-full rounded-full bg-violet-400" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-xs font-black text-violet-600 w-16 text-right shrink-0">{km.toFixed(1)} km</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
