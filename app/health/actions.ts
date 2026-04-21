@@ -56,3 +56,25 @@ export async function deleteRunningLog(id: string) {
   await supabase.from('running_logs').delete().eq('id', id)
   revalidatePath('/health')
 }
+
+// ─── Hydration ────────────────────────────────────────────────────────────────
+
+export async function upsertHydrationLog(date: string, glasses: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado' }
+
+  const { error } = await supabase.from('hydration_logs').upsert(
+    { user_id: user.id, date, glasses },
+    { onConflict: 'user_id, date' }
+  )
+  if (error) return { error: error.message }
+  revalidatePath('/health')
+  return { success: true }
+}
+
+export async function deleteHydrationLog(id: string) {
+  const supabase = await createClient()
+  await supabase.from('hydration_logs').delete().eq('id', id)
+  revalidatePath('/health')
+}

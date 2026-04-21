@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from 'recharts'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -26,47 +26,41 @@ export default function RunningChart({ logs }: { logs: RunningLog[] }) {
       : null,
   }))
 
+  const sharedAxis = { fontSize: 11, fill: '#94a3b8' }
+
   return (
     <div className="space-y-6">
-      {/* Barras de distancia */}
       <div>
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Distancia (km)</p>
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `${v}km`} />
+          <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="date" tick={sharedAxis} tickLine={false} axisLine={false} />
+            <YAxis tick={sharedAxis} tickLine={false} axisLine={false} tickFormatter={v => `${v}km`} />
             <Tooltip
               contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', fontSize: 13 }}
               formatter={(v) => [`${v} km`, 'Distancia']}
             />
-            <Bar dataKey="km" fill="#f43f5e" radius={[6, 6, 0, 0]} maxBarSize={40} />
-          </BarChart>
+            <Line type="monotone" dataKey="km" stroke="#8b5cf6" strokeWidth={2.5}
+              dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Línea de ritmo */}
       {logs.length >= 2 && (
         <div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Ritmo (min/km)</p>
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={v => `${v}'`} />
+              <XAxis dataKey="date" tick={sharedAxis} tickLine={false} axisLine={false} />
+              <YAxis tick={sharedAxis} tickLine={false} axisLine={false} tickFormatter={v => `${v}'`} />
               <Tooltip
                 contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', fontSize: 13 }}
                 formatter={(v) => [`${v} min/km`, 'Ritmo']}
               />
-              <Line
-                type="monotone"
-                dataKey="ritmo"
-                stroke="#8b5cf6"
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }}
-                activeDot={{ r: 6 }}
-                connectNulls
-              />
+              <Line type="monotone" dataKey="ritmo" stroke="#f43f5e" strokeWidth={2.5}
+                dot={{ r: 4, fill: '#f43f5e', strokeWidth: 0 }} activeDot={{ r: 6 }} connectNulls />
             </LineChart>
           </ResponsiveContainer>
         </div>
