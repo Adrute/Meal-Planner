@@ -1,5 +1,15 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Gestión de recetas mejorada
+- Edición de recetas existentes (`/recipes/[id]/edit`)
+- Agrupación por categoría en el listado con emoji por tipo (🍝🥩🐟…)
+- Favoritas: toggle estrella en tarjeta y detalle, filtro "Solo favoritas"
+- Filtros por categoría con tabs en el listado
+- Unidad de medida por ingrediente (g, kg, ml, tazas, cdas…)
+- Errores de validación con banners descriptivos y campos resaltados en rojo
+- Botón de borrar receta con confirmación
+- Nuevas columnas en `recipes`: `is_favorite`, `category`, `prep_time`
+
 ## [2026-04-21] Dashboard reestructurado + Menú de Hoy mejorado
 - Widget "Menú de Hoy" muestra datos reales: menú escolar (Cole), almuerzo y cena del planificador
 - Se muestra el día y fecha actual en el widget
