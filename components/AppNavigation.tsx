@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home, Utensils, ShoppingBasket, Wallet, Zap, CalendarHeart,
-  LogOut, BookOpen, UtensilsCrossed, Gift, Menu, X, Database,
+  LogOut, BookOpen, UtensilsCrossed, Gift, Menu, X, Database, HeartPulse,
 } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 
@@ -18,6 +18,7 @@ const ALL_NAV_ITEMS = [
   { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-emerald-600', hoverColor: 'hover:text-emerald-500' },
   { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-rose-600',    hoverColor: 'hover:text-rose-500'    },
   { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-600',    hoverColor: 'hover:text-pink-500'    },
+  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-rose-600',    hoverColor: 'hover:text-rose-500'    },
 ]
 
 type Props = {
