@@ -136,22 +136,34 @@ function WeightSection({ logs }: { logs: WeightLog[] }) {
       {logs.length > 0 && (
         <div className="p-6">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Historial</p>
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            {[...logs].reverse().map(l => (
-              <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group transition-colors">
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-bold text-slate-400 w-24 capitalize shrink-0">
-                    {format(parseISO(l.date), 'd MMM yyyy', { locale: es })}
-                  </span>
-                  <span className="font-black text-slate-800">{l.weight_kg} kg</span>
-                  {l.notes && <span className="text-xs text-slate-400 italic">{l.notes}</span>}
+          <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+            {[...logs].reverse().map((l, i, arr) => {
+              const prev = arr[i + 1]
+              const diff = prev ? +(l.weight_kg - prev.weight_kg).toFixed(1) : null
+              return (
+                <div key={l.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-slate-50 group transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-bold text-slate-400 w-24 capitalize shrink-0">
+                      {format(parseISO(l.date), 'd MMM yyyy', { locale: es })}
+                    </span>
+                    <span className="font-black text-slate-800 shrink-0">{l.weight_kg} kg</span>
+                    {l.notes && <span className="text-xs text-slate-400 italic truncate">{l.notes}</span>}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    {diff !== null && (
+                      <span className={`text-xs font-bold flex items-center gap-0.5 ${diff < 0 ? 'text-emerald-500' : diff > 0 ? 'text-red-400' : 'text-slate-300'}`}>
+                        {diff < 0 ? <TrendingDown size={12} /> : diff > 0 ? <TrendingUp size={12} /> : null}
+                        {diff !== 0 ? `${diff > 0 ? '+' : ''}${diff} kg` : '='}
+                      </span>
+                    )}
+                    <button onClick={() => handleDelete(l.id)} disabled={deletingId === l.id}
+                      className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all p-1 rounded-lg">
+                      {deletingId === l.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => handleDelete(l.id)} disabled={deletingId === l.id}
-                  className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all p-1 rounded-lg">
-                  {deletingId === l.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
