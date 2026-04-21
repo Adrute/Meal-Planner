@@ -1,5 +1,10 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Salud: botón maximizar paneles
+- Cada panel (Peso, Hidratación, Running) tiene un botón ↗ para expandirlo a pantalla completa
+- La vista maximizada centra el contenido en un overlay sobre fondo gris
+- La X cierra de vuelta a la vista en grid
+
 ## [2026-04-21] Salud: mejoras running y historial de peso
 - Running: input de duración cambiado a min:seg (guardado como minutos decimales)
 - Running: desglose de KM por mes con barras de progreso
