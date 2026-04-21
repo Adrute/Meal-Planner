@@ -1,5 +1,11 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Mejoras planificador IA
+- Prompt mejorado: la IA analiza día a día el menú escolar y evita repetir grupos de alimentos (tortilla = huevos, etc.)
+- Restricciones separadas por prioridad: alergia (nunca) > intolerancia (evitar) > preferencia
+- Modal "Por qué esta cena" con header violeta al pulsar ℹ️ en cenas generadas por IA
+- `ai_notes` guardado en `weekly_plan` para persistir la explicación
+
 ## [2026-04-21] Gestión de recetas mejorada
 - Edición de recetas existentes (`/recipes/[id]/edit`)
 - Agrupación por categoría en el listado con emoji por tipo (🍝🥩🐟…)
