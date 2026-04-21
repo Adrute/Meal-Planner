@@ -1,5 +1,12 @@
 # Changelog — MiHogar
 
+## [2026-04-21] Módulo Salud
+- Nueva sección `/health` con permiso `health`
+- Seguimiento de peso: registro diario, gráfica de evolución, stats (actual/inicio/diferencia)
+- Seguimiento de running: distancia, duración, ritmo (min/km), sensación, notas
+- Gráfica de barras por distancia y línea de evolución del ritmo
+- Datos privados por usuario con RLS en Supabase
+
 ## [2026-04-21] Mejoras planificador IA
 - Prompt mejorado: la IA analiza día a día el menú escolar y evita repetir grupos de alimentos (tortilla = huevos, etc.)
 - Restricciones separadas por prioridad: alergia (nunca) > intolerancia (evitar) > preferencia
