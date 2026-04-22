@@ -40,3 +40,15 @@
 Los links del sidebar se filtran con `permissions.includes(key)`, lo que oculta
 las secciones a las que el usuario no tiene acceso. La protección real de las rutas
 está en `proxy.ts`.
+
+## Secciones disponibles
+`meals`, `recipes`, `shopping`, `finances`, `utilities`, `services`, `restaurants`, `wishlist`, `health`, `trips`.
+Cada una con su key, href, icono lucide y colores activo/hover definidos en `ALL_NAV_ITEMS`.
+
+## Dashboard (`app/page.tsx`)
+- **Widget Menú**: ancho completo, muestra hoy + próximos 3 días en grid de 4 columnas (Cole / Almuerzo / Cena por día)
+- **Widget Próximos Planes**: dos columnas — reservas de restaurantes (izquierda) + viajes (derecha)
+  - Viajes: próximo viaje destacado + contadores por estado
+- **Widget Finanzas**: gasto mes actual vs anterior, top 3 categorías
+- **Widget Suministros**: medias de luz/gas/servicios, alerta de tarifa
+- **Módulo Bonos**: detalle completo si hay bonos activos

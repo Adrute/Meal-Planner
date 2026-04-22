@@ -41,6 +41,12 @@ Los ingresos en categorías `is_income = true` son ingresos reales (nómina, etc
 - CSV o Excel (xlsx) arrastrando o desde botón en header
 - Reglas de categorización se aplican automáticamente al importar
 
+## Filtro por mes y persistencia
+- El mes seleccionado se pasa como query param `?month=YYYY-MM` entre la página principal y el detalle de categoría
+- Por defecto se selecciona el **último mes con datos** (`availableMonths[0]`), no el mes calendar anterior
+- El enlace "Volver" en `/finances/categoria/[id]` preserva el `?month=` activo
+- `CategoryBreakdown` recibe `selectedMonth` como prop y construye los hrefs con el mes incluido
+
 ## Modal
 `components/Modal.tsx`:
 - Overlay fijo + tarjeta centrada

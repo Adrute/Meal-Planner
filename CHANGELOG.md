@@ -1,5 +1,24 @@
 # Changelog — MiHogar
 
+## [2026-04-23] Dashboard: rediseño de widgets
+- Widget Menú ocupa el ancho completo y muestra hoy + próximos 3 días (Cole / Almuerzo / Cena por día)
+- Widget Próximos Planes dividido en dos columnas: reservas de restaurantes y viajes
+- Columna de viajes muestra el próximo viaje destacado + contadores por estado (Deseos / Planificando / Confirmados)
+
+## [2026-04-23] Módulo Viajes
+- Nueva sección `/trips` con permiso `trips`
+- Listado de viajes con filtros por estado (wishlist / planning / confirmed / completed)
+- Detalle de viaje con 7 pestañas: Resumen, Transporte, Alojamiento, Itinerario, Lugares, Gastos, Checklist
+- Búsqueda de puntos de interés vía Nominatim OSM con mapa Leaflet (react-leaflet v5)
+- Registro de gastos con resumen por categoría y barra de presupuesto
+- Checklist de preparación con categorías, barra de progreso y prefill de items comunes
+- Permiso `trips` añadido al panel de administración de usuarios
+- Enlace "Viajes" con icono Plane añadido al menú lateral
+
+## [2026-04-23] Finanzas: filtro de mes persistente
+- El filtro por mes se mantiene al navegar a categorías y al volver
+- Por defecto se selecciona el último mes con datos registrados, no el mes anterior del calendario
+
 ## [2026-04-21] Salud: botón maximizar paneles
 - Cada panel (Peso, Hidratación, Running) tiene un botón ↗ para expandirlo a pantalla completa
 - La vista maximizada centra el contenido en un overlay sobre fondo gris
