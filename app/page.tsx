@@ -108,20 +108,23 @@ export default async function HomeDashboard() {
   const supabase = await createClient()
   const today = new Date().toISOString().split('T')[0]
 
-  // 0. Menú de hoy
-  const { data: todayMeals } = await supabase
-    .from('weekly_plan')
-    .select('meal_type, recipes(name)')
-    .eq('day_date', today)
+  // 0. Menú de los próximos 4 días
+  const menuDates = Array.from({ length: 4 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    return d.toISOString().split('T')[0]
+  })
 
-  const { data: todaySchoolMenu } = await supabase
-    .from('school_menu_items')
-    .select('first_course, second_course, dessert')
-    .eq('date', today)
-    .maybeSingle()
-
-  const todayAlmuerzo = todayMeals?.find(m => m.meal_type.toLowerCase() === 'almuerzo')
-  const todayCena = todayMeals?.find(m => m.meal_type.toLowerCase() === 'cena')
+  const [{ data: weekMeals }, { data: weekSchoolMenus }] = await Promise.all([
+    supabase
+      .from('weekly_plan')
+      .select('meal_type, day_date, recipes(name)')
+      .in('day_date', menuDates),
+    supabase
+      .from('school_menu_items')
+      .select('date, first_course, second_course, dessert')
+      .in('date', menuDates),
+  ])
 
   // 1. Cargar facturas
   const { data: invoices } = await supabase
@@ -232,82 +235,86 @@ export default async function HomeDashboard() {
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
-      {/* --- FILA 1: MENÚ + PRÓXIMOS PLANES --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-        {/* WIDGET 1: COMIDAS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600"><Utensils size={20} /></div>
-                <div>
-                  <h2 className="font-bold text-lg text-slate-800">Menú de Hoy</h2>
-                  <p className="text-xs text-slate-400 font-medium capitalize">
-                    {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </p>
-                </div>
-              </div>
-              <Link href="/meals" className="text-slate-400 hover:text-orange-600 transition-colors">
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              {todaySchoolMenu && (
-                <div className="border-l-2 border-emerald-400 pl-4 py-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <GraduationCap size={11} className="text-emerald-500" />
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Cole</span>
-                  </div>
-                  <p className="font-semibold text-slate-800 text-sm leading-tight">{todaySchoolMenu.first_course}</p>
-                  {todaySchoolMenu.second_course && (
-                    <p className="text-xs text-slate-500 leading-tight mt-0.5">{todaySchoolMenu.second_course}</p>
-                  )}
-                  {todaySchoolMenu.dessert && (
-                    <p className="text-[10px] text-slate-400 mt-0.5">{todaySchoolMenu.dessert}</p>
-                  )}
-                </div>
-              )}
-              <div className="border-l-2 border-orange-400 pl-4 py-1">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Utensils size={11} className="text-orange-500" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
-                </div>
-                {todayAlmuerzo ? (
-                  <p className="font-semibold text-slate-800 text-sm leading-tight">
-                    {(todayAlmuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-300 italic">Sin planificar</p>
-                )}
-              </div>
-              <div className="border-l-2 border-indigo-300 pl-4 py-1">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Moon size={11} className="text-indigo-500" />
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
-                </div>
-                {todayCena ? (
-                  <p className="font-semibold text-slate-800 text-sm leading-tight">
-                    {(todayCena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-300 italic">Sin planificar</p>
-                )}
-              </div>
-            </div>
+      {/* --- WIDGET 1: MENÚ DE LA SEMANA (ANCHO COMPLETO) --- */}
+      <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600"><Utensils size={20} /></div>
+            <h2 className="font-bold text-lg text-slate-800">Menú</h2>
           </div>
-          <Link href="/shopping-list" className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-orange-50 hover:text-orange-600 transition-colors border border-slate-200">
-            <ShoppingBasket size={18} /> Compra
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-orange-600 transition-colors">
+              <ShoppingBasket size={16} /> Compra
+            </Link>
+            <Link href="/meals" className="text-slate-400 hover:text-orange-600 transition-colors">
+              <ArrowRight size={20} />
+            </Link>
+          </div>
         </div>
 
-        {/* WIDGET 2: PRÓXIMOS PLANES */}
-        <UpcomingReservationsWidget />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {menuDates.map((date, i) => {
+            const dayMeals = (weekMeals || []).filter(m => m.day_date === date)
+            const schoolMenu = (weekSchoolMenus || []).find(s => s.date === date)
+            const almuerzo = dayMeals.find(m => m.meal_type.toLowerCase() === 'almuerzo')
+            const cena = dayMeals.find(m => m.meal_type.toLowerCase() === 'cena')
+            const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })
+            const dayNum = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+            return (
+              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-orange-200 bg-orange-50/50' : 'border-slate-100 bg-slate-50'}`}>
+                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-orange-500' : 'text-slate-400'}`}>{label}</p>
+                <p className="text-[11px] text-slate-400 font-medium mb-3 capitalize">{dayNum}</p>
 
+                <div className="space-y-2.5">
+                  {schoolMenu && (
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <GraduationCap size={10} className="text-emerald-500" />
+                        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Cole</span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">{schoolMenu.first_course}</p>
+                      {schoolMenu.second_course && <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{schoolMenu.second_course}</p>}
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Utensils size={10} className="text-orange-400" />
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
+                    </div>
+                    {almuerzo ? (
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">
+                        {(almuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Moon size={10} className="text-indigo-400" />
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
+                    </div>
+                    {cena ? (
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">
+                        {(cena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* --- FILA 2: FINANZAS + SUMINISTROS --- */}
+      {/* --- WIDGET 2: PRÓXIMOS PLANES (RESERVAS + VIAJES) --- */}
+      <div className="mb-6">
+        <UpcomingReservationsWidget />
+      </div>
+
+      {/* --- FILA 3: FINANZAS + SUMINISTROS --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         {/* WIDGET 3: FINANZAS */}
@@ -366,6 +373,7 @@ export default async function HomeDashboard() {
 
       </div>
       {/* --- FIN DE FINANZAS + SUMINISTROS --- */}
+
 
 
       {/* --- INICIO DEL MÓDULO DE BONOS (VISTA DETALLADA) --- */}
