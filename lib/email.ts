@@ -11,7 +11,7 @@ export async function sendBonoAgotadoEmail(serviceName: string, totalSessions: n
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   const { data, error } = await resend.emails.send({
-    from: 'MiHogar <onboarding@resend.dev>',
+    from: 'FamilyTools <onboarding@resend.dev>',
     to: NOTIFY_EMAIL,
     subject: `🔴 Bono agotado: ${serviceName}`,
     html: `
@@ -26,7 +26,7 @@ export async function sendBonoAgotadoEmail(serviceName: string, totalSessions: n
         </div>
 
         <p style="color: #94a3b8; font-size: 13px; margin: 24px 0 0;">
-          Accede a <strong>MiHogar → Bonos</strong> para renovarlo cuando quieras.
+          Accede a <strong>FamilyTools → Bonos</strong> para renovarlo cuando quieras.
         </p>
       </div>
     `,

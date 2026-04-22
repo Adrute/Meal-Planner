@@ -7,7 +7,7 @@ import AppNavigation from '@/components/AppNavigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Hogar | Panel de Control',
+  title: 'FamilyTools',
   description: 'Gestión integral de la familia, comidas y finanzas',
 }
 

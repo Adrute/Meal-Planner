@@ -1,4 +1,4 @@
-# MiHogar
+# FamilyTools
 
 Aplicación de gestión familiar todo-en-uno. Construida con Next.js 15, Supabase y Tailwind CSS.
 

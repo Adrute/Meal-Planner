@@ -1,4 +1,4 @@
-# Claude Code — Instrucciones de trabajo para MiHogar
+# Claude Code — Instrucciones de trabajo para FamilyTools
 
 ## Stack técnico
 - **Framework**: Next.js 15+ App Router (Server Components + Server Actions)

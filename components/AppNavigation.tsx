@@ -88,7 +88,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
         <div className="p-8">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Mi<span className="text-emerald-500">Hogar</span>
+            Family<span className="text-emerald-500">Tools</span>
           </h2>
         </div>
 
@@ -124,7 +124,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
           <Menu size={22} />
         </button>
         <h2 className="text-xl font-black text-slate-900 tracking-tight ml-3">
-          Mi<span className="text-emerald-500">Hogar</span>
+          Family<span className="text-emerald-500">Tools</span>
         </h2>
       </header>
 
@@ -144,7 +144,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Mi<span className="text-emerald-500">Hogar</span>
+            Family<span className="text-emerald-500">Tools</span>
           </h2>
           <button
             onClick={() => setOpen(false)}

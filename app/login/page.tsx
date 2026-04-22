@@ -30,7 +30,7 @@ export default function AuthPage() {
           <div className="bg-emerald-100 p-4 rounded-full mb-3">
             <ChefHat size={40} />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">MiHogar</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">FamilyTools</h1>
           <p className="text-slate-400 text-sm font-medium">Gestión familiar.</p>
         </div>
 

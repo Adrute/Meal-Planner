@@ -1,4 +1,4 @@
-# Changelog — MiHogar
+# Changelog — FamilyTools
 
 ## [2026-04-23] Dashboard: rediseño de widgets
 - Widget Menú ocupa el ancho completo y muestra hoy + próximos 3 días (Cole / Almuerzo / Cena por día)
