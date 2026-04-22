@@ -19,7 +19,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
     { data: expenses },
     { data: checklist },
   ] = await Promise.all([
-    supabase.from('trips').select('*').eq('id', id).eq('user_id', user.id).single(),
+    supabase.from('trips').select('*').eq('id', id).single(),
     supabase.from('trip_transport').select('*').eq('trip_id', id).order('departure_at', { ascending: true }),
     supabase.from('trip_accommodations').select('*').eq('trip_id', id).order('check_in', { ascending: true }),
     supabase.from('trip_activities').select('*').eq('trip_id', id).order('date').order('start_time'),

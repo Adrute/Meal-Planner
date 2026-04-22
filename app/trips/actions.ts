@@ -12,11 +12,8 @@ export async function createTrip(data: {
   notes?: string; budget_total?: number; cover_emoji?: string
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autenticado' }
 
   const { data: trip, error } = await supabase.from('trips').insert({
-    user_id: user.id,
     title: data.title,
     destination: data.destination,
     country: data.country || null,
