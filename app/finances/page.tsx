@@ -31,14 +31,6 @@ export default async function FinancesPage({
   const supabase = await createClient()
   const params = await searchParams
 
-  const now = new Date()
-  const defaultMonth = ym(new Date(now.getFullYear(), now.getMonth() - 1, 1))
-  const selectedMonth = params.month || defaultMonth
-  const isAllTime = selectedMonth === 'all'
-
-  const [sy, sm] = isAllTime ? [0, 0] : selectedMonth.split('-').map(Number)
-  const compMonth = isAllTime ? '' : ym(new Date(sy, sm - 2, 1))
-
   const [
     { data: transactions },
     { data: rules },
@@ -52,8 +44,16 @@ export default async function FinancesPage({
   const all = transactions || []
   const categories: Category[] = categoriesRaw || []
 
-  // Meses disponibles
+  // Meses disponibles (desc) — el primero es el último mes con datos
   const availableMonths = Array.from(new Set(all.map(t => t.fecha_operacion.substring(0, 7)))).sort().reverse()
+
+  const now = new Date()
+  const defaultMonth = availableMonths[0] ?? ym(new Date(now.getFullYear(), now.getMonth() - 1, 1))
+  const selectedMonth = params.month || defaultMonth
+  const isAllTime = selectedMonth === 'all'
+
+  const [sy, sm] = isAllTime ? [0, 0] : selectedMonth.split('-').map(Number)
+  const compMonth = isAllTime ? '' : ym(new Date(sy, sm - 2, 1))
 
   const selTx  = isAllTime ? all : all.filter(t => t.fecha_operacion.startsWith(selectedMonth))
   const compTx = isAllTime ? [] : all.filter(t => t.fecha_operacion.startsWith(compMonth))
@@ -241,7 +241,7 @@ export default async function FinancesPage({
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
               <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Gastos por categoría</h3>
               <p className="text-[10px] text-slate-300 mb-5">Haz clic en una categoría para ver el detalle por subcategoría</p>
-              <CategoryBreakdown catStats={catStats} />
+              <CategoryBreakdown catStats={catStats} selectedMonth={selectedMonth} />
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">

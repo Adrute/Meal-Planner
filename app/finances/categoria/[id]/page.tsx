@@ -57,7 +57,7 @@ export default async function CategoryDetailPage({
     new Set(allForCat.map(t => t.fecha_operacion.substring(0, 7)))
   ).sort().reverse()
 
-  const selectedMonth = month || 'all'
+  const selectedMonth = month || availableMonths[0] || 'all'
   const isAllTime = selectedMonth === 'all'
   const selTx = isAllTime
     ? allForCat
@@ -120,7 +120,7 @@ export default async function CategoryDetailPage({
       {/* HEADER */}
       <header className="space-y-4">
         <Link
-          href="/finances"
+          href={`/finances?month=${selectedMonth}`}
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
         >
           <ArrowLeft size={15} />

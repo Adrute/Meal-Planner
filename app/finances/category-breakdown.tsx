@@ -16,7 +16,7 @@ export type CatStat = {
   subcats: SubcatStat[]
 }
 
-export default function CategoryBreakdown({ catStats }: { catStats: CatStat[] }) {
+export default function CategoryBreakdown({ catStats, selectedMonth }: { catStats: CatStat[]; selectedMonth: string }) {
   const [expanded, setExpanded] = useState<string | null>(null)
 
   if (catStats.length === 0) {
@@ -46,7 +46,7 @@ export default function CategoryBreakdown({ catStats }: { catStats: CatStat[] })
 
             {/* Link al detalle */}
             <Link
-              href={`/finances/categoria/${c.id}`}
+              href={`/finances/categoria/${c.id}?month=${selectedMonth}`}
               className="flex items-center gap-2 flex-1 min-w-0 py-0.5 hover:bg-slate-50 rounded-lg px-1 transition-colors group"
             >
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: c.color }} />
