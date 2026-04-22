@@ -38,7 +38,7 @@ export default async function UpcomingReservationsWidget() {
       .limit(3),
     supabase
       .from('trips')
-      .select('id, title, destination, start_date, end_date, emoji, status')
+      .select('id, title, destination, start_date, end_date, cover_emoji, status')
       .eq('status', 'confirmed')
       .gte('end_date', today)
       .order('start_date', { ascending: true })
@@ -116,7 +116,7 @@ export default async function UpcomingReservationsWidget() {
                     className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:border-violet-200 hover:bg-violet-50/50 transition-colors group"
                   >
                     <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm text-lg shrink-0">
-                      {trip.emoji || '✈️'}
+                      {trip.cover_emoji || '✈️'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-800 text-sm group-hover:text-violet-700 transition-colors truncate">
