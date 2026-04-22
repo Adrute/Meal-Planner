@@ -39,7 +39,7 @@ export default async function UpcomingReservationsWidget() {
     supabase
       .from('trips')
       .select('id, title, destination, start_date, end_date, emoji, status')
-      .neq('status', 'completed')
+      .eq('status', 'confirmed')
       .gte('end_date', today)
       .order('start_date', { ascending: true })
       .limit(3),
