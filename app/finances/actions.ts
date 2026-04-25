@@ -142,6 +142,16 @@ export async function deleteAllTransactions() {
   revalidatePath('/')
 }
 
+export async function deleteMonthTransactions(month: string) {
+  const supabase = await createClient()
+  const [y, m] = month.split('-').map(Number)
+  const from = `${month}-01`
+  const to   = new Date(y, m, 0).toISOString().split('T')[0] // último día del mes
+  await supabase.from('bank_transactions').delete().gte('fecha_operacion', from).lte('fecha_operacion', to)
+  revalidatePath('/finances')
+  revalidatePath('/')
+}
+
 export async function toggleNeedsReview(id: string, value: boolean) {
   const supabase = await createClient()
   await supabase.from('bank_transactions').update({ needs_review: value }).eq('id', id)
