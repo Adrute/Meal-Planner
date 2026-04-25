@@ -83,7 +83,7 @@ export async function importTransactions(lines: string[]) {
     })
   }
 
-  if (transactions.length === 0) return { error: 'No se encontraron transacciones válidas.' }
+  if (transactions.length === 0) return { error: 'No se encontraron transacciones válidas. Revisa que el archivo use | como separador y fechas en formato DD/MM/AAAA.' }
 
   // Aplicar reglas manuales (tienen prioridad sobre la categorización automática)
   const { data: rules } = await supabase.from('category_rules').select('pattern, categoria, subcategoria')
@@ -97,14 +97,25 @@ export async function importTransactions(lines: string[]) {
     }
   }
 
-  const { error } = await supabase
-    .from('bank_transactions')
-    .upsert(transactions, { onConflict: 'fecha_operacion,importe,concepto_original', ignoreDuplicates: true })
+  // Insertar uno a uno para evitar que un fallo de constraint tumbe el lote entero
+  let inserted = 0
+  let skipped = 0
+  for (const t of transactions) {
+    const { error: rowError } = await supabase
+      .from('bank_transactions')
+      .upsert(t, { onConflict: 'fecha_operacion,importe,concepto_original', ignoreDuplicates: true })
+    if (rowError) {
+      console.error('[Import] Error insertando fila:', rowError.message, t)
+    } else {
+      inserted++
+    }
+  }
 
-  if (error) return { error: `Error al guardar: ${error.message}` }
+  if (inserted === 0) return { error: `Se parsearon ${transactions.length} líneas pero ninguna se insertó. Puede que ya existan o haya un error de permisos en la BD.` }
+
   revalidatePath('/finances')
   revalidatePath('/')
-  return { success: true, count: transactions.length }
+  return { success: true, count: inserted, skipped: transactions.length - inserted }
 }
 
 // ─── TRANSACCIONES ────────────────────────────────────────────────────────────

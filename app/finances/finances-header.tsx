@@ -21,7 +21,10 @@ export default function FinancesHeader({ hasData }: { hasData: boolean }) {
     setIsImporting(false)
     setMsg(res.error
       ? { type: 'err', text: res.error }
-      : { type: 'ok', text: `${res.count} movimientos importados` }
+      : { type: 'ok', text: res.skipped && res.skipped > 0
+          ? `${res.count} importados · ${res.skipped} ya existían`
+          : `${res.count} movimientos importados`
+        }
     )
     e.target.value = ''
     setTimeout(() => setMsg(null), 5000)
