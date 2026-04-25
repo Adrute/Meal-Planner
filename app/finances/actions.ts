@@ -85,37 +85,54 @@ export async function importTransactions(lines: string[]) {
 
   if (transactions.length === 0) return { error: 'No se encontraron transacciones válidas. Revisa que el archivo use | como separador y fechas en formato DD/MM/AAAA.' }
 
-  // Aplicar reglas manuales (tienen prioridad sobre la categorización automática)
+  // Aplicar reglas manuales
   const { data: rules } = await supabase.from('category_rules').select('pattern, categoria, subcategoria')
   if (rules && rules.length > 0) {
     for (const t of transactions) {
       const match = rules.find(r => t.concepto_original.toUpperCase().includes(r.pattern.toUpperCase()))
-      if (match) {
-        t.categoria = match.categoria
-        t.subcategoria = match.subcategoria || null
-      }
+      if (match) { t.categoria = match.categoria; t.subcategoria = match.subcategoria || null }
     }
   }
 
-  // Insertar uno a uno para evitar que un fallo de constraint tumbe el lote entero
-  let inserted = 0
-  let skipped = 0
-  for (const t of transactions) {
-    const { error: rowError } = await supabase
-      .from('bank_transactions')
-      .upsert(t, { onConflict: 'fecha_operacion,importe,concepto_original', ignoreDuplicates: true })
-    if (rowError) {
-      console.error('[Import] Error insertando fila:', rowError.message, t)
-    } else {
-      inserted++
+  // Insertar en lote — usamos insert normal para detectar errores reales
+  const { data: inserted, error: insertError } = await supabase
+    .from('bank_transactions')
+    .insert(transactions)
+    .select('id')
+
+  if (insertError) {
+    // Si el error es de duplicado (23505) intentamos upsert ignorando duplicados
+    if (insertError.code === '23505') {
+      const { data: upserted, error: upsertError } = await supabase
+        .from('bank_transactions')
+        .upsert(transactions, { onConflict: 'fecha_operacion,importe,concepto_original', ignoreDuplicates: true })
+        .select('id')
+      if (upsertError) return { error: `Error al guardar: ${upsertError.message}` }
+      const count = upserted?.length ?? 0
+      const skipped = transactions.length - count
+      revalidatePath('/finances'); revalidatePath('/')
+      return { success: true, count, skipped }
     }
+    return { error: `Error al guardar: ${insertError.message} (código: ${insertError.code})` }
   }
 
-  if (inserted === 0) return { error: `Se parsearon ${transactions.length} líneas pero ninguna se insertó. Puede que ya existan o haya un error de permisos en la BD.` }
+  const count = inserted?.length ?? 0
+
+  // Verificación: contar cuántas filas existen realmente en BD para ese rango de fechas
+  const dates = transactions.map(t => t.fecha_operacion).sort()
+  const { count: dbCount } = await supabase
+    .from('bank_transactions')
+    .select('*', { count: 'exact', head: true })
+    .gte('fecha_operacion', dates[0])
+    .lte('fecha_operacion', dates[dates.length - 1])
+
+  if (count > 0 && (dbCount === 0 || dbCount === null)) {
+    return { error: `Se insertaron ${count} filas pero el SELECT devuelve 0. Probable problema de RLS (política de lectura en bank_transactions).` }
+  }
 
   revalidatePath('/finances')
   revalidatePath('/')
-  return { success: true, count: inserted, skipped: transactions.length - inserted }
+  return { success: true, count, skipped: 0 }
 }
 
 // ─── TRANSACCIONES ────────────────────────────────────────────────────────────
