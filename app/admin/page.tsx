@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DeletePlansButton, DeleteRecipeButton } from './admin-client'
-import { Database, Trash2, Users } from 'lucide-react'
+import { Database, Trash2, Users, Table2 } from 'lucide-react'
 import UserManager from './user-manager'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +43,21 @@ export default async function AdminPage() {
         <Database className="text-emerald-600" />
         Panel de Administración
       </h1>
+
+      {/* EXPLORADOR DE BD */}
+      <Link
+        href="/admin/db"
+        className="flex items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 hover:border-blue-200 hover:bg-blue-50/30 transition-colors group"
+      >
+        <div className="bg-slate-100 group-hover:bg-blue-100 p-3 rounded-xl text-slate-600 group-hover:text-blue-600 transition-colors">
+          <Table2 size={22} />
+        </div>
+        <div className="flex-1">
+          <h2 className="font-bold text-lg">Explorador de base de datos</h2>
+          <p className="text-sm text-slate-500">Ver y editar el contenido de cualquier tabla directamente.</p>
+        </div>
+        <span className="text-slate-300 group-hover:text-blue-400 font-bold text-lg">→</span>
+      </Link>
 
       {/* GESTIÓN DE USUARIOS */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
