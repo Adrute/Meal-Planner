@@ -30,24 +30,22 @@ export default async function FinancesPage({
 }) {
   const supabase = await createClient()
   const params = await searchParams
+  const now = new Date()
 
+  // ── Query 1: meses disponibles (solo la columna de fecha, muy ligero) ─────
   const [
-    { data: transactions },
+    { data: dateRows },
     { data: rules },
     { data: categoriesRaw },
   ] = await Promise.all([
-    supabase.from('bank_transactions').select('*').order('fecha_operacion', { ascending: false }),
+    supabase.from('bank_transactions').select('fecha_operacion').order('fecha_operacion', { ascending: false }),
     supabase.from('category_rules').select('*').order('created_at', { ascending: false }),
     supabase.from('transaction_categories').select('*, transaction_subcategories(*)').order('name'),
   ])
 
-  const all = transactions || []
   const categories: Category[] = categoriesRaw || []
+  const availableMonths = Array.from(new Set((dateRows || []).map(r => r.fecha_operacion.substring(0, 7)))).sort().reverse()
 
-  // Meses disponibles (desc) — el primero es el último mes con datos
-  const availableMonths = Array.from(new Set(all.map(t => t.fecha_operacion.substring(0, 7)))).sort().reverse()
-
-  const now = new Date()
   const defaultMonth = availableMonths[0] ?? ym(new Date(now.getFullYear(), now.getMonth() - 1, 1))
   const selectedMonth = params.month || defaultMonth
   const isAllTime = selectedMonth === 'all'
@@ -55,14 +53,44 @@ export default async function FinancesPage({
   const [sy, sm] = isAllTime ? [0, 0] : selectedMonth.split('-').map(Number)
   const compMonth = isAllTime ? '' : ym(new Date(sy, sm - 2, 1))
 
-  const selTx  = isAllTime ? all : all.filter(t => t.fecha_operacion.startsWith(selectedMonth))
-  const compTx = isAllTime ? [] : all.filter(t => t.fecha_operacion.startsWith(compMonth))
+  // Último día del mes seleccionado
+  const lastDay = isAllTime ? '' : String(new Date(sy, sm, 0).getDate()).padStart(2, '0')
+  const compLastDay = compMonth ? String(new Date(...compMonth.split('-').map(Number) as [number, number], 0).getDate()).padStart(2, '0') : ''
+
+  // ── Queries 2 y 3: transacciones acotadas por período ────────────────────
+  const chartStart = ym(new Date(now.getFullYear(), now.getMonth() - 12, 1))
+
+  type TxRow = { id: string; fecha_operacion: string; concepto: string; concepto_original: string; importe: number; categoria: string; subcategoria: string | null; tarjeta: string | null; needs_review?: boolean }
+  type ChartRow = { fecha_operacion: string; importe: number; categoria: string; subcategoria: string | null }
+
+  const selQuery = isAllTime
+    ? supabase.from('bank_transactions').select('*').gte('fecha_operacion', `${chartStart}-01`).order('fecha_operacion', { ascending: false })
+    : supabase.from('bank_transactions').select('*').gte('fecha_operacion', `${selectedMonth}-01`).lte('fecha_operacion', `${selectedMonth}-${lastDay}`).order('fecha_operacion', { ascending: false })
+
+  const compQuery = (!isAllTime && compMonth)
+    ? supabase.from('bank_transactions').select('*').gte('fecha_operacion', `${compMonth}-01`).lte('fecha_operacion', `${compMonth}-${compLastDay}`).order('fecha_operacion', { ascending: false })
+    : null
+
+  const chartQuery = supabase.from('bank_transactions').select('fecha_operacion,importe,categoria,subcategoria').gte('fecha_operacion', `${chartStart}-01`).order('fecha_operacion', { ascending: false })
+
+  const [{ data: selTxRaw }, compResult, { data: chartTxRaw }] = await Promise.all([
+    selQuery,
+    compQuery ?? Promise.resolve({ data: [] as TxRow[] }),
+    chartQuery,
+  ])
+
+  const selTx: TxRow[]    = (selTxRaw as TxRow[])   || []
+  const compTx: TxRow[]   = ((compResult?.data ?? []) as TxRow[])
+  const chartTx: ChartRow[] = (chartTxRaw as ChartRow[]) || []
+
+  // hasData basado en si hay meses disponibles
+  const hasData = availableMonths.length > 0
 
   // ── Categorías de ingreso (para distinguir reembolsos de ingresos reales) ──
   const incomeCatNames = new Set(categories.filter(c => c.is_income).map(c => c.name))
 
   // Reembolsos = positivos en categorías de gasto (ej: te devuelven parte de una compra)
-  const netCat = (tx: typeof all, catName: string) => {
+  const netCat = (tx: { categoria: string; importe: number }[], catName: string) => {
     const gastosBrutos = Math.abs(tx.filter(t => t.categoria === catName && t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
     const reembolsos   = tx.filter(t => t.categoria === catName && t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
     return Math.max(0, gastosBrutos - reembolsos)
@@ -127,7 +155,7 @@ export default async function FinancesPage({
     const d = new Date(now.getFullYear(), now.getMonth() - 1 - (11 - i), 1)
     const key = ym(d)
     const label = d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' })
-    const tx = all.filter(t => t.fecha_operacion.startsWith(key))
+    const tx = chartTx.filter(t => t.fecha_operacion.startsWith(key))
     return {
       label, key,
       gastos:   categories.filter(c => !c.is_income).reduce((s, cat) => s + netCat(tx, cat.name), 0),
@@ -146,7 +174,7 @@ export default async function FinancesPage({
   const catColors: Record<string, string> = Object.fromEntries(categories.map(c => [c.name, c.color]))
 
   const catEvolution = monthlyEvolution.map(m => {
-    const monthTx = all.filter(t => t.fecha_operacion.startsWith(m.key))
+    const monthTx = chartTx.filter(t => t.fecha_operacion.startsWith(m.key))
     const entry: Record<string, number | string> = { label: m.label }
     for (const cat of allCatNames) {
       entry[cat] = Math.abs(
@@ -162,7 +190,7 @@ export default async function FinancesPage({
     const catObj = categories.find(c => c.name === cat.cat)
     const subcatNames = catObj?.transaction_subcategories.map(s => s.name) ?? []
     const data = monthlyEvolution.map(m => {
-      const monthTx = all.filter(t => t.fecha_operacion.startsWith(m.key) && t.categoria === cat.cat && t.importe < 0)
+      const monthTx = chartTx.filter(t => t.fecha_operacion.startsWith(m.key) && t.categoria === cat.cat && t.importe < 0)
       const entry: Record<string, number | string> = { label: m.label }
       for (const sub of subcatNames) {
         entry[sub] = Math.abs(monthTx.filter(t => t.subcategoria === sub).reduce((s, t) => s + Number(t.importe), 0))
@@ -177,8 +205,6 @@ export default async function FinancesPage({
     ]
     subcatEvolution[cat.cat] = { data, subcats: activeSubcats }
   }
-
-  const hasData = all.length > 0
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 pb-24 md:pb-10 animate-in fade-in space-y-8">
@@ -310,7 +336,7 @@ export default async function FinancesPage({
         <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Movimientos</p>
         <FinancesUI
           transactions={selTx}
-          allTransactions={all}
+          allTransactions={selTx}
           rules={rules || []}
           categories={categories}
         />
