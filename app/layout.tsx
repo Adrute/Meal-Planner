@@ -7,7 +7,7 @@ import AppNavigation from '@/components/AppNavigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FamilyTools',
+  title: 'Family Dashboard',
   description: 'Gestión integral de la familia, comidas y finanzas',
 }
 
@@ -31,7 +31,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={`${inter.className} bg-slate-50 text-slate-900`}>
+      <body className={`${inter.className} bg-violet-50/40 text-slate-900`}>
         {user ? (
           <div className="flex min-h-screen">
             <AppNavigation

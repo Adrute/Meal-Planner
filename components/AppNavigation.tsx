@@ -10,16 +10,16 @@ import {
 import { signOut } from '@/app/actions/auth'
 
 const ALL_NAV_ITEMS = [
-  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-orange-600',  hoverColor: 'hover:text-orange-500'  },
-  { key: 'recipes',     href: '/recipes',         label: 'Recetas',          icon: BookOpen,        activeColor: 'text-emerald-600', hoverColor: 'hover:text-emerald-600' },
-  { key: 'shopping',    href: '/shopping-list',   label: 'Compra',           icon: ShoppingBasket,  activeColor: 'text-emerald-600', hoverColor: 'hover:text-emerald-600' },
-  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-blue-600',    hoverColor: 'hover:text-blue-500'    },
-  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-yellow-600',  hoverColor: 'hover:text-yellow-500'  },
-  { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-emerald-600', hoverColor: 'hover:text-emerald-500' },
-  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-rose-600',    hoverColor: 'hover:text-rose-500'    },
-  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-600',    hoverColor: 'hover:text-pink-500'    },
-  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-rose-600',    hoverColor: 'hover:text-rose-500'    },
-  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-violet-600',  hoverColor: 'hover:text-violet-500'  },
+  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-orange-400',  activeBg: 'bg-orange-50',   hoverColor: 'hover:text-orange-400  hover:bg-orange-50/60'  },
+  { key: 'recipes',     href: '/recipes',         label: 'Recetas',          icon: BookOpen,        activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
+  { key: 'shopping',    href: '/shopping-list',   label: 'Compra',           icon: ShoppingBasket,  activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
+  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-sky-500',     activeBg: 'bg-sky-50',      hoverColor: 'hover:text-sky-500     hover:bg-sky-50/60'     },
+  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-amber-500',   activeBg: 'bg-amber-50',    hoverColor: 'hover:text-amber-500   hover:bg-amber-50/60'   },
+  { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
+  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-rose-400',    activeBg: 'bg-rose-50',     hoverColor: 'hover:text-rose-400    hover:bg-rose-50/60'    },
+  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-400',    activeBg: 'bg-pink-50',     hoverColor: 'hover:text-pink-400    hover:bg-pink-50/60'    },
+  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-rose-400',    activeBg: 'bg-rose-50',     hoverColor: 'hover:text-rose-400    hover:bg-rose-50/60'    },
+  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-violet-400',  activeBg: 'bg-violet-50',   hoverColor: 'hover:text-violet-400  hover:bg-violet-50/60'  },
 ]
 
 type Props = {
@@ -30,7 +30,6 @@ type Props = {
 
 function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> & { onClick?: () => void }) {
   const pathname = usePathname()
-
   const visibleItems = ALL_NAV_ITEMS.filter(item => permissions.includes(item.key))
 
   return (
@@ -38,11 +37,13 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
       <Link
         href="/"
         onClick={onClick}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${
-          pathname === '/' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm ${
+          pathname === '/'
+            ? 'bg-violet-100 text-violet-600'
+            : 'text-slate-500 hover:bg-violet-50 hover:text-violet-500'
         }`}
       >
-        <Home size={20} /> <span>Inicio</span>
+        <Home size={18} /> <span>Inicio</span>
       </Link>
 
       {visibleItems.map(item => {
@@ -53,13 +54,13 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
             key={item.key}
             href={item.href}
             onClick={onClick}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm ${
               active
-                ? `bg-slate-50 ${item.activeColor}`
-                : `text-slate-600 hover:bg-slate-50 ${item.hoverColor}`
+                ? `${item.activeBg} ${item.activeColor}`
+                : `text-slate-500 ${item.hoverColor}`
             }`}
           >
-            <Icon size={20} /> <span>{item.label}</span>
+            <Icon size={18} /> <span>{item.label}</span>
           </Link>
         )
       })}
@@ -68,72 +69,82 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
         <Link
           href="/admin"
           onClick={onClick}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium ${
-            pathname === '/admin' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm ${
+            pathname.startsWith('/admin')
+              ? 'bg-violet-100 text-violet-600'
+              : 'text-slate-500 hover:bg-violet-50 hover:text-violet-500'
           }`}
         >
-          <Database size={20} /> <span>Administración</span>
+          <Database size={18} /> <span>Administración</span>
         </Link>
       )}
     </>
   )
 }
 
+const Brand = ({ size = 'lg' }: { size?: 'sm' | 'lg' }) =>
+  size === 'lg' ? (
+    <h2 className="text-2xl font-black tracking-tight text-slate-800">
+      Family<span className="text-violet-400">Dashboard</span>
+    </h2>
+  ) : (
+    <h2 className="text-xl font-black tracking-tight text-slate-800">
+      Family<span className="text-violet-400">Dashboard</span>
+    </h2>
+  )
+
 export default function AppNavigation({ permissions, isAdmin, displayName }: Props) {
   const [open, setOpen] = useState(false)
+
+  const UserFooter = () => (
+    <div className="p-4 border-t border-violet-100/60 space-y-1">
+      <div className="flex items-center gap-3 px-4 py-2">
+        <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-black shrink-0">
+          {displayName.slice(0, 2).toUpperCase()}
+        </div>
+        <span className="text-sm font-bold text-slate-600 truncate">{displayName}</span>
+      </div>
+      <form action={signOut}>
+        <button
+          type="submit"
+          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-colors text-left"
+        >
+          <LogOut size={16} /> <span className="truncate">Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  )
 
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
-        <div className="p-8">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Family<span className="text-emerald-500">Tools</span>
-          </h2>
+      <aside className="hidden md:flex flex-col w-60 bg-white/80 border-r border-violet-100 shrink-0 backdrop-blur-sm">
+        <div className="px-6 py-7">
+          <Brand />
         </div>
-
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
           <NavLinks permissions={permissions} isAdmin={isAdmin} />
         </nav>
-
-        <div className="p-4 border-t border-slate-100 space-y-1">
-          <div className="flex items-center gap-3 px-4 py-2">
-            <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black shrink-0">
-              {displayName.slice(0, 2).toUpperCase()}
-            </div>
-            <span className="text-sm font-bold text-slate-700 truncate">{displayName}</span>
-          </div>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors text-left"
-            >
-              <LogOut size={18} /> <span className="truncate">Cerrar Sesión</span>
-            </button>
-          </form>
-        </div>
+        <UserFooter />
       </aside>
 
       {/* Mobile top header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-[199] bg-white border-b border-slate-200 flex items-center px-4 h-14 shadow-sm">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-[199] bg-white/90 backdrop-blur-sm border-b border-violet-100 flex items-center px-4 h-14">
         <button
           onClick={() => setOpen(true)}
-          className="p-2 rounded-xl hover:bg-slate-100 text-slate-600 -ml-2"
+          className="p-2 rounded-xl hover:bg-violet-50 text-slate-500 -ml-2"
           aria-label="Abrir menú"
         >
           <Menu size={22} />
         </button>
-        <h2 className="text-xl font-black text-slate-900 tracking-tight ml-3">
-          Family<span className="text-emerald-500">Tools</span>
-        </h2>
+        <div className="ml-3">
+          <Brand size="sm" />
+        </div>
       </header>
 
       {/* Mobile overlay */}
       {open && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/40 z-[200]"
-          onClick={() => setOpen(false)}
-        />
+        <div className="md:hidden fixed inset-0 bg-black/30 z-[200]" onClick={() => setOpen(false)} />
       )}
 
       {/* Mobile sliding sidebar */}
@@ -142,38 +153,16 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Family<span className="text-emerald-500">Tools</span>
-          </h2>
-          <button
-            onClick={() => setOpen(false)}
-            className="p-2 rounded-xl hover:bg-slate-100 text-slate-400"
-          >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-violet-100">
+          <Brand />
+          <button onClick={() => setOpen(false)} className="p-2 rounded-xl hover:bg-violet-50 text-slate-400">
             <X size={20} />
           </button>
         </div>
-
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           <NavLinks permissions={permissions} isAdmin={isAdmin} onClick={() => setOpen(false)} />
         </nav>
-
-        <div className="p-4 border-t border-slate-100 space-y-1">
-          <div className="flex items-center gap-3 px-4 py-2">
-            <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black shrink-0">
-              {displayName.slice(0, 2).toUpperCase()}
-            </div>
-            <span className="text-sm font-bold text-slate-700 truncate">{displayName}</span>
-          </div>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-500 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors text-left"
-            >
-              <LogOut size={18} /> <span className="truncate">Cerrar Sesión</span>
-            </button>
-          </form>
-        </div>
+        <UserFooter />
       </div>
     </>
   )

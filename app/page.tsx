@@ -39,14 +39,14 @@ async function FinancesWidget() {
   const hasData = (thisMonth || []).length > 0 || (prevMonthTx || []).length > 0
 
   return (
-    <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
+    <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-sky-100 shadow-sm flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600"><Wallet size={20} /></div>
-            <h2 className="font-bold text-lg text-slate-800">Finanzas</h2>
+            <div className="bg-sky-100 p-2.5 rounded-xl text-sky-400"><Wallet size={20} /></div>
+            <h2 className="font-bold text-lg text-slate-700">Finanzas</h2>
           </div>
-          <Link href="/finances" className="text-slate-400 hover:text-blue-600 transition-colors">
+          <Link href="/finances" className="text-slate-300 hover:text-sky-400 transition-colors">
             <ArrowRight size={20} />
           </Link>
         </div>
@@ -90,11 +90,11 @@ async function FinancesWidget() {
       </div>
 
       {hasData ? (
-        <Link href="/finances" className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-slate-200">
+        <Link href="/finances" className="w-full py-3 bg-sky-50 text-sky-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-sky-100 transition-colors border border-sky-100">
           <TrendingDown size={18} /> Ver movimientos
         </Link>
       ) : (
-        <Link href="/finances" className="w-full py-3 bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-slate-200">
+        <Link href="/finances" className="w-full py-3 bg-sky-50 text-sky-500 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-sky-100 transition-colors border border-sky-100">
           Conectar movimientos →
         </Link>
       )}
@@ -230,23 +230,23 @@ export default async function HomeDashboard() {
 
       <header className="mb-10">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-          Hola, <span className="text-emerald-600">Familia</span>
+          Hola, <span className="text-violet-400">Familia</span>
         </h1>
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
       {/* --- WIDGET 1: MENÚ DE LA SEMANA (ANCHO COMPLETO) --- */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm mb-6">
+      <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-orange-100 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600"><Utensils size={20} /></div>
-            <h2 className="font-bold text-lg text-slate-800">Menú</h2>
+            <div className="bg-orange-100 p-2.5 rounded-xl text-orange-400"><Utensils size={20} /></div>
+            <h2 className="font-bold text-lg text-slate-700">Menú</h2>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-orange-600 transition-colors">
+            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-orange-400 transition-colors">
               <ShoppingBasket size={16} /> Compra
             </Link>
-            <Link href="/meals" className="text-slate-400 hover:text-orange-600 transition-colors">
+            <Link href="/meals" className="text-slate-300 hover:text-orange-400 transition-colors">
               <ArrowRight size={20} />
             </Link>
           </div>
@@ -261,16 +261,16 @@ export default async function HomeDashboard() {
             const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })
             const dayNum = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
             return (
-              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-orange-200 bg-orange-50/50' : 'border-slate-100 bg-slate-50'}`}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-orange-500' : 'text-slate-400'}`}>{label}</p>
+              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-orange-200 bg-orange-50' : 'border-slate-100 bg-slate-50/60'}`}>
+                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-orange-400' : 'text-slate-400'}`}>{label}</p>
                 <p className="text-[11px] text-slate-400 font-medium mb-3 capitalize">{dayNum}</p>
 
                 <div className="space-y-2.5">
                   {schoolMenu && (
                     <div>
                       <div className="flex items-center gap-1 mb-1">
-                        <GraduationCap size={10} className="text-emerald-500" />
-                        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Cole</span>
+                        <GraduationCap size={10} className="text-teal-400" />
+                        <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Cole</span>
                       </div>
                       <p className="text-xs font-semibold text-slate-700 leading-tight">{schoolMenu.first_course}</p>
                       {schoolMenu.second_course && <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{schoolMenu.second_course}</p>}
@@ -278,7 +278,7 @@ export default async function HomeDashboard() {
                   )}
                   <div>
                     <div className="flex items-center gap-1 mb-1">
-                      <Utensils size={10} className="text-orange-400" />
+                      <Utensils size={10} className="text-orange-300" />
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
                     </div>
                     {almuerzo ? (
@@ -291,7 +291,7 @@ export default async function HomeDashboard() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1 mb-1">
-                      <Moon size={10} className="text-indigo-400" />
+                      <Moon size={10} className="text-indigo-300" />
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
                     </div>
                     {cena ? (
@@ -321,14 +321,14 @@ export default async function HomeDashboard() {
         <FinancesWidget />
 
         {/* WIDGET 4: SUMINISTROS */}
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm flex flex-col justify-between h-full">
+        <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-amber-100 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="bg-emerald-50 p-2.5 rounded-xl text-emerald-600"><Zap size={20} /></div>
-                <h2 className="font-bold text-lg text-slate-800">Suministros</h2>
+                <div className="bg-amber-100 p-2.5 rounded-xl text-amber-400"><Zap size={20} /></div>
+                <h2 className="font-bold text-lg text-slate-700">Suministros</h2>
               </div>
-              <Link href="/utilities" className="text-slate-400 hover:text-emerald-600 transition-colors">
+              <Link href="/utilities" className="text-slate-300 hover:text-amber-400 transition-colors">
                 <ArrowRight size={20} />
               </Link>
             </div>
@@ -378,13 +378,13 @@ export default async function HomeDashboard() {
 
       {/* --- INICIO DEL MÓDULO DE BONOS (VISTA DETALLADA) --- */}
       {services && services.length > 0 && (
-        <div className="mt-8 bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm w-full">
+        <div className="mt-8 bg-white/80 rounded-3xl p-6 md:p-8 border border-violet-100 shadow-sm w-full">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-purple-50 p-2.5 rounded-xl text-purple-600"><CalendarHeart size={20} /></div>
-              <h2 className="font-bold text-lg text-slate-800">Estado de los Bonos</h2>
+              <div className="bg-violet-100 p-2.5 rounded-xl text-violet-400"><CalendarHeart size={20} /></div>
+              <h2 className="font-bold text-lg text-slate-700">Estado de los Bonos</h2>
             </div>
-            <Link href="/services" className="text-slate-400 hover:text-purple-600 transition-colors flex items-center gap-1 text-sm font-bold">
+            <Link href="/services" className="text-slate-300 hover:text-violet-400 transition-colors flex items-center gap-1 text-sm font-bold">
               Configurar <ArrowRight size={16} />
             </Link>
           </div>
