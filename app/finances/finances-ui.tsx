@@ -46,6 +46,7 @@ export default function FinancesUI({
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState('Todas')
   const [subcatFilter, setSubcatFilter] = useState('Todas')
+  const [flowFilter, setFlowFilter] = useState<'todos' | 'gastos' | 'ingresos'>('todos')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const [modalCats, setModalCats] = useState(false)
@@ -70,9 +71,10 @@ export default function FinancesUI({
         t.concepto_original.toLowerCase().includes(search.toLowerCase())
       const matchCat = catFilter === 'Todas' || t.categoria === catFilter
       const matchSubcat = subcatFilter === 'Todas' || t.subcategoria === subcatFilter
-      return matchSearch && matchCat && matchSubcat
+      const matchFlow = flowFilter === 'todos' || (flowFilter === 'gastos' ? t.importe < 0 : t.importe > 0)
+      return matchSearch && matchCat && matchSubcat && matchFlow
     })
-  }, [transactions, search, catFilter, subcatFilter])
+  }, [transactions, search, catFilter, subcatFilter, flowFilter])
 
   const groupedByDate = useMemo(() => {
     const map = new Map<string, Transaction[]>()
@@ -150,6 +152,28 @@ export default function FinancesUI({
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
               />
             </div>
+
+            {/* Filtro ingresos / gastos */}
+            <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+              {(['todos', 'gastos', 'ingresos'] as const).map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setFlowFilter(opt)}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    flowFilter === opt
+                      ? opt === 'gastos'
+                        ? 'bg-white text-rose-500 shadow-sm'
+                        : opt === 'ingresos'
+                          ? 'bg-white text-teal-600 shadow-sm'
+                          : 'bg-white text-slate-700 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {opt === 'todos' ? 'Todos' : opt === 'gastos' ? '↓ Gastos' : '↑ Ingresos'}
+                </button>
+              ))}
+            </div>
+
             <div className="relative">
               <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <select
