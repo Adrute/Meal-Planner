@@ -5,26 +5,21 @@ import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
-  Scale, Footprints, Droplets, Plus, Minus, Trash2,
+  Scale, Footprints, Plus, Minus, Trash2,
   Loader2, TrendingDown, TrendingUp, Timer, Route, Smile,
   Maximize2, X,
 } from 'lucide-react'
 import {
   addWeightLog, deleteWeightLog,
   addRunningLog, deleteRunningLog,
-  upsertHydrationLog, deleteHydrationLog,
 } from './actions'
 import WeightChart from './WeightChart'
 import RunningChart from './RunningChart'
-import HydrationChart from './HydrationChart'
-
-type WeightLog     = { id: string; date: string; weight_kg: number; notes: string | null }
-type RunningLog    = { id: string; date: string; distance_km: number; duration_minutes: number; feeling: number | null; notes: string | null }
-type HydrationLog  = { id: string; date: string; glasses: number }
+type WeightLog  = { id: string; date: string; weight_kg: number; notes: string | null }
+type RunningLog = { id: string; date: string; distance_km: number; duration_minutes: number; feeling: number | null; notes: string | null }
 
 const FEELING_EMOJI = ['', '😓', '😐', '🙂', '😊', '🔥']
-const GLASS_GOAL   = 8
-const today        = new Date().toISOString().split('T')[0]
+const today         = new Date().toISOString().split('T')[0]
 
 function formatPace(minPerKm: number) {
   const m = Math.floor(minPerKm)
@@ -198,144 +193,6 @@ function WeightSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: We
                         {deletingId === l.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
-
-// ─── Hydration section ────────────────────────────────────────────────────────
-
-function HydrationSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: HydrationLog[] } & SectionProps) {
-  const router = useRouter()
-  const [, startTransition] = useTransition()
-  const [date, setDate]       = useState(today)
-  const [glasses, setGlasses] = useState(0)
-  const [saving, setSaving]   = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  const todayLog       = logs.find(l => l.date === today)
-  const currentGlasses = glasses || todayLog?.glasses || 0
-
-  const handleSet = async (value: number) => {
-    if (value < 0) return
-    setGlasses(value)
-    setSaving(true)
-    await upsertHydrationLog(date, value)
-    setSaving(false)
-    startTransition(() => router.refresh())
-  }
-
-  const handleDateChange = (d: string) => {
-    setDate(d)
-    const existing = logs.find(l => l.date === d)
-    setGlasses(existing?.glasses ?? 0)
-  }
-
-  const handleDelete = async (id: string) => {
-    setDeletingId(id)
-    await deleteHydrationLog(id)
-    setDeletingId(null)
-    setGlasses(0)
-    startTransition(() => router.refresh())
-  }
-
-  const avgGlasses    = logs.length > 0
-    ? (logs.reduce((s, l) => s + l.glasses, 0) / logs.length).toFixed(1)
-    : null
-  const glassesToShow = date === today ? currentGlasses : (logs.find(l => l.date === date)?.glasses ?? glasses)
-  const pct           = Math.min((glassesToShow / GLASS_GOAL) * 100, 100)
-
-  return (
-    <section className={sectionClass(isMaximized)}>
-      <div className={innerClass(isMaximized)}>
-        <SectionHeader
-          icon={<div className="bg-sky-50 p-2 rounded-xl text-sky-500"><Droplets size={20} /></div>}
-          title="Hidratación" subtitle={`Objetivo: ${GLASS_GOAL} vasos al día`}
-          isMaximized={isMaximized} onMaximize={onMaximize} onMinimize={onMinimize}
-        />
-
-        {logs.length > 0 && (
-          <div className="grid grid-cols-2 gap-px bg-slate-100 border-b border-slate-100">
-            {[
-              { label: 'Media diaria',    value: avgGlasses ? `${avgGlasses} vasos` : '—' },
-              { label: 'Días registrados', value: `${logs.length}` },
-            ].map(s => (
-              <div key={s.label} className="bg-white px-4 py-3 flex flex-col items-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{s.label}</span>
-                <span className="font-black text-lg text-sky-600">{s.value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="p-6 border-b border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Registrar día</p>
-            <input type="date" value={date} onChange={e => handleDateChange(e.target.value)} max={today}
-              className="p-2 rounded-xl border border-slate-200 text-xs font-medium outline-none focus:border-sky-400" />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-3xl font-black text-sky-600">{glassesToShow}</span>
-              <span className="text-sm text-slate-400 font-medium">/ {GLASS_GOAL} vasos</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${pct >= 100 ? 'bg-emerald-500' : 'bg-sky-400'}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            {pct >= 100 && <p className="text-xs text-emerald-600 font-bold mt-1">¡Objetivo alcanzado! 💧</p>}
-          </div>
-
-          <div className="flex items-center justify-between gap-4">
-            <button onClick={() => handleSet(glassesToShow - 1)} disabled={glassesToShow <= 0 || saving}
-              className="w-16 h-14 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-2xl rounded-2xl transition-colors disabled:opacity-40 shrink-0">
-              −
-            </button>
-            <div className="flex items-center justify-center gap-1.5 text-sky-400">
-              {saving && <Loader2 size={14} className="animate-spin" />}
-              <Droplets size={20} />
-            </div>
-            <button onClick={() => handleSet(glassesToShow + 1)} disabled={saving}
-              className="w-16 h-14 flex items-center justify-center bg-sky-500 hover:bg-sky-600 text-white font-black text-2xl rounded-2xl transition-colors disabled:opacity-40 shrink-0">
-              +
-            </button>
-          </div>
-        </div>
-
-        {logs.length >= 2 && (
-          <div className="p-6 border-b border-slate-100">
-            <HydrationChart logs={logs} />
-          </div>
-        )}
-
-        {logs.length > 0 && (
-          <div className="p-6">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Historial</p>
-            <div className="space-y-1 max-h-56 overflow-y-auto">
-              {[...logs].reverse().map(l => {
-                const p = Math.min((l.glasses / GLASS_GOAL) * 100, 100)
-                return (
-                  <div key={l.id} className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-slate-50 group transition-colors">
-                    <span className="text-xs font-bold text-slate-400 w-24 capitalize shrink-0">
-                      {format(parseISO(l.date), 'd MMM yyyy', { locale: es })}
-                    </span>
-                    <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full ${p >= 100 ? 'bg-emerald-500' : 'bg-sky-400'}`} style={{ width: `${p}%` }} />
-                    </div>
-                    <span className="font-bold text-sky-600 text-sm w-14 text-right shrink-0">{l.glasses}/{GLASS_GOAL}</span>
-                    <button onClick={() => handleDelete(l.id)} disabled={deletingId === l.id}
-                      className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all p-1 rounded-lg shrink-0">
-                      {deletingId === l.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                    </button>
                   </div>
                 )
               })}
@@ -525,14 +382,13 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
-type Maximized = 'weight' | 'hydration' | 'running' | null
+type Maximized = 'weight' | 'running' | null
 
 export default function HealthDashboard({
-  weightLogs, runningLogs, hydrationLogs,
+  weightLogs, runningLogs,
 }: {
   weightLogs: WeightLog[]
   runningLogs: RunningLog[]
-  hydrationLogs: HydrationLog[]
 }) {
   const [maximized, setMaximized] = useState<Maximized>(null)
 
@@ -547,12 +403,6 @@ export default function HealthDashboard({
           logs={weightLogs}
           isMaximized={maximized === 'weight'}
           onMaximize={() => setMaximized('weight')}
-          onMinimize={() => setMaximized(null)}
-        />
-        <HydrationSection
-          logs={hydrationLogs}
-          isMaximized={maximized === 'hydration'}
-          onMaximize={() => setMaximized('hydration')}
           onMinimize={() => setMaximized(null)}
         />
         <RunningSection

@@ -9,7 +9,7 @@ export default async function HealthPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: weightLogs }, { data: runningLogs }, { data: hydrationLogs }] = await Promise.all([
+  const [{ data: weightLogs }, { data: runningLogs }] = await Promise.all([
     supabase
       .from('weight_logs')
       .select('id, date, weight_kg, notes')
@@ -20,18 +20,12 @@ export default async function HealthPage() {
       .select('id, date, distance_km, duration_minutes, feeling, notes')
       .eq('user_id', user.id)
       .order('date', { ascending: true }),
-    supabase
-      .from('hydration_logs')
-      .select('id, date, glasses')
-      .eq('user_id', user.id)
-      .order('date', { ascending: true }),
   ])
 
   return (
     <HealthDashboard
       weightLogs={weightLogs ?? []}
       runningLogs={runningLogs ?? []}
-      hydrationLogs={hydrationLogs ?? []}
     />
   )
 }
