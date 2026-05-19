@@ -29,23 +29,30 @@ export async function POST(req: NextRequest) {
         },
         {
           role: 'user',
-          content: `El siguiente texto ha sido extraído de un PDF de menú mensual de comedor escolar español. El texto puede estar desordenado porque proviene de un layout de tabla/calendario.
+          content: `El siguiente texto ha sido extraído de un PDF de menú mensual de comedor escolar español. El texto proviene de un calendario en tabla (5 columnas = Lunes a Viernes) y puede estar desordenado.
 
 TEXTO DEL PDF:
 ${text}
 
-Tu tarea: extraer los platos de TODOS los días laborables del mes completo (normalmente 18-23 días repartidos en 4 semanas). NO te detengas tras la primera semana.
+REGLAS CRÍTICAS para identificar los días correctamente:
 
-Pasos:
-1. Identifica el año y mes en el encabezado (ej: "2026 ABR" = abril 2026, "2026 MAY" = mayo 2026)
-2. Busca TODOS los números de día que aparezcan (6, 7, 8, 9, 10, 13, 14... hasta el final del mes)
-3. Para cada número de día asocia los platos que aparezcan a su lado o cerca
-4. Ignora días festivos o vacaciones (cuando el texto lo indique explícitamente)
+1. ENCABEZADOS DE SEMANA: cada fila del calendario empieza con una línea que contiene los 5 números de día de esa semana, por ejemplo:
+   "18 DÍA DEL CELÍACO 19 MENÚ SIN PROTEÍNA ANIMAL 20 21 22 MENÚ SOSTENIBLE"
+   - Los NÚMEROS (18, 19, 20, 21, 22) son las fechas del Lunes al Viernes
+   - Las etiquetas como "DÍA DEL CELÍACO", "MENÚ GASTRONÓMICO", "MENÚ SIN PROTEÍNA ANIMAL", "MENÚ SOSTENIBLE" son TEMAS especiales del día. NO son platos ni contenido de menú.
 
-Para cada día laborable del mes, extrae:
-- La fecha en formato YYYY-MM-DD
-- El primer plato (first_course)
-- El segundo plato (second_course)
+2. ASIGNACIÓN DE PLATOS: después del encabezado de semana, los bloques de platos aparecen en el mismo orden que los días (de izquierda a derecha). El primer bloque de platos corresponde al primer día de la semana (Lunes), el segundo al Martes, etc.
+
+3. FESTIVOS: si un día aparece marcado explícitamente como "FESTIVO" o no tiene platos asociados, omítelo.
+
+4. POSTRE: suele ser "FRUTA y LECHE", "YOGUR", o similar. Extráelo como dessert.
+
+Tu tarea: extraer TODOS los días laborables del mes completo.
+
+Para cada día extrae:
+- La fecha en formato YYYY-MM-DD (usando el año y mes del encabezado del PDF)
+- El primer plato (first_course) — limpia los códigos de alérgenos como (1, 3, 6)
+- El segundo plato (second_course) — limpia los códigos de alérgenos
 - El postre (dessert)
 
 Responde ÚNICAMENTE con JSON válido, sin texto extra:
