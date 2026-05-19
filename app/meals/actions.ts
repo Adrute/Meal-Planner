@@ -123,6 +123,18 @@ export async function saveSchoolMenuItems(
   items: Array<{ date: string; first_course: string; second_course: string; dessert: string }>
 ) {
   const supabase = await createClient()
-  await supabase.from('school_menu_items').upsert(items, { onConflict: 'date' })
+  console.log('[saveSchoolMenuItems] items recibidos:', items.length, items[0])
+
+  if (items.length === 0) return { error: 'No hay items que guardar' }
+
+  const dates = items.map(i => i.date)
+  await supabase.from('school_menu_items').delete().in('date', dates)
+
+  const { error, data } = await supabase.from('school_menu_items').insert(items).select('id, date')
+  console.log('[saveSchoolMenuItems] insert result:', { insertedCount: data?.length, error: error?.message })
+
+  if (error) return { error: error.message }
+
   revalidatePath('/meals')
+  return { success: true, count: data?.length ?? 0 }
 }

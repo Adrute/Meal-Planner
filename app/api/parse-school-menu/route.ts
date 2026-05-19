@@ -1,188 +1,137 @@
 import { extractText, getDocumentProxy } from 'unpdf'
 import { NextRequest, NextResponse } from 'next/server'
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
 type MenuItem = { date: string; first_course: string; second_course: string; dessert: string }
 
-// ── Text helpers ─────────────────────────────────────────────────────────────
-
-const MONTHS: Record<string, number> = {
+const MONTH_MAP: Record<string, number> = {
   ENE:1, FEB:2, MAR:3, ABR:4, MAY:5, JUN:6,
   JUL:7, AGO:8, SEP:9, OCT:10, NOV:11, DIC:12,
   ENERO:1, FEBRERO:2, MARZO:3, ABRIL:4, MAYO:5, JUNIO:6,
   JULIO:7, AGOSTO:8, SEPTIEMBRE:9, OCTUBRE:10, NOVIEMBRE:11, DICIEMBRE:12,
 }
 
-// Lines to discard completely
-const NOISE_RX = [
-  /^E\.I\./i,
-  /^ANDALUC/i,
-  /LUNES.*MARTES/i,
-  /\d+\s*Kcal/i,
-  /^Para consultas/i,
-  /^Este men/i,
-  /^Todos los men/i,
-  /^Se ofrecer/i,
-  /^Gluten/i,
-  /^Calle /i,
-  /^DECLARACI/i,
-  /^Telf\./i,
-  /^www\./i,
-  /^nutrici/i,
-  /^Fruta[sy].*verdura/i,
-  /^Prote[ií]na/i,
-  /^Cereales/i,
-  /^Grasas/i,
-  /^Productos l/i,
-  /comedor.*blanco/i,
-  /Alimentando/i,
-  /creando futuros/i,
-  /planificar/i,
-  /^COMEDOR$/i,
-  /^CASA$/i,
-  /^PRIMEROS PLATOS$/i,
-  /^SEGUNDOS PLATOS$/i,
-  /^POSTRES$/i,
-  /^COCINA/i,
-  /^TRADICIONAL/i,
-  /^SIN$/i,
-  /^PRECOCINADOS/i,
-]
-
-const isNoise = (l: string) => NOISE_RX.some(rx => rx.test(l))
-const isDesert = (l: string) => /^(FRUTA y LECHE|YOGUR)/i.test(l)
-const isHoliday = (l: string) => /^FESTIVO$/i.test(l)
-const isCalories = (l: string) => /\d+\s*Kcal/i.test(l)
-
-function cleanAllergens(s: string) {
-  return s.replace(/\s*[\(\[]\s*\d+[\d\s,]*[\)\]]/g, '').replace(/\s+/g, ' ').trim()
-}
-
-// ── Week-header detection ─────────────────────────────────────────────────────
-// A week header is a line that contains exactly 5 day-numbers (1-31) in ascending order
-// possibly interleaved with label words like "DÍA DEL CELÍACO".
-function extractWeekDays(line: string): number[] | null {
-  const nums = [...line.matchAll(/\b(\d{1,2})\b/g)]
-    .map(m => parseInt(m[1]))
-    .filter(n => n >= 1 && n <= 31)
-  if (nums.length !== 5) return null
-  // Must be strictly ascending and span ≤ 7 days
-  for (let i = 1; i < nums.length; i++) {
-    if (nums[i] <= nums[i - 1]) return null
-  }
-  if (nums[4] - nums[0] > 6) return null
-  return nums
-}
-
-// ── Main parser ───────────────────────────────────────────────────────────────
-
 function parseCoomedoresBlanco(raw: string): MenuItem[] {
-  // 1. Normalise lines: join continuation lines (allergen codes on their own line, etc.)
-  const rawLines = raw.split('\n').map(l => l.trim())
-  const lines: string[] = []
-  for (const l of rawLines) {
-    if (!l) continue
-    // A line that starts with "(" or is purely an allergen code like "(12)" glues to previous
-    if (lines.length > 0 && /^\([\d\s,]+\)$/.test(l)) {
-      // skip lone allergen-code lines
-      continue
-    }
-    if (lines.length > 0 && l.startsWith('(') && l.length < 20) {
-      lines[lines.length - 1] += ' ' + l
-    } else {
-      lines.push(l)
-    }
-  }
-
-  // 2. Detect year and month
-  let year = new Date().getFullYear()
+  // 1. Detect year and month
+  let year  = new Date().getFullYear()
   let month = new Date().getMonth() + 1
 
-  for (const l of lines) {
-    const yMatch = l.match(/\b(202\d)\b/)
-    if (yMatch) year = parseInt(yMatch[1])
-    for (const [abbr, n] of Object.entries(MONTHS)) {
-      if (new RegExp(`\\b${abbr}\\b`, 'i').test(l)) { month = n; break }
+  // Tomar el año MÁS ALTO encontrado (evita capturar "2025" del pie "RD 315/2025" antes de ver "2026")
+  const allYears = [...raw.matchAll(/\b(202\d)\b/g)].map(m => parseInt(m[1]))
+  if (allYears.length > 0) year = Math.max(...allYears)
+
+  for (const [abbr, n] of Object.entries(MONTH_MAP)) {
+    if (new RegExp(`\\b${abbr}\\b`, 'i').test(raw)) { month = n; break }
+  }
+
+  // 2. Find start of calendar data (right after the column-header row "JUEVES VIERNES")
+  //    This strips the allergen numbers (1 2 3 4 5 6 … 14) and other header noise.
+  const calMarker = 'JUEVES VIERNES'
+  const calStart  = raw.indexOf(calMarker)
+  if (calStart === -1) return []
+  const calText = raw.slice(calStart + calMarker.length)
+
+  // 3. Collect all 1-2 digit numbers (1-31) with their positions in calText.
+  //    Guardamos también la longitud del match para manejar "08" (2 chars) vs "8" (1 char).
+  const numPos: Array<{ idx: number; val: number; len: number }> = []
+  for (const m of calText.matchAll(/\b(\d{1,2})\b/g)) {
+    const val = parseInt(m[1])
+    if (val >= 1 && val <= 31) numPos.push({ idx: m.index!, val, len: m[0].length })
+  }
+
+  // 4. Find week headers: 5 consecutive numbers in ascending order,
+  //    spanning ≤ 7 days and ≤ 300 characters apart.
+  const weekHeaders: Array<{ endIdx: number; days: number[] }> = []
+  let ni = 0
+  while (ni <= numPos.length - 5) {
+    const group = numPos.slice(ni, ni + 5)
+    const vals  = group.map(g => g.val)
+
+    let ok = true
+    for (let j = 1; j < 5; j++) if (vals[j] <= vals[j - 1]) { ok = false; break }
+
+    if (ok && vals[4] - vals[0] <= 6 && group[4].idx - group[0].idx <= 300) {
+      weekHeaders.push({ endIdx: group[4].idx + group[4].len, days: vals })
+      ni += 5
+    } else {
+      ni++
     }
   }
+
+  if (weekHeaders.length === 0) return []
 
   const results: MenuItem[] = []
 
-  // 3. Walk lines looking for week headers
-  let i = 0
-  while (i < lines.length) {
-    const weekDays = extractWeekDays(lines[i])
-    if (!weekDays) { i++; continue }
+  // 5. For each week, extract the text between this header and the next,
+  //    strip leading label-noise, then split into meal groups by dessert markers.
+  for (let wi = 0; wi < weekHeaders.length; wi++) {
+    const { endIdx, days } = weekHeaders[wi]
+    const nextStart = wi + 1 < weekHeaders.length ? weekHeaders[wi + 1].endIdx - String(weekHeaders[wi + 1].days[0]).length - 50 : calText.length
+    // ↑ rough boundary: start of next header (back-estimated a bit to avoid eating into it)
+    const nextHeaderStart = wi + 1 < weekHeaders.length
+      ? numPos.find(p => p.idx >= weekHeaders[wi + 1].endIdx - 40 && p.val === weekHeaders[wi + 1].days[0])?.idx ?? calText.length
+      : calText.length
 
-    i++ // move past header
+    let weekText = calText.slice(endIdx, nextHeaderStart)
 
-    // Skip noise lines immediately after header
-    while (i < lines.length && isNoise(lines[i])) i++
+    // Strip leading noise between the last day-number and the first food item.
+    // Incluye dígitos sueltos (p.ej. el "8" de "08" que puede quedar), etiquetas de menú, nombre del colegio.
+    weekText = weekText
+      .replace(/^\s*\d{1,2}\s*/, '')  // dígito(s) sueltos al inicio
+      .replace(
+        /^\s*(?:(?:MENÚ\s+(?:GASTRONÓMICO|SOSTENIBLE|SIN\s+PROTEÍNA\s+ANIMAL)|DÍA\s+DEL\s+CELÍACO|ANDALUCIA|E\.I\.\s+EL\s+COLUMPIO)\s*)*/gi,
+        ''
+      )
 
-    // 4. Collect content lines until next week header or end
-    const content: string[] = []
-    while (i < lines.length) {
-      if (extractWeekDays(lines[i])) break   // next week
-      if (isCalories(lines[i])) { i++; continue } // skip calorie rows
-      if (!isNoise(lines[i])) content.push(lines[i])
-      i++
+    // 6. Build list of markers (dessert lines and FESTIVO) with positions
+    type Marker = { pos: number; end: number; holiday: boolean; dessert: string }
+    const markers: Marker[] = []
+
+    for (const m of weekText.matchAll(/\b(YOGUR|FRUTA\s+y\s+LECHE)\s*\(\s*\d+\s*\)/gi)) {
+      const dessert = /YOGUR/i.test(m[1]) ? 'YOGUR' : 'FRUTA y LECHE'
+      markers.push({ pos: m.index!, end: m.index! + m[0].length, holiday: false, dessert })
     }
+    for (const m of weekText.matchAll(/\bFESTIVO\b/gi)) {
+      markers.push({ pos: m.index!, end: m.index! + m[0].length, holiday: true, dessert: '' })
+    }
+    markers.sort((a, b) => a.pos - b.pos)
 
-    // 5. Split content into meal groups.
-    // Each group ends with a desert line ("FRUTA y LECHE" / "YOGUR") OR "FESTIVO".
-    type Group = { lines: string[]; dessert: string } | 'FESTIVO'
-    const groups: Group[] = []
-    let buf: string[] = []
+    // 7. Assign each meal group to its day in order
+    let prevEnd = 0
+    let dayIdx  = 0
 
-    for (const l of content) {
-      if (isHoliday(l)) {
-        if (buf.length > 0) {
-          // shouldn't happen, but flush
-          groups.push({ lines: buf, dessert: '' })
-          buf = []
-        }
-        groups.push('FESTIVO')
-      } else if (isDesert(l)) {
-        groups.push({ lines: buf, dessert: cleanAllergens(l) })
-        buf = []
-      } else {
-        buf.push(l)
+    for (const marker of markers) {
+      if (dayIdx >= days.length) break
+
+      if (marker.holiday) {
+        dayIdx++
+        prevEnd = marker.end
+        continue
       }
-    }
-    // Flush any remaining buffer without a dessert (edge case)
-    if (buf.length > 0) groups.push({ lines: buf, dessert: '' })
 
-    // 6. Zip groups → days
-    let dayIdx = 0
-    for (const group of groups) {
-      if (dayIdx >= weekDays.length) break
-      const dayNum = weekDays[dayIdx]
-      dayIdx++
+      const content = weekText.slice(prevEnd, marker.pos).trim()
+      prevEnd = marker.end
 
-      if (group === 'FESTIVO') continue
+      if (!content || content.length < 2) { dayIdx++; continue }
 
-      const foodLines = group.lines
-        .filter(l => !isNoise(l))
-        .map(cleanAllergens)
-        .filter(l => l.length > 2)
+      // Split first_course / second_course: each dish ends with an allergen code (N)
+      const parts = content
+        .split(/\s*\(\s*[\d,\s]+\s*\)/)
+        .map(p => p.replace(/\d+\s*Kcal[\d\s,gHCProtLip.,]+/gi, '').trim())
+        .filter(p => p.length > 1)
 
-      if (foodLines.length === 0) continue
-
-      const date = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+      const date = `${year}-${String(month).padStart(2, '0')}-${String(days[dayIdx]).padStart(2, '0')}`
       results.push({
         date,
-        first_course:  foodLines[0] ?? '',
-        second_course: foodLines[1] ?? '',
-        dessert:       group.dessert,
+        first_course:  parts[0] ?? content,
+        second_course: parts[1] ?? '',
+        dessert:       marker.dessert,
       })
+      dayIdx++
     }
   }
 
   return results
 }
-
-// ── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   try {
@@ -191,14 +140,14 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: 'No se recibió PDF' }, { status: 400 })
 
     const bytes = await file.arrayBuffer()
-    const pdf = await getDocumentProxy(new Uint8Array(bytes))
+    const pdf   = await getDocumentProxy(new Uint8Array(bytes))
     const { text } = await extractText(pdf, { mergePages: true })
 
     const menu = parseCoomedoresBlanco(text)
 
     if (menu.length === 0) {
       return NextResponse.json(
-        { error: 'No se detectaron días en el PDF. Comprueba que es el menú mensual del comedor.' },
+        { error: 'No se detectaron semanas en el PDF. Comprueba que es el menú mensual de Comedores Blanco.' },
         { status: 422 }
       )
     }

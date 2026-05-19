@@ -68,11 +68,15 @@ export default function SchoolMenuSection({ items }: { items: SchoolMenuItem[] }
   const handleSave = () => {
     if (!parsed) return
     startSaveTransition(async () => {
-      await saveSchoolMenuItems(parsed)
-      setParsed(null)
-      setSavedOk(true)
-      setTimeout(() => setSavedOk(false), 3000)
-      router.refresh()
+      const res = await saveSchoolMenuItems(parsed)
+      if (res?.error) {
+        setError(res.error)
+      } else {
+        setParsed(null)
+        setSavedOk(true)
+        setTimeout(() => setSavedOk(false), 3000)
+        router.refresh()
+      }
     })
   }
 
