@@ -30,7 +30,7 @@ export default function ActionMenu({
       <div className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom ${isOpen ? 'opacity-100 scale-100 visible pointer-events-auto' : 'opacity-0 scale-90 invisible pointer-events-none'}`}>
         
         <Link href="/restaurants/table" className="flex items-center justify-end gap-3 bg-white pl-4 pr-2 py-2 rounded-full shadow-lg hover:bg-slate-50 transition-colors text-slate-700 font-bold text-sm w-full">
-          Tabla de Locales <div className="bg-blue-100 text-blue-600 p-2 rounded-full"><TableIcon size={16} /></div>
+          Tabla de Locales <div className="bg-teal-100 text-teal-600 p-2 rounded-full"><TableIcon size={16} /></div>
         </Link>
         
         <Link href="/restaurants/reservations" className="flex items-center justify-end gap-3 bg-white pl-4 pr-2 py-2 rounded-full shadow-lg hover:bg-slate-50 transition-colors text-slate-700 font-bold text-sm w-full">

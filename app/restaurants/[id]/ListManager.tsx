@@ -81,7 +81,7 @@ export default function ListManager({
                     type="button" 
                     onClick={(e) => { e.stopPropagation(); handleDeleteList(list.id); }} 
                     disabled={isPending}
-                    className="text-slate-300 hover:text-rose-500 p-2 opacity-0 group-hover/item:opacity-100 transition-opacity disabled:opacity-50"
+                    className="text-slate-300 hover:text-teal-500 p-2 opacity-0 group-hover/item:opacity-100 transition-opacity disabled:opacity-50"
                   >
                     {isThisLoading ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                   </button>

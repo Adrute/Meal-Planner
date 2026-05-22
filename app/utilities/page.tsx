@@ -117,7 +117,7 @@ export default async function UtilitiesDashboard() {
                     <div>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="bg-blue-100 p-2.5 rounded-xl text-blue-600"><Flame size={20} /></div>
+                                <div className="bg-teal-100 p-2.5 rounded-xl text-teal-600"><Flame size={20} /></div>
                                 <h2 className="font-bold text-lg text-slate-800">Gas Natural</h2>
                             </div>
                             {trendGas && (
@@ -214,7 +214,7 @@ export default async function UtilitiesDashboard() {
                                             {new Date(inv.issue_date).toLocaleDateString('es-ES')}
                                         </td>
                                         <td className="px-4 py-4 text-yellow-600 font-medium">{Number(inv.elec_amount).toFixed(2)} €</td>
-                                        <td className="px-4 py-4 text-blue-600 font-medium">{Number(inv.gas_amount).toFixed(2)} €</td>
+                                        <td className="px-4 py-4 text-teal-600 font-medium">{Number(inv.gas_amount).toFixed(2)} €</td>
                                         <td className="px-4 py-4 text-emerald-600 font-medium">{Number(inv.services_amount).toFixed(2)} €</td>
                                         <td className="px-4 py-4 text-slate-400">{Number(inv.taxes_amount).toFixed(2)} €</td>
                                         <td className="px-4 py-4 font-black text-slate-900 text-right">{Number(inv.total_amount).toFixed(2)} €</td>

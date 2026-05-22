@@ -56,9 +56,9 @@ function DropdownFilter({ title, defaultText, options, selectedValues, onChange 
                 <button 
                   key={opt.id} 
                   onClick={() => handleToggle(opt.id)} 
-                  className={`flex items-center gap-3 w-full p-2.5 rounded-lg text-left text-sm transition-colors ${isSelected ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-slate-50 text-slate-600'}`}
+                  className={`flex items-center gap-3 w-full p-2.5 rounded-lg text-left text-sm transition-colors ${isSelected ? 'bg-teal-50 text-teal-700 font-bold' : 'hover:bg-slate-50 text-slate-600'}`}
                 >
-                  <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-300 text-transparent'}`}>
+                  <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-slate-300 text-transparent'}`}>
                     <Check size={12} strokeWidth={3} />
                   </div>
                   {opt.label}
@@ -99,9 +99,9 @@ export default function MapWrapper({ restaurants, tagColorsMap }: { restaurants:
         
         <button 
           onClick={() => setFavFilter(!favFilter)} 
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-sm text-sm font-bold transition-colors border h-11 ${favFilter ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-sm text-sm font-bold transition-colors border h-11 ${favFilter ? 'bg-lime-50 text-lime-600 border-lime-200' : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'}`}
         >
-          <Star size={18} className={favFilter ? "fill-amber-500 text-amber-500" : "text-slate-400"} /> Favoritos
+          <Star size={18} className={favFilter ? "fill-lime-500 text-lime-500" : "text-slate-400"} /> Favoritos
         </button>
         
         <DropdownFilter 

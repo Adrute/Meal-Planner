@@ -26,7 +26,7 @@ export default async function ShoppingListPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 md:py-12 pb-24">
       <header className="mb-8 flex items-center gap-3">
-        <div className="bg-blue-100 p-3 rounded-2xl text-blue-600">
+        <div className="bg-teal-100 p-3 rounded-2xl text-teal-600">
           <ShoppingCart size={32} />
         </div>
         <div>

@@ -99,7 +99,7 @@ export default function ItinerarioTab({ trip, activities }: { trip: Trip; activi
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    {a.start_time && <span className="text-xs font-black text-violet-600 shrink-0">{a.start_time.slice(0, 5)}</span>}
+                    {a.start_time && <span className="text-xs font-black text-emerald-600 shrink-0">{a.start_time.slice(0, 5)}</span>}
                     <span className={`font-bold text-slate-800 ${a.confirmed ? '' : 'opacity-70'}`}>{a.title}</span>
                     {a.price && <span className="ml-auto text-xs font-black text-slate-500 shrink-0">{a.price.toFixed(0)} €</span>}
                   </div>
@@ -122,34 +122,34 @@ export default function ItinerarioTab({ trip, activities }: { trip: Trip; activi
       ))}
 
       {showForm ? (
-        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-amber-200 shadow-sm p-5 space-y-3">
+        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-lime-200 shadow-sm p-5 space-y-3">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nueva actividad</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Día *</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Hora (opcional)</label>
               <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             </div>
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Título *"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Lugar"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Precio (€)" min="0" step="0.01"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             <input value={description} onChange={e => setDesc(e.target.value)} placeholder="Descripción"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-amber-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-lime-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+              className="flex-1 flex items-center justify-center gap-2 bg-lime-500 hover:bg-lime-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {saving ? 'Guardando...' : 'Añadir actividad'}
             </button>
@@ -161,7 +161,7 @@ export default function ItinerarioTab({ trip, activities }: { trip: Trip; activi
         </form>
       ) : (
         <button onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-amber-300 text-slate-400 hover:text-amber-600 font-bold py-4 rounded-2xl text-sm transition-colors">
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-lime-300 text-slate-400 hover:text-lime-600 font-bold py-4 rounded-2xl text-sm transition-colors">
           <Plus size={16} /> Añadir actividad
         </button>
       )}

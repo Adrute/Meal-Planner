@@ -93,7 +93,7 @@ export default function ReservationClient({ initialReservations }: { initialRese
                     await cancelReservation(res.id)
                     setReservations(prev => prev.filter(r => r.id !== res.id))
                   }} 
-                  className="bg-rose-50 text-rose-600 border border-rose-100 px-4 py-2.5 rounded-xl font-bold hover:bg-rose-100 transition-colors"
+                  className="bg-teal-50 text-teal-600 border border-teal-100 px-4 py-2.5 rounded-xl font-bold hover:bg-teal-100 transition-colors"
                   title="Cancelar Reserva"
                 ><X size={16} /></button>
               </div>

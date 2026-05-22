@@ -60,7 +60,7 @@ export default function TripPoisMap({ pois }: { pois: Poi[] }) {
               {p.category && <p className="text-xs text-slate-500">{p.category}</p>}
               {p.address && <p className="text-xs text-slate-400 mt-1">{p.address}</p>}
               {p.notes && <p className="text-xs text-slate-500 italic mt-1">{p.notes}</p>}
-              <p className={`text-xs font-bold mt-1 ${p.visited ? 'text-emerald-600' : 'text-violet-500'}`}>
+              <p className={`text-xs font-bold mt-1 ${p.visited ? 'text-emerald-600' : 'text-emerald-500'}`}>
                 {p.visited ? '✓ Visitado' : 'Pendiente'}
               </p>
             </div>

@@ -43,7 +43,7 @@ export default function FinancesHeader({ hasData }: { hasData: boolean }) {
       <button
         onClick={() => fileRef.current?.click()}
         disabled={isImporting}
-        className="flex items-center gap-2 bg-blue-600 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 text-sm shadow-sm shadow-blue-100"
+        className="flex items-center gap-2 bg-teal-600 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 text-sm shadow-sm shadow-teal-100"
       >
         {isImporting ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
         {isImporting ? 'Importando...' : 'Importar'}

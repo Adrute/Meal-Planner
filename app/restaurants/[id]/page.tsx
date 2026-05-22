@@ -37,14 +37,14 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
           <ArrowLeft size={20} />
         </Link>
         <div className="flex gap-2">
-          <Link href={`/restaurants/${rest.id}/edit`} className="bg-white p-3 rounded-2xl shadow-sm text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors border border-slate-100">
+          <Link href={`/restaurants/${rest.id}/edit`} className="bg-white p-3 rounded-2xl shadow-sm text-slate-400 hover:text-teal-500 hover:bg-teal-50 transition-colors border border-slate-100">
             <Edit3 size={20} />
           </Link>
         </div>
       </div>
 
       <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
-        {rest.is_favorite && <div className="absolute top-0 right-8 bg-amber-400 text-white px-4 py-2 rounded-b-xl font-black text-xs shadow-md flex items-center gap-1"><Star size={14} fill="currentColor"/> FAVORITO</div>}
+        {rest.is_favorite && <div className="absolute top-0 right-8 bg-lime-400 text-white px-4 py-2 rounded-b-xl font-black text-xs shadow-md flex items-center gap-1"><Star size={14} fill="currentColor"/> FAVORITO</div>}
         
         <h1 className="text-3xl font-black text-slate-800 mb-2 pr-24">{rest.name}</h1>
         
@@ -54,18 +54,18 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
           </span>
           
           {status === 'liked' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold">Me gusta</span>}
-          {status === 'pending' && <span className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold">Pendiente</span>}
-          {status === 'doubtful' && <span className="bg-violet-50 text-violet-600 border border-violet-200 px-3 py-1.5 rounded-lg text-xs font-bold">En duda</span>}
-          {status === 'rejected' && <span className="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-bold">Descartado</span>}
+          {status === 'pending' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-3 py-1.5 rounded-lg text-xs font-bold">Pendiente</span>}
+          {status === 'doubtful' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold">En duda</span>}
+          {status === 'rejected' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-3 py-1.5 rounded-lg text-xs font-bold">Descartado</span>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
             <div>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-2"><MapPin size={14}/> Ubicación</h3>
-              <a href={`https://maps.apple.com/?daddr=${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-colors group">
-                <span className="text-sm font-bold text-slate-700 group-hover:text-blue-700">Abrir en Mapas</span>
-                <Navigation size={16} className="text-slate-400 group-hover:text-blue-500" />
+              <a href={`https://maps.apple.com/?daddr=${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:border-teal-200 hover:bg-teal-50 transition-colors group">
+                <span className="text-sm font-bold text-slate-700 group-hover:text-teal-700">Abrir en Mapas</span>
+                <Navigation size={16} className="text-slate-400 group-hover:text-teal-500" />
               </a>
             </div>
 
@@ -105,7 +105,7 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
           <form action={deleteRestaurant}>
             <input type="hidden" name="id" value={rest.id} />
-            <SubmitButton loadingText="Borrando..." className="text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-6 py-2.5 rounded-xl">
+            <SubmitButton loadingText="Borrando..." className="text-sm font-bold text-teal-500 bg-teal-50 hover:bg-teal-100 px-6 py-2.5 rounded-xl">
               <Trash2 size={16} /> Eliminar Local
             </SubmitButton>
           </form>

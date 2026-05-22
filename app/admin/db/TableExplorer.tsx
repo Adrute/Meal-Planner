@@ -29,7 +29,7 @@ function CellValue({ value }: { value: unknown }) {
   if (typeof value === 'boolean')
     return <span className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-red-400'}`}>{String(value)}</span>
   if (typeof value === 'object')
-    return <span className="text-xs text-violet-500 font-mono">{JSON.stringify(value).slice(0, 50)}…</span>
+    return <span className="text-xs text-emerald-500 font-mono">{JSON.stringify(value).slice(0, 50)}…</span>
   const str = String(value)
   return <span className="text-xs text-slate-700 font-mono">{str.length > 60 ? str.slice(0, 60) + '…' : str}</span>
 }
@@ -102,9 +102,9 @@ function EditModal({
         {/* Confirmation overlay */}
         {confirmChanges && (
           <div className="flex-1 flex flex-col">
-            <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-center gap-2">
-              <TriangleAlert size={14} className="text-amber-500 shrink-0" />
-              <p className="text-xs font-bold text-amber-700">Revisa los cambios antes de confirmar</p>
+            <div className="bg-lime-50 border-b border-lime-200 px-6 py-3 flex items-center gap-2">
+              <TriangleAlert size={14} className="text-lime-500 shrink-0" />
+              <p className="text-xs font-bold text-lime-700">Revisa los cambios antes de confirmar</p>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
               {confirmChanges.map(({ col, from, to }) => (
@@ -160,8 +160,8 @@ function EditModal({
                       rows={displayValue(row[col]).length > 60 ? 3 : 1}
                       className={`w-full text-xs font-mono border rounded-xl px-3 py-2.5 outline-none resize-y transition-colors ${
                         draft[col] !== displayValue(row[col])
-                          ? 'border-amber-300 bg-amber-50/50 focus:border-amber-500'
-                          : 'border-slate-200 bg-white focus:border-blue-400'
+                          ? 'border-lime-300 bg-lime-50/50 focus:border-lime-500'
+                          : 'border-slate-200 bg-white focus:border-teal-400'
                       }`}
                     />
                   )}
@@ -177,7 +177,7 @@ function EditModal({
               <button
                 onClick={handleReview}
                 disabled={changedFields.length === 0}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 {changedFields.length > 0
                   ? `Revisar ${changedFields.length} cambio${changedFields.length > 1 ? 's' : ''}`
@@ -206,7 +206,7 @@ function TableRow({ row, columns, tableName }: { row: Row; columns: string[]; ta
 
   return (
     <>
-      <tr className="border-b border-slate-100 hover:bg-blue-50/20 transition-colors group">
+      <tr className="border-b border-slate-100 hover:bg-teal-50/20 transition-colors group">
         {columns.map(col => (
           <td key={col} className="px-3 py-2.5 max-w-[200px] whitespace-nowrap overflow-hidden">
             <CellValue value={row[col]} />
@@ -216,7 +216,7 @@ function TableRow({ row, columns, tableName }: { row: Row; columns: string[]; ta
           <div className="flex items-center gap-1.5 justify-end">
             <button
               onClick={() => setEditOpen(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 font-bold text-xs transition-colors"
             >
               <Pencil size={11} /> Editar
             </button>
@@ -279,7 +279,7 @@ export default function TableExplorer({
               {ts.map(t => (
                 <button key={t.name} onClick={() => navigate(t.name)}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-                    selectedTable === t.name ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+                    selectedTable === t.name ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   {t.label}
@@ -313,9 +313,9 @@ export default function TableExplorer({
         </div>
 
         {/* Warning banner */}
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center gap-2 shrink-0">
-          <TriangleAlert size={13} className="text-amber-500 shrink-0" />
-          <p className="text-xs text-amber-700 font-medium">
+        <div className="bg-lime-50 border-b border-lime-200 px-6 py-2 flex items-center gap-2 shrink-0">
+          <TriangleAlert size={13} className="text-lime-500 shrink-0" />
+          <p className="text-xs text-lime-700 font-medium">
             Los cambios se aplican directamente en producción. Siempre se pedirá confirmación antes de guardar.
           </p>
         </div>

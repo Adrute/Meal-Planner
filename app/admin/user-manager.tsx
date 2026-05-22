@@ -74,7 +74,7 @@ function UserRow({ profile, isCurrentUser }: { profile: Profile; isCurrentUser: 
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 placeholder="Nombre para mostrar"
-                className="text-sm font-bold border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-blue-400 flex-1"
+                className="text-sm font-bold border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-teal-400 flex-1"
               />
               <button onClick={handleSaveName} disabled={isPending} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg disabled:opacity-50">
                 {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
@@ -100,12 +100,12 @@ function UserRow({ profile, isCurrentUser }: { profile: Profile; isCurrentUser: 
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => setShowPermissions(v => !v)}
-              className={`p-2 rounded-xl transition-all text-xs font-bold flex items-center gap-1 ${showPermissions ? 'bg-blue-50 text-blue-600' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}`}
+              className={`p-2 rounded-xl transition-all text-xs font-bold flex items-center gap-1 ${showPermissions ? 'bg-teal-50 text-teal-600' : 'text-slate-300 hover:text-teal-500 hover:bg-teal-50'}`}
               title="Permisos"
             >
               <ChevronDown size={15} className={`transition-transform ${showPermissions ? 'rotate-180' : ''}`} />
             </button>
-            <button onClick={() => setIsEditing(true)} className="p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all">
+            <button onClick={() => setIsEditing(true)} className="p-2 text-slate-300 hover:text-teal-500 hover:bg-teal-50 rounded-xl transition-all">
               <Pencil size={15} />
             </button>
             {!isCurrentUser && (
@@ -143,7 +143,7 @@ function UserRow({ profile, isCurrentUser }: { profile: Profile; isCurrentUser: 
             <button
               onClick={handleSavePerms}
               disabled={isSavingPerms}
-              className="flex items-center gap-2 bg-blue-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-teal-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
             >
               {isSavingPerms ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
               Guardar permisos
@@ -180,21 +180,21 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
           placeholder="Nombre para mostrar"
           value={form.displayName}
           onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))}
-          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-blue-400"
+          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-teal-400"
         />
         <input
           type="email"
           placeholder="correo@email.com *"
           value={form.email}
           onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-blue-400"
+          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-teal-400"
         />
         <input
           type="password"
           placeholder="Contraseña *"
           value={form.password}
           onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-blue-400"
+          className="text-sm border border-slate-200 bg-white rounded-xl px-3 py-2.5 outline-none focus:border-teal-400"
         />
       </div>
       {error && <p className="text-xs text-red-600 font-bold bg-red-50 px-3 py-2 rounded-xl">{error}</p>}
@@ -202,7 +202,7 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
         <button
           onClick={handleSubmit}
           disabled={isPending || !form.email || !form.password}
-          className="flex items-center gap-2 bg-blue-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 bg-teal-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
         >
           {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
           Crear usuario
@@ -226,7 +226,7 @@ export default function UserManager({ profiles, currentUserId }: { profiles: Pro
         </h2>
         <button
           onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 bg-blue-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-teal-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-teal-700 transition-colors"
         >
           {showForm ? <X size={15} /> : <UserPlus size={15} />}
           {showForm ? 'Cancelar' : 'Añadir usuario'}

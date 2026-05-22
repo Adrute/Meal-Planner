@@ -23,7 +23,7 @@ function RestaurantPopupContent({ rest, tagColorsMap }: { rest: any, tagColorsMa
       <div className="p-3 pb-2 flex items-start justify-between gap-3 relative">
         <div className="flex items-center gap-2">
             <h3 className="font-black text-slate-800 text-[17px] m-0 leading-tight pr-4">{rest.name}</h3>
-            {rest.is_favorite && <Star size={20} className="text-amber-400 fill-amber-400 shrink-0 drop-shadow-sm" />}
+            {rest.is_favorite && <Star size={20} className="text-lime-400 fill-lime-400 shrink-0 drop-shadow-sm" />}
         </div>
         <button onClick={() => map.closePopup()} className="p-1.5 -mr-1.5 -mt-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
           <X size={18} />
@@ -33,9 +33,9 @@ function RestaurantPopupContent({ rest, tagColorsMap }: { rest: any, tagColorsMa
       <div className="px-3 pb-3 space-y-3 border-b border-slate-50">
         <div className="flex flex-wrap gap-1.5 mt-1">
           {rest.status === 'liked' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Me gusta</span>}
-          {rest.status === 'pending' && <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>}
-          {rest.status === 'doubtful' && <span className="bg-violet-50 text-violet-600 border border-violet-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> En duda</span>}
-          {rest.status === 'rejected' && <span className="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><XCircle size={12} /> Descartado</span>}
+          {rest.status === 'pending' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>}
+          {rest.status === 'doubtful' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> En duda</span>}
+          {rest.status === 'rejected' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><XCircle size={12} /> Descartado</span>}
           
           <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
             <UtensilsCrossed size={12}/> {rest.food_type || 'Otro'}
@@ -70,14 +70,14 @@ function RestaurantPopupContent({ rest, tagColorsMap }: { rest: any, tagColorsMa
       <div className="p-3 space-y-2 bg-slate-50/50 rounded-b-2xl flex flex-col gap-2">
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
           <button onClick={() => setShowNav(!showNav)} className="w-full p-2.5 flex items-center justify-center gap-2 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors">
-            <Car size={16} className="text-blue-500" /> {showNav ? 'Ocultar Navegación' : 'Opciones de Navegación'}
+            <Car size={16} className="text-teal-500" /> {showNav ? 'Ocultar Navegación' : 'Opciones de Navegación'}
           </button>
           
           {showNav && (
             <div className="grid grid-cols-3 gap-1 p-2 pt-0 bg-slate-50 border-t border-slate-100">
-              <a href={`https://www.google.com/maps/dir/?api=1&destination=$${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-blue-600 shadow-sm border border-slate-100"><MapPin size={14} /> Google</a>
-              <a href={`https://maps.apple.com/?daddr=${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-blue-600 shadow-sm border border-slate-100"><NavigationIcon size={14} /> Apple</a>
-              <a href={`https://waze.com/ul?ll=${rest.lat},${rest.lng}&navigate=yes`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-blue-600 shadow-sm border border-slate-100"><Car size={14} /> Waze</a>
+              <a href={`https://www.google.com/maps/dir/?api=1&destination=$${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-teal-600 shadow-sm border border-slate-100"><MapPin size={14} /> Google</a>
+              <a href={`https://maps.apple.com/?daddr=${rest.lat},${rest.lng}`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-teal-600 shadow-sm border border-slate-100"><NavigationIcon size={14} /> Apple</a>
+              <a href={`https://waze.com/ul?ll=${rest.lat},${rest.lng}&navigate=yes`} target="_blank" rel="noopener noreferrer" className="bg-white text-slate-600 py-2 rounded-lg flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:text-teal-600 shadow-sm border border-slate-100"><Car size={14} /> Waze</a>
             </div>
           )}
         </div>

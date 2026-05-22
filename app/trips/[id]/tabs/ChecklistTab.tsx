@@ -83,7 +83,7 @@ export default function ChecklistTab({ trip, checklist }: { trip: Trip; checklis
           </div>
           <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${pct >= 100 ? 'bg-emerald-500' : 'bg-violet-500'}`}
+              className={`h-full rounded-full transition-all duration-500 ${pct >= 100 ? 'bg-emerald-500' : 'bg-emerald-500'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -97,7 +97,7 @@ export default function ChecklistTab({ trip, checklist }: { trip: Trip; checklis
           <p className="font-bold">Checklist vacía</p>
           <p className="text-sm mt-1">Añade items o usa los comunes</p>
           <button onClick={handlePrefill} disabled={prefilling}
-            className="mt-4 flex items-center gap-2 mx-auto px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="mt-4 flex items-center gap-2 mx-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
             {prefilling ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
             Rellenar con items comunes
           </button>
@@ -114,7 +114,7 @@ export default function ChecklistTab({ trip, checklist }: { trip: Trip; checklis
             {group.items.map(i => (
               <div key={i.id} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 group transition-colors">
                 <button onClick={() => handleToggle(i.id, i.checked)} disabled={togglingId === i.id}
-                  className="shrink-0 text-slate-300 hover:text-violet-500 transition-colors">
+                  className="shrink-0 text-slate-300 hover:text-emerald-500 transition-colors">
                   {togglingId === i.id
                     ? <Loader2 size={18} className="animate-spin" />
                     : i.checked
@@ -139,16 +139,16 @@ export default function ChecklistTab({ trip, checklist }: { trip: Trip; checklis
       <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
         <div className="flex gap-2">
           <input value={item} onChange={e => setItem(e.target.value)} placeholder="Añadir item..."
-            className="flex-1 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+            className="flex-1 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           <select value={category} onChange={e => setCat(e.target.value)}
-            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400">
+            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400">
             {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
         {error && <p className="text-red-500 text-xs">{error}</p>}
         <div className="flex gap-2">
           <button type="submit" disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             {saving ? 'Añadiendo...' : 'Añadir'}
           </button>

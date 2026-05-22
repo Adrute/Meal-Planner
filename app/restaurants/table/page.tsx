@@ -24,11 +24,11 @@ export default async function TablePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 pb-24 animate-in fade-in">
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/restaurants" className="bg-white p-3 rounded-2xl shadow-sm text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors border border-slate-100">
+        <Link href="/restaurants" className="bg-white p-3 rounded-2xl shadow-sm text-slate-400 hover:text-teal-500 hover:bg-teal-50 transition-colors border border-slate-100">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3 m-0">
-          <TableIcon className="text-blue-500" /> Directorio de Locales
+          <TableIcon className="text-teal-500" /> Directorio de Locales
         </h1>
       </div>
 

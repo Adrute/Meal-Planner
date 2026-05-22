@@ -9,13 +9,13 @@ const PASTEL_COLORS = [
   'bg-slate-100 text-slate-600 border-slate-200',
   'bg-purple-50 text-purple-600 border-purple-200',
   'bg-emerald-50 text-emerald-600 border-emerald-200',
-  'bg-blue-50 text-blue-600 border-blue-200',
-  'bg-rose-50 text-rose-600 border-rose-200',
-  'bg-amber-50 text-amber-600 border-amber-200',
-  'bg-orange-50 text-orange-600 border-orange-200',
+  'bg-teal-50 text-teal-600 border-teal-200',
+  'bg-teal-50 text-teal-600 border-teal-200',
+  'bg-lime-50 text-lime-600 border-lime-200',
+  'bg-emerald-50 text-emerald-600 border-emerald-200',
   'bg-cyan-50 text-cyan-600 border-cyan-200',
-  'bg-violet-50 text-violet-600 border-violet-200',
-  'bg-pink-50 text-pink-600 border-pink-200'
+  'bg-emerald-50 text-emerald-600 border-emerald-200',
+  'bg-green-50 text-green-600 border-green-200'
 ]
 
 export default function TagManagerModal({ tags, tagColorsMap }: { tags: string[], tagColorsMap: Record<string, string> }) {
@@ -51,7 +51,7 @@ export default function TagManagerModal({ tags, tagColorsMap }: { tags: string[]
                     <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
                         <Tag className="text-purple-500"/> Configurar Etiquetas
                     </h2>
-                    <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors">
+                    <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-50 hover:bg-teal-50 text-slate-400 hover:text-teal-500 rounded-full transition-colors">
                         <X size={20}/>
                     </button>
                 </div>

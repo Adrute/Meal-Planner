@@ -14,9 +14,9 @@ type Trip = {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  wishlist:  { label: 'Wishlist',    color: 'text-amber-700',   bg: 'bg-amber-50 border-amber-200' },
-  planning:  { label: 'Planificando', color: 'text-blue-700',   bg: 'bg-blue-50 border-blue-200' },
-  confirmed: { label: 'Confirmado',  color: 'text-violet-700',  bg: 'bg-violet-50 border-violet-200' },
+  wishlist:  { label: 'Wishlist',    color: 'text-lime-700',   bg: 'bg-lime-50 border-lime-200' },
+  planning:  { label: 'Planificando', color: 'text-teal-700',   bg: 'bg-teal-50 border-teal-200' },
+  confirmed: { label: 'Confirmado',  color: 'text-emerald-700',  bg: 'bg-emerald-50 border-emerald-200' },
   completed: { label: 'Completado',  color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
 }
 
@@ -86,27 +86,27 @@ function NewTripModal({ onClose }: { onClose: () => void }) {
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre del viaje *"
-                className="w-full p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+                className="w-full p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             </div>
             <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="Destino *"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input value={country} onChange={e => setCountry(e.target.value)} placeholder="País"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <select value={status} onChange={e => setStatus(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400">
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400">
               {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
             <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
               placeholder="Presupuesto (€)" min="0" step="10"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             {saving ? 'Creando...' : 'Crear viaje'}
           </button>
@@ -126,14 +126,14 @@ export default function TripsClient({ trips }: { trips: Trip[] }) {
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-10 space-y-8">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-violet-100 p-3 rounded-2xl text-violet-600"><Plane size={28} /></div>
+          <div className="bg-emerald-100 p-3 rounded-2xl text-emerald-600"><Plane size={28} /></div>
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Viajes</h1>
             <p className="text-slate-500 font-medium">Organiza y planifica tus aventuras</p>
           </div>
         </div>
         <button onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold px-4 py-2.5 rounded-2xl text-sm transition-colors shrink-0">
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-2xl text-sm transition-colors shrink-0">
           <Plus size={16} /> Nuevo viaje
         </button>
       </header>
@@ -142,9 +142,9 @@ export default function TripsClient({ trips }: { trips: Trip[] }) {
       <div className="flex gap-2 flex-wrap">
         {FILTER_TABS.map(tab => (
           <button key={tab.key} onClick={() => setFilter(tab.key)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${filter === tab.key ? 'bg-violet-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-violet-300'}`}>
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${filter === tab.key ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-emerald-300'}`}>
             {tab.label}
-            <span className={`ml-2 text-xs ${filter === tab.key ? 'text-violet-200' : 'text-slate-400'}`}>
+            <span className={`ml-2 text-xs ${filter === tab.key ? 'text-emerald-200' : 'text-slate-400'}`}>
               {tab.key === 'all' ? trips.length : trips.filter(t => t.status === tab.key).length}
             </span>
           </button>
@@ -168,13 +168,13 @@ export default function TripsClient({ trips }: { trips: Trip[] }) {
             return (
               <Link key={trip.id} href={`/trips/${trip.id}`}
                 className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden group">
-                <div className="bg-gradient-to-br from-violet-50 to-slate-50 p-8 flex items-center justify-center">
+                <div className="bg-gradient-to-br from-emerald-50 to-slate-50 p-8 flex items-center justify-center">
                   <span className="text-6xl">{trip.cover_emoji ?? '✈️'}</span>
                 </div>
                 <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-black text-slate-900 text-lg leading-tight group-hover:text-violet-600 transition-colors">{trip.title}</h3>
+                      <h3 className="font-black text-slate-900 text-lg leading-tight group-hover:text-emerald-600 transition-colors">{trip.title}</h3>
                       <div className="flex items-center gap-1.5 mt-1 text-slate-500">
                         <MapPin size={12} />
                         <span className="text-xs font-medium">{trip.destination}{trip.country ? `, ${trip.country}` : ''}</span>

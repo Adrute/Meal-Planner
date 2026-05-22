@@ -272,7 +272,7 @@ function WeekBlock({
             <button
               onClick={handleGenerateDinners}
               disabled={isGenerating}
-              className="flex items-center gap-2 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-4 py-2 rounded-xl transition-all disabled:opacity-60 shadow-sm shadow-violet-200"
+              className="flex items-center gap-2 text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2 rounded-xl transition-all disabled:opacity-60 shadow-sm shadow-emerald-200"
             >
               {isGenerating
                 ? <Loader2 size={14} className="animate-spin" />
@@ -344,16 +344,16 @@ function WeekBlock({
                       {item ? (
                         <div className={`p-3 rounded-xl h-full flex flex-col justify-between border shadow-sm transition-all
                           ${isLunch
-                            ? 'bg-orange-100/50 border-orange-200 hover:border-orange-300'
-                            : 'bg-indigo-100/50 border-indigo-200 hover:border-indigo-300'
+                            ? 'bg-emerald-100/50 border-emerald-200 hover:border-emerald-300'
+                            : 'bg-emerald-100/50 border-emerald-200 hover:border-emerald-300'
                           }`}>
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-1.5">
                               {isLunch
-                                ? <Utensils size={12} className="text-orange-600" />
-                                : <Moon size={12} className="text-indigo-600" />
+                                ? <Utensils size={12} className="text-emerald-600" />
+                                : <Moon size={12} className="text-emerald-600" />
                               }
-                              <span className={`text-[10px] font-black uppercase tracking-widest ${isLunch ? 'text-orange-700' : 'text-indigo-700'}`}>
+                              <span className={`text-[10px] font-black uppercase tracking-widest ${isLunch ? 'text-emerald-700' : 'text-emerald-700'}`}>
                                 {type}
                               </span>
                             </div>
@@ -361,7 +361,7 @@ function WeekBlock({
                               {!isLunch && item.ai_notes && (
                                 <button
                                   onClick={e => { e.stopPropagation(); setAiNoteModal({ name: item.recipes?.name || 'Cena', notes: item.ai_notes! }) }}
-                                  className="text-violet-400 hover:text-violet-600 hover:bg-white p-1 rounded-md transition-colors"
+                                  className="text-emerald-400 hover:text-emerald-600 hover:bg-white p-1 rounded-md transition-colors"
                                   title="Ver explicación de la IA"
                                 >
                                   <Info size={14} />
@@ -409,10 +409,10 @@ function WeekBlock({
           <div className="absolute inset-0" onClick={() => setAiNoteModal(null)} />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95">
             {/* Header violeta */}
-            <div className="bg-violet-600 px-6 pt-6 pb-5">
+            <div className="bg-emerald-600 px-6 pt-6 pb-5">
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={14} className="text-violet-200" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-violet-200">Por qué esta cena</span>
+                <Sparkles size={14} className="text-emerald-200" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200">Por qué esta cena</span>
               </div>
               <h3 className="font-bold text-white text-lg leading-snug">{aiNoteModal.name}</h3>
             </div>

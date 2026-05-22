@@ -31,7 +31,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body className={`${inter.className} bg-violet-50/40 text-slate-900`}>
+      <body className={`${inter.className} bg-emerald-50/40 text-slate-900`}>
         {user ? (
           <div className="flex min-h-screen">
             <AppNavigation

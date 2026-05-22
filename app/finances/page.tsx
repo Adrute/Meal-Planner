@@ -212,7 +212,7 @@ export default async function FinancesPage({
       {/* HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600"><Wallet size={28} /></div>
+          <div className="bg-teal-100 p-3 rounded-2xl text-teal-600"><Wallet size={28} /></div>
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Finanzas</h1>
             <p className="text-slate-500 font-medium">Control mensual de gastos del hogar.</p>
@@ -243,14 +243,14 @@ export default async function FinancesPage({
               <StatCard
                 label="Balance"
                 value={`${balance >= 0 ? '+' : ''}${balance.toFixed(0)} €`}
-                icon={<ArrowUpDown size={16} className="text-blue-400" />}
+                icon={<ArrowUpDown size={16} className="text-teal-400" />}
                 valueColor={balance >= 0 ? 'text-emerald-600' : 'text-red-500'}
               />
               <StatCard
                 label="Tasa de ahorro"
                 value={`${tasaAhorro.toFixed(1)}%`}
                 icon={<PiggyBank size={16} className="text-purple-400" />}
-                valueColor={tasaAhorro >= 20 ? 'text-emerald-600' : tasaAhorro >= 0 ? 'text-amber-500' : 'text-red-500'}
+                valueColor={tasaAhorro >= 20 ? 'text-emerald-600' : tasaAhorro >= 0 ? 'text-lime-500' : 'text-red-500'}
                 sub={tasaAhorro >= 20 ? '✓ Buen ahorro' : tasaAhorro >= 0 ? 'Margen ajustado' : 'Déficit'}
               />
               <StatCard

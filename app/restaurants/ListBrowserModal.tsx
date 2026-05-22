@@ -44,9 +44,9 @@ export default function ListBrowserModal({
                 
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                     <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                        <Bookmark className="text-blue-500"/> Mis Listas
+                        <Bookmark className="text-teal-500"/> Mis Listas
                     </h2>
-                    <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-colors">
+                    <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-50 hover:bg-teal-50 text-slate-400 hover:text-teal-500 rounded-full transition-colors">
                         <X size={20}/>
                     </button>
                 </div>
@@ -60,20 +60,20 @@ export default function ListBrowserModal({
                             <div 
                                 key={list.id} 
                                 onClick={() => setActiveListId(list.id)}
-                                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col gap-3 relative group ${activeListId === list.id ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50'}`}
+                                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col gap-3 relative group ${activeListId === list.id ? 'bg-teal-50 border-teal-200 shadow-sm' : 'bg-white border-slate-200 hover:border-teal-300 hover:bg-slate-50'}`}
                             >
                                 <div className="flex justify-between items-start">
-                                    <ListIcon size={18} className={activeListId === list.id ? 'text-blue-500' : 'text-slate-400'} />
+                                    <ListIcon size={18} className={activeListId === list.id ? 'text-teal-500' : 'text-slate-400'} />
                                     <button 
                                         onClick={(e) => handleDelete(list.id, e)}
                                         disabled={isPending}
                                         title="Borrar lista"
-                                        className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                        className="text-slate-300 hover:text-teal-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                                     >
-                                        {deletingId === list.id ? <Loader2 size={16} className="animate-spin text-rose-400" /> : <Trash2 size={16} />}
+                                        {deletingId === list.id ? <Loader2 size={16} className="animate-spin text-teal-400" /> : <Trash2 size={16} />}
                                     </button>
                                 </div>
-                                <span className={`font-bold text-sm truncate ${activeListId === list.id ? 'text-blue-900' : 'text-slate-700'}`}>
+                                <span className={`font-bold text-sm truncate ${activeListId === list.id ? 'text-teal-900' : 'text-slate-700'}`}>
                                     {list.name}
                                 </span>
                             </div>
@@ -84,17 +84,17 @@ export default function ListBrowserModal({
                     {activeList && (
                         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
                             <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                                Guardados en: <span className="text-blue-600">{activeList.name}</span>
+                                Guardados en: <span className="text-teal-600">{activeList.name}</span>
                             </h3>
                             <div className="flex flex-col gap-3">
                                 {activeRestaurants.length === 0 && <p className="text-xs font-bold text-slate-400 italic py-2">Esta lista está vacía.</p>}
                                 {activeRestaurants.map(rest => (
-                                    <Link key={rest.id} href={`/restaurants/${rest.id}`} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-100 transition-colors group">
+                                    <Link key={rest.id} href={`/restaurants/${rest.id}`} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-100 transition-colors group">
                                         <div className="min-w-0 pr-4">
-                                            <p className="font-bold text-sm text-slate-700 group-hover:text-blue-700 truncate">{rest.name}</p>
+                                            <p className="font-bold text-sm text-slate-700 group-hover:text-teal-700 truncate">{rest.name}</p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{rest.food_type}</p>
                                         </div>
-                                        <ExternalLink size={16} className="text-slate-300 group-hover:text-blue-500 shrink-0" />
+                                        <ExternalLink size={16} className="text-slate-300 group-hover:text-teal-500 shrink-0" />
                                     </Link>
                                 ))}
                             </div>
@@ -109,7 +109,7 @@ export default function ListBrowserModal({
     return (
         <>
             <button onClick={() => setIsOpen(true)} className="flex items-center justify-end gap-3 bg-white pl-4 pr-2 py-2 rounded-full shadow-lg hover:bg-slate-50 transition-colors text-slate-700 font-bold text-sm w-full">
-                Mis Listas <div className="bg-blue-100 text-blue-600 p-2 rounded-full"><Bookmark size={16} /></div>
+                Mis Listas <div className="bg-teal-100 text-teal-600 p-2 rounded-full"><Bookmark size={16} /></div>
             </button>
             {typeof window !== 'undefined' && createPortal(modalContent, document.body)}
         </>

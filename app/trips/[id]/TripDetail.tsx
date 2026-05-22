@@ -85,7 +85,7 @@ export default function TripDetail({
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-colors shrink-0 ${
                 activeTab === tab.key
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-emerald-600 text-white'
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
               }`}>
               <Icon size={15} />

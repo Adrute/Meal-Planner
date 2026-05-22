@@ -50,7 +50,7 @@ export default function CategoryBreakdown({ catStats, selectedMonth }: { catStat
               className="flex items-center gap-2 flex-1 min-w-0 py-0.5 hover:bg-slate-50 rounded-lg px-1 transition-colors group"
             >
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: c.color }} />
-              <span className="text-sm font-bold text-slate-700 flex-1 text-left truncate group-hover:text-blue-600 transition-colors">{c.cat}</span>
+              <span className="text-sm font-bold text-slate-700 flex-1 text-left truncate group-hover:text-teal-600 transition-colors">{c.cat}</span>
               {c.diff !== null && (
                 <span className={`text-[10px] font-black ${c.diff > 0 ? 'text-red-400' : 'text-emerald-500'}`}>
                   {c.diff > 0 ? '▲' : '▼'} {Math.abs(c.diff).toFixed(0)}%

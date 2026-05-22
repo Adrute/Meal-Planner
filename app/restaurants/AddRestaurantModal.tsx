@@ -86,8 +86,8 @@ export default function AddRestaurantModal() {
                 <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-white shrink-0">
                     <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 m-0"><MapPin className="text-emerald-500" /> Nuevo Local</h2>
                     <div className="flex gap-2">
-                        <button type="button" onClick={() => setIsFavorite(!isFavorite)} disabled={isSaving} className={`p-2 rounded-full transition-colors ${isFavorite ? 'bg-amber-100 text-amber-500' : 'bg-slate-50 text-slate-300 hover:text-amber-500'} disabled:opacity-50`}><Star size={20} fill={isFavorite ? "currentColor" : "none"} /></button>
-                        <button onClick={() => setIsOpen(false)} disabled={isSaving} className="text-slate-400 hover:text-rose-500 bg-slate-50 hover:bg-rose-50 p-2 rounded-full transition-colors disabled:opacity-50"><X size={20} /></button>
+                        <button type="button" onClick={() => setIsFavorite(!isFavorite)} disabled={isSaving} className={`p-2 rounded-full transition-colors ${isFavorite ? 'bg-lime-100 text-lime-500' : 'bg-slate-50 text-slate-300 hover:text-lime-500'} disabled:opacity-50`}><Star size={20} fill={isFavorite ? "currentColor" : "none"} /></button>
+                        <button onClick={() => setIsOpen(false)} disabled={isSaving} className="text-slate-400 hover:text-teal-500 bg-slate-50 hover:bg-teal-50 p-2 rounded-full transition-colors disabled:opacity-50"><X size={20} /></button>
                     </div>
                 </div>
 
@@ -161,7 +161,7 @@ export default function AddRestaurantModal() {
                         <input type="text" placeholder="Añadir otra... (Enter)" value={allergenInput} disabled={isSaving} onChange={(e) => setAllergenInput(e.target.value)} onKeyDown={handleAddCustomAllergen} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 outline-none text-sm text-slate-700 bg-white disabled:opacity-50" />
                         <div className="flex flex-wrap gap-2 mt-2">
                             {allergens.filter(tag => !PREDEFINED_TAGS.includes(tag)).map((tag, i) => (
-                                <span key={i} className="bg-slate-800 text-white border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">{tag} <button type="button" onClick={() => !isSaving && toggleAllergen(tag)} className="hover:text-rose-400 p-0.5 disabled:opacity-50"><X size={14} /></button></span>
+                                <span key={i} className="bg-slate-800 text-white border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">{tag} <button type="button" onClick={() => !isSaving && toggleAllergen(tag)} className="hover:text-teal-400 p-0.5 disabled:opacity-50"><X size={14} /></button></span>
                             ))}
                         </div>
                     </div>

@@ -7,10 +7,10 @@ const PASTEL_COLORS = [
   'bg-slate-50 text-slate-600 border-slate-200',   // Gris (Por defecto)
   'bg-purple-50 text-purple-600 border-purple-200', // Morado
   'bg-emerald-50 text-emerald-600 border-emerald-200', // Verde
-  'bg-blue-50 text-blue-600 border-blue-200',      // Azul
-  'bg-rose-50 text-rose-600 border-rose-200',      // Rojo
-  'bg-amber-50 text-amber-600 border-amber-200',    // Amarillo
-  'bg-orange-50 text-orange-600 border-orange-200', // Naranja
+  'bg-teal-50 text-teal-600 border-teal-200',      // Azul
+  'bg-teal-50 text-teal-600 border-teal-200',      // Rojo
+  'bg-lime-50 text-lime-600 border-lime-200',    // Amarillo
+  'bg-emerald-50 text-emerald-600 border-emerald-200', // Naranja
   'bg-cyan-50 text-cyan-600 border-cyan-200',      // Cian
 ]
 

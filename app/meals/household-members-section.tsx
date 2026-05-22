@@ -12,7 +12,7 @@ import {
 
 const RESTRICTION_TYPES = [
   { value: 'alergia', label: 'Alergia', color: 'bg-red-100 text-red-700 border-red-200' },
-  { value: 'intolerancia', label: 'Intolerancia', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  { value: 'intolerancia', label: 'Intolerancia', color: 'bg-lime-100 text-lime-700 border-lime-200' },
   { value: 'preferencia', label: 'No me gusta', color: 'bg-slate-100 text-slate-600 border-slate-200' },
 ] as const
 
@@ -58,13 +58,13 @@ function MemberForm({
           placeholder="Nombre *"
           value={name}
           onChange={e => setName(e.target.value)}
-          className="flex-1 text-sm font-bold border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-blue-400"
+          className="flex-1 text-sm font-bold border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-teal-400"
         />
         <div className="relative">
           <select
             value={role}
             onChange={e => setRole(e.target.value as 'adult' | 'child')}
-            className="appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-400 cursor-pointer pr-8"
+            className="appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-teal-400 cursor-pointer pr-8"
           >
             <option value="adult">👤 Adulto</option>
             <option value="child">👶 Niño/a</option>
@@ -89,13 +89,13 @@ function MemberForm({
             value={newFood}
             onChange={e => setNewFood(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addRestriction()}
-            className="flex-1 text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 outline-none focus:border-blue-400"
+            className="flex-1 text-sm border border-slate-200 bg-white rounded-xl px-3 py-2 outline-none focus:border-teal-400"
           />
           <div className="relative">
             <select
               value={newType}
               onChange={e => setNewType(e.target.value as Restriction['type'])}
-              className="appearance-none text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-blue-400 cursor-pointer pr-7"
+              className="appearance-none text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-teal-400 cursor-pointer pr-7"
             >
               {RESTRICTION_TYPES.map(t => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -116,7 +116,7 @@ function MemberForm({
         <button
           onClick={() => name.trim() && onSave({ name: name.trim(), role, restrictions })}
           disabled={!name.trim()}
-          className="flex-1 py-2.5 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="flex-1 py-2.5 bg-teal-600 text-white font-bold text-sm rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
         >
           Guardar
         </button>
@@ -165,7 +165,7 @@ function MemberCard({
     <div className={`bg-white rounded-2xl border border-slate-100 p-4 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${member.role === 'child' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${member.role === 'child' ? 'bg-green-100 text-green-600' : 'bg-teal-100 text-teal-600'}`}>
             {member.role === 'child' ? <Baby size={18} /> : <User size={18} />}
           </div>
           <div>
@@ -176,7 +176,7 @@ function MemberCard({
         <div className="flex gap-1">
           <button
             onClick={() => setIsEditing(true)}
-            className="text-xs font-bold text-slate-400 hover:text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition-colors"
+            className="text-xs font-bold text-slate-400 hover:text-teal-600 hover:bg-teal-50 px-2.5 py-1.5 rounded-lg transition-colors"
           >
             Editar
           </button>
@@ -227,7 +227,7 @@ export default function HouseholdMembersSection({ members }: { members: Househol
         className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="bg-blue-50 p-2 rounded-xl text-blue-600"><Users size={20} /></div>
+          <div className="bg-teal-50 p-2 rounded-xl text-teal-600"><Users size={20} /></div>
           <div className="text-left">
             <h2 className="font-bold text-slate-800">Miembros del hogar</h2>
             <p className="text-xs text-slate-400">{members.length} miembro{members.length !== 1 ? 's' : ''} · Alergias e intolerancias para el planificador IA</p>
@@ -261,7 +261,7 @@ export default function HouseholdMembersSection({ members }: { members: Househol
             <button
               onClick={() => setShowForm(true)}
               disabled={isPending}
-              className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2.5 rounded-xl border border-dashed border-blue-200 hover:border-blue-300 transition-all w-full justify-center"
+              className="flex items-center gap-2 text-sm font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50 px-4 py-2.5 rounded-xl border border-dashed border-teal-200 hover:border-teal-300 transition-all w-full justify-center"
             >
               <Plus size={16} />
               Añadir miembro

@@ -46,7 +46,7 @@ export default function ReservationManager({ restaurantId, initialReservations }
                     {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} a las {dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <button onClick={() => handleCancel(res.id)} disabled={isPending} className="text-purple-300 hover:text-rose-500 hover:bg-white p-2 rounded-xl transition-colors disabled:opacity-50 shadow-sm" title="Cancelar Reserva">
+                <button onClick={() => handleCancel(res.id)} disabled={isPending} className="text-purple-300 hover:text-teal-500 hover:bg-white p-2 rounded-xl transition-colors disabled:opacity-50 shadow-sm" title="Cancelar Reserva">
                   {isPending ? <Loader2 size={18} className="animate-spin text-purple-400" /> : <X size={18} />}
                 </button>
               </div>

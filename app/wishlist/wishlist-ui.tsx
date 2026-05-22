@@ -33,9 +33,9 @@ export type Profile = {
 }
 
 const TYPE_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  objeto:      { label: 'Objeto',      icon: <Package      size={12} />, color: 'bg-blue-100 text-blue-700' },
+  objeto:      { label: 'Objeto',      icon: <Package      size={12} />, color: 'bg-teal-100 text-teal-700' },
   evento:      { label: 'Evento',      icon: <CalendarDays size={12} />, color: 'bg-purple-100 text-purple-700' },
-  experiencia: { label: 'Experiencia', icon: <Sparkles     size={12} />, color: 'bg-amber-100 text-amber-700' },
+  experiencia: { label: 'Experiencia', icon: <Sparkles     size={12} />, color: 'bg-lime-100 text-lime-700' },
 }
 
 const EMPTY_FORM: WishItemInput = {
@@ -71,12 +71,12 @@ function ItemForm({
         placeholder="¿Qué quieres? *"
         value={form.name}
         onChange={e => set('name', e.target.value)}
-        className="w-full text-sm font-bold border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-blue-400"
+        className="w-full text-sm font-bold border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-teal-400"
       />
       <div className="flex gap-3">
         <div className="relative flex-1">
           <select value={form.type} onChange={e => set('type', e.target.value)}
-            className="w-full appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-400 cursor-pointer pr-8">
+            className="w-full appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-teal-400 cursor-pointer pr-8">
             <option value="objeto">📦 Objeto</option>
             <option value="evento">📅 Evento</option>
             <option value="experiencia">✨ Experiencia</option>
@@ -85,7 +85,7 @@ function ItemForm({
         </div>
         <div className="relative flex-1">
           <select value={form.priority} onChange={e => set('priority', e.target.value)}
-            className="w-full appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-400 cursor-pointer pr-8">
+            className="w-full appearance-none text-sm bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-teal-400 cursor-pointer pr-8">
             <option value="alta">🔴 Alta prioridad</option>
             <option value="media">🟡 Media prioridad</option>
             <option value="baja">⚪ Baja prioridad</option>
@@ -97,23 +97,23 @@ function ItemForm({
         placeholder="Descripción (modelo, talla, preferencias...)"
         value={form.description} onChange={e => set('description', e.target.value)}
         rows={2}
-        className="w-full text-sm border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-blue-400 resize-none"
+        className="w-full text-sm border border-slate-200 bg-white rounded-xl px-4 py-2.5 outline-none focus:border-teal-400 resize-none"
       />
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input type="url" placeholder="Enlace (opcional)" value={form.url} onChange={e => set('url', e.target.value)}
-            className="w-full text-sm border border-slate-200 bg-white rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-blue-400" />
+            className="w-full text-sm border border-slate-200 bg-white rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-teal-400" />
         </div>
         <div className="relative w-36">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">~€</span>
           <input type="number" min="0" step="0.01" placeholder="Precio est." value={form.price_estimate} onChange={e => set('price_estimate', e.target.value)}
-            className="w-full text-sm border border-slate-200 bg-white rounded-xl pl-8 pr-4 py-2.5 outline-none focus:border-blue-400" />
+            className="w-full text-sm border border-slate-200 bg-white rounded-xl pl-8 pr-4 py-2.5 outline-none focus:border-teal-400" />
         </div>
       </div>
       <div className="flex items-center gap-3 pt-1">
         <button onClick={() => form.name.trim() && onSave(form)} disabled={isPending || !form.name.trim()}
-          className="flex items-center gap-2 bg-blue-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+          className="flex items-center gap-2 bg-teal-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50">
           {isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
           Guardar
         </button>
@@ -163,7 +163,7 @@ function UserSharePicker({
         onClick={() => setOpen(o => !o)}
         className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
           sharedWith.length > 0
-            ? 'bg-violet-100 text-violet-700 border-violet-200'
+            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
             : 'text-slate-400 border-slate-200 hover:border-slate-300'
         }`}
       >
@@ -190,11 +190,11 @@ function UserSharePicker({
                 onClick={() => toggle(p.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors text-left ${pending ? 'pointer-events-none opacity-60' : ''}`}
               >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${isShared ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${isShared ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
                   {initials(p)}
                 </div>
                 <span className="text-xs font-medium text-slate-700 flex-1 truncate">{labelUser(p)}</span>
-                {isShared && <Check size={13} className="text-violet-600 shrink-0" />}
+                {isShared && <Check size={13} className="text-emerald-600 shrink-0" />}
               </button>
             )
           })}
@@ -245,7 +245,7 @@ function WishCard({ item, profiles, sharedWith }: {
 
   return (
     <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm transition-opacity ${isDeleting ? 'opacity-40' : ''} ${item.is_purchased ? 'opacity-60' : ''}`}>
-      <div className={`h-1 w-full rounded-t-2xl ${item.priority === 'alta' ? 'bg-rose-400' : item.priority === 'media' ? 'bg-amber-300' : 'bg-slate-200'}`} />
+      <div className={`h-1 w-full rounded-t-2xl ${item.priority === 'alta' ? 'bg-teal-400' : item.priority === 'media' ? 'bg-lime-300' : 'bg-slate-200'}`} />
       <div className="p-4 space-y-3">
 
         {/* Cabecera */}
@@ -269,7 +269,7 @@ function WishCard({ item, profiles, sharedWith }: {
             {item.price_estimate && (
               <span className="text-xs font-bold text-slate-500 mr-1">~{item.price_estimate.toFixed(0)}€</span>
             )}
-            <button onClick={() => setIsEditing(true)} className="p-1.5 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+            <button onClick={() => setIsEditing(true)} className="p-1.5 text-slate-300 hover:text-teal-500 hover:bg-teal-50 rounded-lg transition-all">
               <Pencil size={14} />
             </button>
             <button onClick={handleDelete} disabled={isDeleting} className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
@@ -282,7 +282,7 @@ function WishCard({ item, profiles, sharedWith }: {
 
         {item.url && (
           <a href={item.url} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-500 hover:text-blue-700 transition-colors">
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-500 hover:text-teal-700 transition-colors">
             <ExternalLink size={11} />Ver enlace
           </a>
         )}
@@ -320,7 +320,7 @@ function SharedItemCard({ item, ownerProfile }: { item: WishItem; ownerProfile?:
   const type = TYPE_META[item.type] ?? TYPE_META.objeto
   return (
     <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${item.is_purchased ? 'opacity-50' : ''}`}>
-      <div className={`h-1 w-full ${item.priority === 'alta' ? 'bg-rose-400' : item.priority === 'media' ? 'bg-amber-300' : 'bg-slate-200'}`} />
+      <div className={`h-1 w-full ${item.priority === 'alta' ? 'bg-teal-400' : item.priority === 'media' ? 'bg-lime-300' : 'bg-slate-200'}`} />
       <div className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -345,7 +345,7 @@ function SharedItemCard({ item, ownerProfile }: { item: WishItem; ownerProfile?:
         {item.description && <p className="text-xs text-slate-500 leading-relaxed">{item.description}</p>}
         {item.url && (
           <a href={item.url} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-500 hover:text-blue-700 transition-colors">
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-500 hover:text-teal-700 transition-colors">
             <ExternalLink size={11} />Ver enlace
           </a>
         )}
@@ -477,7 +477,7 @@ export default function WishlistUI({
       {/* Acciones */}
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 bg-blue-600 text-white font-bold px-5 py-3 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+          className="flex items-center gap-2 bg-teal-600 text-white font-bold px-5 py-3 rounded-2xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-100">
           {showForm ? <X size={18} /> : <Plus size={18} />}
           {showForm ? 'Cancelar' : 'Añadir elemento'}
         </button>
@@ -541,7 +541,7 @@ export default function WishlistUI({
       {/* Compartido conmigo */}
       <section className="space-y-5 pt-6 border-t border-slate-200">
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-          <UserCheck size={14} className="text-violet-500" />
+          <UserCheck size={14} className="text-emerald-500" />
           Compartido conmigo
         </h2>
 
@@ -555,7 +555,7 @@ export default function WishlistUI({
           sharedByOwner.map(({ owner, items: ownerItems }) => (
             <div key={owner.id} className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center text-[11px] font-black text-violet-700">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-[11px] font-black text-emerald-700">
                   {initials(owner)}
                 </div>
                 <span className="text-sm font-bold text-slate-600">{labelUser(owner)}</span>

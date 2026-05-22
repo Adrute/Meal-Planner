@@ -107,7 +107,7 @@ export default function FinancesUI({
           icon={<ClipboardList size={15} />}
           label="Revisión"
           count={pendingCount}
-          countColor="bg-amber-100 text-amber-600"
+          countColor="bg-lime-100 text-lime-600"
           onClick={() => setModalReview(true)}
           disabled={pendingCount === 0}
         />
@@ -149,7 +149,7 @@ export default function FinancesUI({
                 placeholder="Buscar movimiento..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-teal-400"
               />
             </div>
 
@@ -162,7 +162,7 @@ export default function FinancesUI({
                   className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                     flowFilter === opt
                       ? opt === 'gastos'
-                        ? 'bg-white text-rose-500 shadow-sm'
+                        ? 'bg-white text-teal-500 shadow-sm'
                         : opt === 'ingresos'
                           ? 'bg-white text-teal-600 shadow-sm'
                           : 'bg-white text-slate-700 shadow-sm'
@@ -179,7 +179,7 @@ export default function FinancesUI({
               <select
                 value={catFilter}
                 onChange={e => handleCatFilterChange(e.target.value)}
-                className="pl-8 pr-8 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-blue-400 appearance-none cursor-pointer"
+                className="pl-8 pr-8 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-teal-400 appearance-none cursor-pointer"
               >
                 <option value="Todas">Todas las categorías</option>
                 {categoryNames.map(c => <option key={c} value={c}>{c}</option>)}
@@ -191,7 +191,7 @@ export default function FinancesUI({
                 <select
                   value={subcatFilter}
                   onChange={e => setSubcatFilter(e.target.value)}
-                  className="pl-4 pr-8 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-blue-400 appearance-none cursor-pointer"
+                  className="pl-4 pr-8 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-teal-400 appearance-none cursor-pointer"
                 >
                   <option value="Todas">Todas las subcategorías</option>
                   {selectedCatSubcats.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -207,7 +207,7 @@ export default function FinancesUI({
               className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors shrink-0"
             >
               {allSelected
-                ? <CheckSquare size={15} className="text-blue-500" />
+                ? <CheckSquare size={15} className="text-teal-500" />
                 : <Square size={15} />
               }
               {allSelected ? 'Deseleccionar todo' : 'Seleccionar todo'}
@@ -286,7 +286,7 @@ function RulesPanelContent({ rules, categories, onClose: _onClose }: { rules: Ru
         <button
           onClick={handleReapply}
           disabled={isReapplying || rules.length === 0}
-          className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors"
+          className="flex items-center gap-2 text-sm font-bold text-teal-600 hover:text-teal-700 disabled:opacity-40 transition-colors"
         >
           {isReapplying ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
           Reaplicar a todos los movimientos
@@ -382,14 +382,14 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const isIncome = t.importe > 0
 
   return (
-    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-blue-50/60' : ''} ${flagged && !isSelected ? 'bg-amber-50/40' : ''}`}>
+    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-teal-50/60' : ''} ${flagged && !isSelected ? 'bg-lime-50/40' : ''}`}>
       <div className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50">
 
         {/* Checkbox selección */}
         {onToggleSelect && (
           <button
             onClick={() => onToggleSelect(t.id)}
-            className={`shrink-0 transition-colors ${isSelected ? 'text-blue-500' : 'text-slate-200 hover:text-slate-400 opacity-0 group-hover:opacity-100'}`}
+            className={`shrink-0 transition-colors ${isSelected ? 'text-teal-500' : 'text-slate-200 hover:text-slate-400 opacity-0 group-hover:opacity-100'}`}
           >
             {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
           </button>
@@ -401,7 +401,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
             <select
               value={categoria}
               onChange={e => handleCatChange(e.target.value)}
-              className="text-xs font-bold px-2 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-blue-400 cursor-pointer"
+              className="text-xs font-bold px-2 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-teal-400 cursor-pointer"
             >
               {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
@@ -409,7 +409,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
               <select
                 value={subcategoria}
                 onChange={e => setSubcategoria(e.target.value)}
-                className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-blue-400 cursor-pointer text-slate-500"
+                className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 bg-white outline-none focus:border-teal-400 cursor-pointer text-slate-500"
               >
                 <option value="">Sin subcategoría</option>
                 {subcats.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -434,7 +434,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
               type="text"
               value={concepto}
               onChange={e => setConcepto(e.target.value)}
-              className="w-full text-sm font-bold text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:border-blue-400"
+              className="w-full text-sm font-bold text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:border-teal-400"
               autoFocus
             />
           ) : (
@@ -468,12 +468,12 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
                   onClick={handleToggleFlag}
                   disabled={isFlagging}
                   title={flagged ? 'Quitar de revisión' : 'Marcar para revisar'}
-                  className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${flagged ? 'text-amber-500' : 'text-slate-200 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
+                  className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${flagged ? 'text-lime-500' : 'text-slate-200 hover:text-lime-400 opacity-0 group-hover:opacity-100'}`}
                 >
                   {isFlagging ? <Loader2 size={14} className="animate-spin" /> : <Flag size={14} />}
                 </button>
               )}
-              <button onClick={handleEdit} className="p-1.5 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+              <button onClick={handleEdit} className="p-1.5 text-slate-300 hover:text-teal-500 hover:bg-teal-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
                 <Pencil size={14} />
               </button>
               <button onClick={async () => { setIsDeleting(true); await deleteTransaction(t.id) }} disabled={isDeleting} className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50">
@@ -492,7 +492,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
               type="checkbox"
               checked={createRuleEnabled}
               onChange={e => setCreateRuleEnabled(e.target.checked)}
-              className="rounded accent-blue-500"
+              className="rounded accent-teal-500"
             />
             <span className="text-xs font-bold text-slate-500">Crear regla para futuros movimientos</span>
           </label>
@@ -504,7 +504,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
                 type="text"
                 value={rulePattern}
                 onChange={e => setRulePattern(e.target.value)}
-                className="flex-1 min-w-[160px] text-xs font-mono font-bold border border-blue-200 bg-white rounded-lg px-3 py-1.5 outline-none focus:border-blue-400 text-slate-700"
+                className="flex-1 min-w-[160px] text-xs font-mono font-bold border border-teal-200 bg-white rounded-lg px-3 py-1.5 outline-none focus:border-teal-400 text-slate-700"
               />
               <ArrowRight size={13} className="text-slate-300 shrink-0" />
               <div className="flex flex-col">
@@ -521,7 +521,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
 
 // ─── ACTION BUTTON ────────────────────────────────────────────────────────────
 
-function ActionButton({ icon, label, count, countColor = 'bg-blue-100 text-blue-600', onClick, disabled = false }: {
+function ActionButton({ icon, label, count, countColor = 'bg-teal-100 text-teal-600', onClick, disabled = false }: {
   icon: React.ReactNode; label: string; count?: number
   countColor?: string; onClick: () => void; disabled?: boolean
 }) {
@@ -554,7 +554,7 @@ function ReviewPanelContent({ transactions, categories }: { transactions: Transa
   return (
     <div className="space-y-2">
       <p className="text-xs text-slate-400 mb-4">
-        Categoriza estos movimientos y pulsa <Flag size={10} className="inline text-amber-500" /> para quitarlos de la lista.
+        Categoriza estos movimientos y pulsa <Flag size={10} className="inline text-lime-500" /> para quitarlos de la lista.
       </p>
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
         {transactions.map(t => (
@@ -612,7 +612,7 @@ function BulkActionBar({ count, categories, selectedIds, onClear, onDone }: {
 
         {/* Contador */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="bg-blue-500 text-white text-xs font-black px-2 py-0.5 rounded-full">{count}</span>
+          <span className="bg-teal-500 text-white text-xs font-black px-2 py-0.5 rounded-full">{count}</span>
           <span className="text-sm font-bold text-slate-300">seleccionados</span>
         </div>
 
@@ -622,7 +622,7 @@ function BulkActionBar({ count, categories, selectedIds, onClear, onDone }: {
         <select
           value={categoria}
           onChange={e => handleCatChange(e.target.value)}
-          className="text-sm font-bold bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-blue-500 cursor-pointer text-white"
+          className="text-sm font-bold bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-teal-500 cursor-pointer text-white"
         >
           {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
@@ -631,7 +631,7 @@ function BulkActionBar({ count, categories, selectedIds, onClear, onDone }: {
           <select
             value={subcategoria}
             onChange={e => setSubcategoria(e.target.value)}
-            className="text-sm bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-blue-500 cursor-pointer text-slate-300"
+            className="text-sm bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-teal-500 cursor-pointer text-slate-300"
           >
             <option value="">Sin subcategoría</option>
             {subcats.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -642,7 +642,7 @@ function BulkActionBar({ count, categories, selectedIds, onClear, onDone }: {
         <button
           onClick={handleApply}
           disabled={isApplying}
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50 shrink-0"
+          className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50 shrink-0"
         >
           {isApplying ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
           Aplicar

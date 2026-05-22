@@ -12,7 +12,7 @@ function fmtTime(d: string | Date) {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   wishlist:  { label: 'Deseos',       color: 'text-slate-500',   bg: 'bg-slate-100'  },
-  planning:  { label: 'Planificando', color: 'text-amber-700',   bg: 'bg-amber-100'  },
+  planning:  { label: 'Planificando', color: 'text-lime-700',   bg: 'bg-lime-100'  },
   confirmed: { label: 'Confirmados',  color: 'text-emerald-700', bg: 'bg-emerald-100' },
   completed: { label: 'Completados',  color: 'text-slate-400',   bg: 'bg-slate-100'  },
 }
@@ -100,7 +100,7 @@ export default async function UpcomingReservationsWidget() {
         {/* --- Viajes --- */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
-            <Plane size={14} className="text-violet-500" />
+            <Plane size={14} className="text-emerald-500" />
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Viajes</span>
           </div>
 
@@ -113,13 +113,13 @@ export default async function UpcomingReservationsWidget() {
                 return (
                   <Link
                     href={`/trips/${nextTrip.id}`}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-violet-50 border border-violet-200 hover:bg-violet-100/60 transition-colors group"
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/60 transition-colors group"
                   >
-                    <div className="w-10 h-10 rounded-2xl bg-white border border-violet-200 flex items-center justify-center shadow-sm text-xl shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-white border border-emerald-200 flex items-center justify-center shadow-sm text-xl shrink-0">
                       {nextTrip.cover_emoji || '✈️'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-800 text-sm group-hover:text-violet-700 transition-colors truncate">
+                      <p className="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors truncate">
                         {nextTrip.title || nextTrip.destination}
                       </p>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -148,7 +148,7 @@ export default async function UpcomingReservationsWidget() {
                 </div>
               )}
 
-              <Link href="/trips" className="text-xs font-bold text-slate-400 hover:text-violet-600 transition-colors text-center mt-auto pt-1">
+              <Link href="/trips" className="text-xs font-bold text-slate-400 hover:text-emerald-600 transition-colors text-center mt-auto pt-1">
                 Ver todos →
               </Link>
             </>
@@ -156,7 +156,7 @@ export default async function UpcomingReservationsWidget() {
             <div className="flex-1 flex flex-col items-center justify-center text-center py-6 text-slate-400">
               <Plane size={28} className="mb-2 opacity-20" />
               <p className="text-sm font-bold">Sin viajes</p>
-              <Link href="/trips" className="text-xs text-violet-500 font-bold hover:underline mt-1">
+              <Link href="/trips" className="text-xs text-emerald-500 font-bold hover:underline mt-1">
                 Planifica uno →
               </Link>
             </div>

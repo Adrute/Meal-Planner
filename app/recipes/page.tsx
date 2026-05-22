@@ -175,7 +175,7 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
     <Link href={`/recipes/${recipe.id}`} className="block h-full">
       <div className="group bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all relative h-full flex flex-col gap-3">
         {recipe.is_favorite && (
-          <div className="absolute top-3 right-3 text-amber-400">
+          <div className="absolute top-3 right-3 text-lime-400">
             <Star size={15} fill="currentColor" />
           </div>
         )}

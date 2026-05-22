@@ -113,7 +113,7 @@ function WeightSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: We
     <section className={sectionClass(isMaximized)}>
       <div className={innerClass(isMaximized)}>
         <SectionHeader
-          icon={<div className="bg-rose-50 p-2 rounded-xl text-rose-500"><Scale size={20} /></div>}
+          icon={<div className="bg-teal-50 p-2 rounded-xl text-teal-500"><Scale size={20} /></div>}
           title="Peso" subtitle="Registra tu evolución diaria"
           isMaximized={isMaximized} onMaximize={onMaximize} onMinimize={onMinimize}
         />
@@ -144,16 +144,16 @@ function WeightSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: We
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Añadir registro</p>
           <div className="flex gap-2 flex-wrap">
             <input type="date" value={date} onChange={e => setDate(e.target.value)} max={today}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input type="number" value={weight} onChange={e => setWeight(e.target.value)}
               placeholder="Peso (kg)" step="0.1" min="20" max="300"
-              className="w-32 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="w-32 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Nota (opcional)"
-              className="flex-1 min-w-[140px] p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="flex-1 min-w-[140px] p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             {saving ? 'Guardando...' : 'Añadir registro de peso'}
           </button>
@@ -258,7 +258,7 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
     <section className={sectionClass(isMaximized)}>
       <div className={innerClass(isMaximized)}>
         <SectionHeader
-          icon={<div className="bg-violet-50 p-2 rounded-xl text-violet-500"><Footprints size={20} /></div>}
+          icon={<div className="bg-emerald-50 p-2 rounded-xl text-emerald-500"><Footprints size={20} /></div>}
           title="Running" subtitle="Registra tus salidas a correr"
           isMaximized={isMaximized} onMaximize={onMaximize} onMinimize={onMinimize}
         />
@@ -272,7 +272,7 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
             ].map(s => (
               <div key={s.label} className="bg-white px-4 py-3 flex flex-col items-center">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{s.label}</span>
-                <div className="flex items-center gap-1 font-black text-lg text-violet-600">
+                <div className="flex items-center gap-1 font-black text-lg text-emerald-600">
                   <s.Icon size={15} />{s.value}
                 </div>
               </div>
@@ -284,18 +284,18 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Añadir salida</p>
           <div className="flex gap-2 flex-wrap">
             <input type="date" value={date} onChange={e => setDate(e.target.value)} max={today}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input type="number" value={distance} onChange={e => setDistance(e.target.value)}
               placeholder="Km" step="0.01" min="0.1"
-              className="w-24 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="w-24 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <div className="flex items-center gap-1">
               <input type="number" value={mins} onChange={e => setMins(e.target.value)}
                 placeholder="min" min="0" max="999"
-                className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 text-center" />
+                className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400 text-center" />
               <span className="text-slate-400 text-sm font-bold">:</span>
               <input type="number" value={secs} onChange={e => setSecs(e.target.value)}
                 placeholder="seg" min="0" max="59"
-                className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 text-center" />
+                className="w-20 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400 text-center" />
             </div>
           </div>
           <div className="flex gap-3 items-center flex-wrap">
@@ -311,11 +311,11 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
               </div>
             </div>
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Nota (opcional)"
-              className="flex-1 min-w-[140px] p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="flex-1 min-w-[140px] p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             {saving ? 'Guardando...' : 'Añadir salida'}
           </button>
@@ -338,9 +338,9 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
                   <div key={key} className="flex items-center gap-3">
                     <span className="text-xs font-bold text-slate-500 w-24 capitalize shrink-0">{label}</span>
                     <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                      <div className="h-full rounded-full bg-violet-400" style={{ width: `${pct}%` }} />
+                      <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-xs font-black text-violet-600 w-16 text-right shrink-0">{km.toFixed(1)} km</span>
+                    <span className="text-xs font-black text-emerald-600 w-16 text-right shrink-0">{km.toFixed(1)} km</span>
                   </div>
                 )
               })}
@@ -358,7 +358,7 @@ function RunningSection({ logs, isMaximized, onMaximize, onMinimize }: { logs: R
                     <span className="text-xs font-bold text-slate-400 w-20 capitalize shrink-0">
                       {format(parseISO(l.date), 'd MMM yyyy', { locale: es })}
                     </span>
-                    <span className="font-black text-violet-600">{l.distance_km} km</span>
+                    <span className="font-black text-emerald-600">{l.distance_km} km</span>
                     <span className="text-xs text-slate-500 flex items-center gap-1">
                       <Timer size={11} /> {formatDuration(l.duration_minutes)}
                     </span>

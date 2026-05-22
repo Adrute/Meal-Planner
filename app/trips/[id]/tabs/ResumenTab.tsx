@@ -78,10 +78,10 @@ export default function ResumenTab({
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Resumen de costes</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Transporte',    value: totalTransport,     color: 'text-violet-600' },
-              { label: 'Alojamiento',   value: totalAccommodation, color: 'text-blue-600' },
-              { label: 'Actividades',   value: totalActivities,    color: 'text-amber-600' },
-              { label: 'Gastos viaje',  value: totalExpenses,      color: 'text-rose-600' },
+              { label: 'Transporte',    value: totalTransport,     color: 'text-emerald-600' },
+              { label: 'Alojamiento',   value: totalAccommodation, color: 'text-teal-600' },
+              { label: 'Actividades',   value: totalActivities,    color: 'text-lime-600' },
+              { label: 'Gastos viaje',  value: totalExpenses,      color: 'text-teal-600' },
             ].map(item => (
               <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{item.label}</p>
@@ -97,7 +97,7 @@ export default function ResumenTab({
               </div>
               <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${budgetPct >= 100 ? 'bg-red-500' : budgetPct >= 80 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                  className={`h-full rounded-full transition-all ${budgetPct >= 100 ? 'bg-red-500' : budgetPct >= 80 ? 'bg-lime-400' : 'bg-emerald-500'}`}
                   style={{ width: `${budgetPct}%` }}
                 />
               </div>
@@ -125,39 +125,39 @@ export default function ResumenTab({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre del viaje *"
-            className="sm:col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+            className="sm:col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           <input value={destination} onChange={e => setDest(e.target.value)} placeholder="Destino *"
-            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           <input value={country} onChange={e => setCountry(e.target.value)} placeholder="País"
-            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-400 font-medium pl-1">Fecha inicio</label>
             <input type="date" value={startDate} onChange={e => setStart(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-400 font-medium pl-1">Fecha fin{nights !== null ? ` · ${nights} noches` : ''}</label>
             <input type="date" value={endDate} onChange={e => setEnd(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           </div>
           <select value={status} onChange={e => setStatus(e.target.value)}
-            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400">
+            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400">
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
           <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
             placeholder="Presupuesto total (€)" min="0" step="10"
-            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+            className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           <textarea value={notes} onChange={e => setNotes(e.target.value)}
             placeholder="Notas generales del viaje..."
             rows={3}
-            className="sm:col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400 resize-none" />
+            className="sm:col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400 resize-none" />
         </div>
 
         {error && <p className="text-red-500 text-xs">{error}</p>}
 
         <div className="flex gap-3">
           <button type="submit" disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>

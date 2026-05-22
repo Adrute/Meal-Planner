@@ -120,7 +120,7 @@ export default function CategoryDetailUI({
               placeholder="Buscar..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-blue-400"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:border-teal-400"
             />
           </div>
           {subcatNames.length > 0 && (
@@ -128,7 +128,7 @@ export default function CategoryDetailUI({
               <select
                 value={subcatFilter}
                 onChange={e => setSubcatFilter(e.target.value)}
-                className="pl-4 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-blue-400 appearance-none cursor-pointer"
+                className="pl-4 pr-8 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 outline-none focus:border-teal-400 appearance-none cursor-pointer"
               >
                 <option value="Todas">Todas las subcategorías</option>
                 {subcatNames.map(s => <option key={s} value={s}>{s}</option>)}

@@ -21,11 +21,11 @@ type Profile       = { id: string; display_name: string | null; email: string }
 type WeekAssignment = { id: string; task_id: string; week_start: string; day_of_week: string | null; assigned_to: string | null }
 
 const FREQ_CONFIG: Record<string, { label: string; plural: string; period: string; bg: string; text: string; border: string; dot: string }> = {
-  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today',  bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
-  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',   bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
+  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today',  bg: 'bg-teal-50',    text: 'text-teal-700',    border: 'border-teal-200',    dot: 'bg-teal-400'    },
+  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',   bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-400' },
   custom:   { label: 'Periódica', plural: 'Periódicas', period: 'recent', bg: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200',   dot: 'bg-teal-400'   },
-  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',   bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
-  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',    bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
+  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',   bg: 'bg-lime-50',  text: 'text-lime-700',  border: 'border-lime-200',  dot: 'bg-lime-400'  },
+  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',    bg: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200',   dot: 'bg-teal-400'   },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -175,10 +175,10 @@ function TaskForm({
     setSaving(false)
   }
 
-  const cls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-violet-300 bg-white'
+  const cls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white'
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-violet-200 p-5 space-y-3 shadow-sm">
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-emerald-200 p-5 space-y-3 shadow-sm">
       <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{initial ? 'Editar tarea' : 'Nueva tarea'}</p>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre de la tarea *"
         className={cls} autoFocus required />
@@ -209,9 +209,9 @@ function TaskForm({
             <div className="flex gap-1.5">
               <input type="number" min={1} max={365} value={intervalValue}
                 onChange={e => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-16 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-violet-300 bg-white text-center font-bold" />
+                className="w-16 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white text-center font-bold" />
               <select value={intervalUnit} onChange={e => setIntervalUnit(e.target.value as 'dias' | 'semanas' | 'meses')}
-                className="flex-1 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-violet-300 bg-white">
+                className="flex-1 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white">
                 <option value="dias">días</option>
                 <option value="semanas">semanas</option>
                 <option value="meses">meses</option>
@@ -247,7 +247,7 @@ function TaskForm({
             return (
               <button key={p.id} type="button"
                 onClick={() => setAssigned(prev => active ? prev.filter(n => n !== name) : [...prev, name])}
-                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${active ? 'bg-violet-500 text-white border-violet-500' : 'bg-white text-slate-500 border-slate-200 hover:border-violet-300 hover:text-violet-500'}`}>
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${active ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-500'}`}>
                 {name}
               </button>
             )
@@ -263,7 +263,7 @@ function TaskForm({
       <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas (opcional)" className={cls} />
       <div className="flex gap-2 pt-1">
         <button type="submit" disabled={saving}
-          className="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl disabled:opacity-50">
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl disabled:opacity-50">
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
           {initial ? 'Guardar cambios' : 'Crear tarea'}
         </button>
@@ -358,18 +358,18 @@ function TaskCard({
           {isDayable && (
             <button onClick={toggleDayPicker}
               className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors min-w-[30px] text-center ${
-                showDayPicker ? 'bg-violet-500 text-white border-violet-500' :
+                showDayPicker ? 'bg-emerald-500 text-white border-emerald-500' :
                 effectiveDay  ? `${freq.bg} ${freq.text} ${freq.border}` :
-                'bg-slate-100 text-slate-400 border-transparent hover:bg-violet-50 hover:text-violet-500'
+                'bg-slate-100 text-slate-400 border-transparent hover:bg-emerald-50 hover:text-emerald-500'
               }`}>
               {effectiveDay ? DAY_LABEL[effectiveDay] : '—'}
             </button>
           )}
           <button onClick={togglePersonPicker}
             className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors max-w-[90px] truncate ${
-              pickMode === 'assign' ? 'bg-violet-500 text-white border-violet-500' :
+              pickMode === 'assign' ? 'bg-emerald-500 text-white border-emerald-500' :
               assignedNames.length > 0 ? `${freq.bg} ${freq.text} ${freq.border}` :
-              'bg-slate-100 text-slate-400 border-transparent hover:bg-violet-50 hover:text-violet-500'
+              'bg-slate-100 text-slate-400 border-transparent hover:bg-emerald-50 hover:text-emerald-500'
             }`}>
             {badgeText}
           </button>
@@ -397,7 +397,7 @@ function TaskCard({
               return (
                 <button key={p.id} onClick={() => toggleName(name)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    isSelected ? 'bg-violet-500 text-white border-violet-500' :
+                    isSelected ? 'bg-emerald-500 text-white border-emerald-500' :
                     `${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`
                   }`}>
                   {isSelected ? `✓ ${name}` : name}
@@ -423,7 +423,7 @@ function TaskCard({
           {pickMode === 'assign' && (
             <div className="flex gap-2 mt-2">
               <button onClick={() => { onAssignWeek(joinNames(selectedNames)); setPickMode(null) }}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-violet-500 text-white hover:bg-violet-600 transition-colors">
+                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
                 Confirmar
               </button>
               {assignedNames.length > 0 && (
@@ -455,7 +455,7 @@ function TaskCard({
             {DAYS.map(d => (
               <button key={d} onClick={() => { setShowDayPicker(false); onSetDayForWeek(d) }}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                  effectiveDay === d ? 'bg-violet-500 text-white border-violet-500' :
+                  effectiveDay === d ? 'bg-emerald-500 text-white border-emerald-500' :
                   `${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`
                 }`}>
                 {DAY_LABEL[d]}
@@ -510,8 +510,8 @@ function TaskDayRow({
         {task.frequency !== 'daily' && (
           <button onClick={() => setMode(m => m === 'day' ? null : 'day')}
             className={`text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0 transition-colors ${
-              mode === 'day' ? 'bg-violet-500 text-white' :
-              effectiveDay  ? `${freq.bg} ${freq.text}` : 'text-slate-300 hover:text-violet-400'
+              mode === 'day' ? 'bg-emerald-500 text-white' :
+              effectiveDay  ? `${freq.bg} ${freq.text}` : 'text-slate-300 hover:text-emerald-400'
             }`}>
             {effectiveDay ? DAY_LABEL[effectiveDay] : '·'}
           </button>
@@ -524,7 +524,7 @@ function TaskDayRow({
           <div className="flex flex-wrap gap-1">
             {filterProfiles(profiles).map(p => (
               <button key={p.id} onClick={() => { setMode(null); onComplete(task, p.display_name!) }}
-                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-violet-50 text-slate-600">
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-emerald-50 text-slate-600">
                 {p.display_name}
               </button>
             ))}
@@ -540,7 +540,7 @@ function TaskDayRow({
             {DAYS.map(d => (
               <button key={d} onClick={() => { setMode(null); onSetDay(task.id, weekStart, d) }}
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                  effectiveDay === d ? 'bg-violet-500 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-violet-50'
+                  effectiveDay === d ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50'
                 }`}>
                 {DAY_LABEL[d]}
               </button>
@@ -607,7 +607,7 @@ function CalendarView({
         </button>
         {offset !== 0 && (
           <button onClick={() => setOffset(0)}
-            className="ml-1 text-xs font-bold text-violet-500 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors">
+            className="ml-1 text-xs font-bold text-emerald-500 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">
             Hoy
           </button>
         )}
@@ -655,7 +655,7 @@ function CalendarView({
                         <div key={task.id} className="relative">
                           {togglingId === task.id && (
                             <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60">
-                              <Loader2 size={12} className="animate-spin text-violet-500" />
+                              <Loader2 size={12} className="animate-spin text-emerald-500" />
                             </div>
                           )}
                           <TaskDayRow
@@ -697,7 +697,7 @@ function CalendarView({
                       <div className="flex gap-1 flex-wrap">
                         {DAYS.map(d => (
                           <button key={d} onClick={() => onSetDay(task.id, weekStart, d)}
-                            className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-300 transition-colors">
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
                             {DAY_LABEL[d]}
                           </button>
                         ))}
@@ -840,7 +840,7 @@ export default function TasksClient({
           <p className="text-slate-400 font-medium mt-1 text-sm">{totalDone} completadas · {totalPending} pendientes</p>
         </div>
         <button onClick={() => { setShowForm(true); setEditing(null) }}
-          className="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
           <Plus size={16} /> Añadir tarea
         </button>
       </header>
@@ -928,7 +928,7 @@ export default function TasksClient({
                     <div key={task.id} className="relative">
                       {togglingId === task.id && (
                         <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/50 rounded-2xl">
-                          <Loader2 size={16} className="animate-spin text-violet-500" />
+                          <Loader2 size={16} className="animate-spin text-emerald-500" />
                         </div>
                       )}
                       <TaskCard
@@ -1003,7 +1003,7 @@ export default function TasksClient({
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => { setEditing(task); setShowForm(false) }}
-                              className="p-1.5 rounded-lg text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                              className="p-1.5 rounded-lg text-slate-300 hover:text-teal-500 hover:bg-teal-50 transition-colors">
                               <Pencil size={14} />
                             </button>
                             <button onClick={() => handleDelete(task.id)} disabled={deletingId === task.id}

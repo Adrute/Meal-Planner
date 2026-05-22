@@ -39,7 +39,7 @@ export default async function WishlistPage() {
     <div className="max-w-5xl mx-auto px-4 py-10 pb-24 md:pb-10 space-y-8 animate-in fade-in">
       <header>
         <div className="flex items-center gap-3 mb-1">
-          <Gift size={28} className="text-pink-500" />
+          <Gift size={28} className="text-green-500" />
           <h1 className="text-3xl font-black text-slate-900">Lista de deseos</h1>
         </div>
         <p className="text-sm text-slate-400 ml-10">

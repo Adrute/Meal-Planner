@@ -10,16 +10,16 @@ import {
 import { signOut } from '@/app/actions/auth'
 
 const ALL_NAV_ITEMS = [
-  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-orange-400',  activeBg: 'bg-orange-50',   hoverColor: 'hover:text-orange-400  hover:bg-orange-50/60'  },
+  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-emerald-400',  activeBg: 'bg-emerald-50',   hoverColor: 'hover:text-emerald-400  hover:bg-emerald-50/60'  },
   { key: 'recipes',     href: '/recipes',         label: 'Recetas',          icon: BookOpen,        activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
   { key: 'shopping',    href: '/shopping-list',   label: 'Compra',           icon: ShoppingBasket,  activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
-  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-sky-500',     activeBg: 'bg-sky-50',      hoverColor: 'hover:text-sky-500     hover:bg-sky-50/60'     },
-  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-amber-500',   activeBg: 'bg-amber-50',    hoverColor: 'hover:text-amber-500   hover:bg-amber-50/60'   },
+  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-teal-500',     activeBg: 'bg-teal-50',      hoverColor: 'hover:text-teal-500     hover:bg-teal-50/60'     },
+  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-lime-500',   activeBg: 'bg-lime-50',    hoverColor: 'hover:text-lime-500   hover:bg-lime-50/60'   },
   { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
-  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-rose-400',    activeBg: 'bg-rose-50',     hoverColor: 'hover:text-rose-400    hover:bg-rose-50/60'    },
-  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-400',    activeBg: 'bg-pink-50',     hoverColor: 'hover:text-pink-400    hover:bg-pink-50/60'    },
-  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-rose-400',    activeBg: 'bg-rose-50',     hoverColor: 'hover:text-rose-400    hover:bg-rose-50/60'    },
-  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-violet-400',  activeBg: 'bg-violet-50',   hoverColor: 'hover:text-violet-400  hover:bg-violet-50/60'  },
+  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-teal-400',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-400    hover:bg-teal-50/60'    },
+  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-green-400',    activeBg: 'bg-green-50',     hoverColor: 'hover:text-green-400    hover:bg-green-50/60'    },
+  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-teal-400',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-400    hover:bg-teal-50/60'    },
+  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-emerald-400',  activeBg: 'bg-emerald-50',   hoverColor: 'hover:text-emerald-400  hover:bg-emerald-50/60'  },
   { key: 'tasks',       href: '/tasks',           label: 'Tareas',           icon: CheckSquare,     activeColor: 'text-lime-500',    activeBg: 'bg-lime-50',     hoverColor: 'hover:text-lime-500    hover:bg-lime-50/60'    },
 ]
 
@@ -40,8 +40,8 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
         onClick={onClick}
         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm ${
           pathname === '/'
-            ? 'bg-violet-100 text-violet-600'
-            : 'text-slate-500 hover:bg-violet-50 hover:text-violet-500'
+            ? 'bg-emerald-100 text-emerald-600'
+            : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-500'
         }`}
       >
         <Home size={18} /> <span>Inicio</span>
@@ -72,8 +72,8 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
           onClick={onClick}
           className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm ${
             pathname.startsWith('/admin')
-              ? 'bg-violet-100 text-violet-600'
-              : 'text-slate-500 hover:bg-violet-50 hover:text-violet-500'
+              ? 'bg-emerald-100 text-emerald-600'
+              : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-500'
           }`}
         >
           <Database size={18} /> <span>Administración</span>
@@ -86,11 +86,11 @@ function NavLinks({ permissions, isAdmin, onClick }: Omit<Props, 'displayName'> 
 const Brand = ({ size = 'lg' }: { size?: 'sm' | 'lg' }) =>
   size === 'lg' ? (
     <h2 className="text-2xl font-black tracking-tight text-slate-800">
-      Family<span className="text-violet-400">Dashboard</span>
+      Family<span className="text-emerald-400">Dashboard</span>
     </h2>
   ) : (
     <h2 className="text-xl font-black tracking-tight text-slate-800">
-      Family<span className="text-violet-400">Dashboard</span>
+      Family<span className="text-emerald-400">Dashboard</span>
     </h2>
   )
 
@@ -98,9 +98,9 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
   const [open, setOpen] = useState(false)
 
   const UserFooter = () => (
-    <div className="p-4 border-t border-violet-100/60 space-y-1">
+    <div className="p-4 border-t border-emerald-100/60 space-y-1">
       <div className="flex items-center gap-3 px-4 py-2">
-        <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-xs font-black shrink-0">
+        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black shrink-0">
           {displayName.slice(0, 2).toUpperCase()}
         </div>
         <span className="text-sm font-bold text-slate-600 truncate">{displayName}</span>
@@ -108,7 +108,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       <form action={signOut}>
         <button
           type="submit"
-          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-500 transition-colors text-left"
+          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold text-slate-400 rounded-xl hover:bg-teal-50 hover:text-teal-500 transition-colors text-left"
         >
           <LogOut size={16} /> <span className="truncate">Cerrar Sesión</span>
         </button>
@@ -119,7 +119,7 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-60 bg-white/80 border-r border-violet-100 shrink-0 backdrop-blur-sm">
+      <aside className="hidden md:flex flex-col w-60 bg-white/80 border-r border-emerald-100 shrink-0 backdrop-blur-sm">
         <div className="px-6 py-7">
           <Brand />
         </div>
@@ -130,10 +130,10 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
       </aside>
 
       {/* Mobile top header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-[199] bg-white/90 backdrop-blur-sm border-b border-violet-100 flex items-center px-4 h-14">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-[199] bg-white/90 backdrop-blur-sm border-b border-emerald-100 flex items-center px-4 h-14">
         <button
           onClick={() => setOpen(true)}
-          className="p-2 rounded-xl hover:bg-violet-50 text-slate-500 -ml-2"
+          className="p-2 rounded-xl hover:bg-emerald-50 text-slate-500 -ml-2"
           aria-label="Abrir menú"
         >
           <Menu size={22} />
@@ -154,9 +154,9 @@ export default function AppNavigation({ permissions, isAdmin, displayName }: Pro
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-violet-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-emerald-100">
           <Brand />
-          <button onClick={() => setOpen(false)} className="p-2 rounded-xl hover:bg-violet-50 text-slate-400">
+          <button onClick={() => setOpen(false)} className="p-2 rounded-xl hover:bg-emerald-50 text-slate-400">
             <X size={20} />
           </button>
         </div>

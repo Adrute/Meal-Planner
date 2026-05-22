@@ -75,7 +75,7 @@ export default function AlojamientoTab({ trip, accommodations }: { trip: Trip; a
         const n = nights(a.check_in, a.check_out)
         return (
           <div key={a.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex gap-4 group">
-            <div className="bg-blue-50 text-blue-600 p-3 rounded-2xl shrink-0"><Hotel size={20} /></div>
+            <div className="bg-teal-50 text-teal-600 p-3 rounded-2xl shrink-0"><Hotel size={20} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -97,7 +97,7 @@ export default function AlojamientoTab({ trip, accommodations }: { trip: Trip; a
               {a.notes && <p className="text-xs text-slate-400 italic mt-1">{a.notes}</p>}
               {a.url && (
                 <a href={a.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1">
+                  className="inline-flex items-center gap-1 text-xs text-teal-600 hover:underline mt-1">
                   <ExternalLink size={11} /> Ver reserva
                 </a>
               )}
@@ -111,36 +111,36 @@ export default function AlojamientoTab({ trip, accommodations }: { trip: Trip; a
       })}
 
       {showForm ? (
-        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-blue-200 shadow-sm p-5 space-y-3">
+        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-teal-200 shadow-sm p-5 space-y-3">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nuevo alojamiento</p>
           <div className="grid grid-cols-2 gap-3">
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Nombre del alojamiento *"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={address} onChange={e => setAddress(e.target.value)} placeholder="Dirección"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Check-in</label>
               <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Check-out</label>
               <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             </div>
             <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Precio total (€)" min="0" step="0.01"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={bookingRef} onChange={e => setBookingRef(e.target.value)} placeholder="Ref. de reserva"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL de la reserva"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-blue-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+              className="flex-1 flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {saving ? 'Guardando...' : 'Añadir alojamiento'}
             </button>
@@ -152,7 +152,7 @@ export default function AlojamientoTab({ trip, accommodations }: { trip: Trip; a
         </form>
       ) : (
         <button onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-blue-300 text-slate-400 hover:text-blue-600 font-bold py-4 rounded-2xl text-sm transition-colors">
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-teal-300 text-slate-400 hover:text-teal-600 font-bold py-4 rounded-2xl text-sm transition-colors">
           <Plus size={16} /> Añadir alojamiento
         </button>
       )}

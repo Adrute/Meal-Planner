@@ -156,7 +156,7 @@ export default async function CategoryDetailPage({
         <StatCard
           label="Media/mes"
           value={`${mediaM.toFixed(0)} €`}
-          icon={<CalendarDays size={15} className="text-blue-400" />}
+          icon={<CalendarDays size={15} className="text-teal-400" />}
           sub={topMonth ? `Punta: ${labelMonth(topMonth.month)}` : undefined}
         />
         <StatCard

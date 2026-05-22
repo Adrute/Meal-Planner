@@ -90,7 +90,7 @@ export default function EvolutionChart({
               Evolución por categoría · últimos 12 meses
             </h3>
             {showSubcats && (
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-full">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2.5 py-1 rounded-full">
                 <Layers size={11} />
                 Vista por subcategoría
               </div>

@@ -47,22 +47,22 @@ export default async function AdminPage() {
       {/* EXPLORADOR DE BD */}
       <Link
         href="/admin/db"
-        className="flex items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 hover:border-blue-200 hover:bg-blue-50/30 transition-colors group"
+        className="flex items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 hover:border-teal-200 hover:bg-teal-50/30 transition-colors group"
       >
-        <div className="bg-slate-100 group-hover:bg-blue-100 p-3 rounded-xl text-slate-600 group-hover:text-blue-600 transition-colors">
+        <div className="bg-slate-100 group-hover:bg-teal-100 p-3 rounded-xl text-slate-600 group-hover:text-teal-600 transition-colors">
           <Table2 size={22} />
         </div>
         <div className="flex-1">
           <h2 className="font-bold text-lg">Explorador de base de datos</h2>
           <p className="text-sm text-slate-500">Ver y editar el contenido de cualquier tabla directamente.</p>
         </div>
-        <span className="text-slate-300 group-hover:text-blue-400 font-bold text-lg">→</span>
+        <span className="text-slate-300 group-hover:text-teal-400 font-bold text-lg">→</span>
       </Link>
 
       {/* GESTIÓN DE USUARIOS */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+          <div className="bg-teal-100 p-3 rounded-xl text-teal-600">
             <Users size={22} />
           </div>
           <div>
@@ -79,7 +79,7 @@ export default async function AdminPage() {
         {/* Tarjeta de Limpieza */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-start gap-4 mb-4">
-            <div className="bg-orange-100 p-3 rounded-xl text-orange-600">
+            <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
               <Trash2 size={24} />
             </div>
             <div>
@@ -107,7 +107,7 @@ export default async function AdminPage() {
               </div>
               <div className="flex justify-between items-center p-3 border-b border-slate-50">
                 <span className="text-slate-600">Total Ingredientes</span>
-                <span className="font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded">{ingredientCount}</span>
+                <span className="font-bold bg-teal-100 text-teal-700 px-2 py-1 rounded">{ingredientCount}</span>
               </div>
            </div>
         </div>

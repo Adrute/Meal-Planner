@@ -7,12 +7,12 @@ import { addTransport, deleteTransport } from '../../actions'
 import type { Trip, Transport } from '../TripDetail'
 
 const TYPE_CONFIG: Record<string, { label: string; Icon: React.ElementType; color: string }> = {
-  flight: { label: 'Vuelo',    Icon: Plane,  color: 'text-violet-600 bg-violet-50' },
-  train:  { label: 'Tren',     Icon: Train,  color: 'text-blue-600 bg-blue-50' },
-  bus:    { label: 'Autobús',  Icon: Bus,    color: 'text-amber-600 bg-amber-50' },
+  flight: { label: 'Vuelo',    Icon: Plane,  color: 'text-emerald-600 bg-emerald-50' },
+  train:  { label: 'Tren',     Icon: Train,  color: 'text-teal-600 bg-teal-50' },
+  bus:    { label: 'Autobús',  Icon: Bus,    color: 'text-lime-600 bg-lime-50' },
   car:    { label: 'Coche',    Icon: Car,    color: 'text-slate-600 bg-slate-100' },
   ferry:  { label: 'Ferry',    Icon: Ship,   color: 'text-cyan-600 bg-cyan-50' },
-  other:  { label: 'Otro',     Icon: Truck,  color: 'text-rose-600 bg-rose-50' },
+  other:  { label: 'Otro',     Icon: Truck,  color: 'text-teal-600 bg-teal-50' },
 }
 
 function fmt(dt: string | null) {
@@ -110,44 +110,44 @@ export default function TransporteTab({ trip, transport }: { trip: Trip; transpo
       })}
 
       {showForm ? (
-        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-violet-200 shadow-sm p-5 space-y-3">
+        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-5 space-y-3">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nuevo segmento</p>
           <div className="flex gap-2 flex-wrap">
             {Object.entries(TYPE_CONFIG).map(([k, v]) => (
               <button key={k} type="button" onClick={() => setType(k)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${type === k ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${type === k ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {v.label}
               </button>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <input value={origin} onChange={e => setOrigin(e.target.value)} placeholder="Origen *"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input value={destination} onChange={e => setDest(e.target.value)} placeholder="Destino *"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Salida</label>
               <input type="datetime-local" value={departureAt} onChange={e => setDepartAt(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-400 font-medium pl-1">Llegada</label>
               <input type="datetime-local" value={arrivalAt} onChange={e => setArrivalAt(e.target.value)}
-                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+                className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             </div>
             <input value={carrier} onChange={e => setCarrier(e.target.value)} placeholder="Compañía"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input value={bookingRef} onChange={e => setBookingRef(e.target.value)} placeholder="Localizador / Ref."
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Precio (€)" min="0" step="0.01"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+              className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {saving ? 'Guardando...' : 'Añadir segmento'}
             </button>
@@ -159,7 +159,7 @@ export default function TransporteTab({ trip, transport }: { trip: Trip; transpo
         </form>
       ) : (
         <button onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-violet-300 text-slate-400 hover:text-violet-600 font-bold py-4 rounded-2xl text-sm transition-colors">
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-emerald-300 text-slate-400 hover:text-emerald-600 font-bold py-4 rounded-2xl text-sm transition-colors">
           <Plus size={16} /> Añadir segmento
         </button>
       )}

@@ -83,7 +83,7 @@ export default function LugaresTab({ trip, pois }: { trip: Trip; pois: Poi[] }) 
           <span>·</span>
           <span className="text-emerald-600">{visited} visitados</span>
           <span>·</span>
-          <span className="text-violet-500">{pois.length - visited} pendientes</span>
+          <span className="text-emerald-500">{pois.length - visited} pendientes</span>
         </div>
       )}
 
@@ -96,16 +96,16 @@ export default function LugaresTab({ trip, pois }: { trip: Trip; pois: Poi[] }) 
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && search()}
             placeholder={`Buscar en ${trip.destination}...`}
-            className="flex-1 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-violet-400"
+            className="flex-1 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-emerald-400"
           />
           <button onClick={search} disabled={searching}
-            className="flex items-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
+            className="flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
             {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
           </button>
         </div>
 
         {savingName && (
-          <p className="text-xs text-violet-500 flex items-center gap-2">
+          <p className="text-xs text-emerald-500 flex items-center gap-2">
             <Loader2 size={12} className="animate-spin" /> Guardando {savingName.split(',')[0]}...
           </p>
         )}
@@ -114,7 +114,7 @@ export default function LugaresTab({ trip, pois }: { trip: Trip; pois: Poi[] }) 
           <div className="border border-slate-100 rounded-xl overflow-hidden divide-y divide-slate-100">
             {results.map(r => (
               <button key={r.place_id} onClick={() => handleSelect(r)}
-                className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-violet-50 hover:text-violet-700 transition-colors">
+                className="w-full text-left px-4 py-3 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <p className="font-bold">{r.display_name.split(',')[0]}</p>
                 <p className="text-xs text-slate-400 truncate">{r.display_name}</p>
               </button>
@@ -145,7 +145,7 @@ export default function LugaresTab({ trip, pois }: { trip: Trip; pois: Poi[] }) 
               </button>
               <div className="flex-1 min-w-0">
                 <p className={`font-bold text-slate-800 ${p.visited ? 'line-through opacity-50' : ''}`}>{p.name}</p>
-                {p.category && <p className="text-xs text-violet-500 font-medium capitalize">{p.category}</p>}
+                {p.category && <p className="text-xs text-emerald-500 font-medium capitalize">{p.category}</p>}
                 {p.address && <p className="text-xs text-slate-400 truncate mt-0.5">{p.address}</p>}
                 {p.notes && <p className="text-xs text-slate-500 italic mt-0.5">{p.notes}</p>}
               </div>

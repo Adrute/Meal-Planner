@@ -26,7 +26,7 @@ export default function DetailMonthSelector({
       <select
         value={selectedMonth}
         onChange={e => router.push(`/finances/categoria/${id}?month=${e.target.value}`)}
-        className="appearance-none pl-4 pr-10 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:border-blue-400 cursor-pointer shadow-sm"
+        className="appearance-none pl-4 pr-10 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:border-teal-400 cursor-pointer shadow-sm"
       >
         <option value="all">Todos los meses</option>
         {availableMonths.map(m => (

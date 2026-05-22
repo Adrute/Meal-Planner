@@ -29,7 +29,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
           <form action={toggleFav}>
             <button
               title={recipe.is_favorite ? 'Quitar de favoritas' : 'Marcar como favorita'}
-              className={`p-2 rounded-xl transition-colors ${recipe.is_favorite ? 'text-amber-400 bg-amber-50 hover:bg-amber-100' : 'text-slate-300 hover:text-amber-400 hover:bg-amber-50'}`}
+              className={`p-2 rounded-xl transition-colors ${recipe.is_favorite ? 'text-lime-400 bg-lime-50 hover:bg-lime-100' : 'text-slate-300 hover:text-lime-400 hover:bg-lime-50'}`}
             >
               <Star size={20} fill={recipe.is_favorite ? 'currentColor' : 'none'} />
             </button>
@@ -52,7 +52,7 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
             </span>
           )}
           {recipe.is_favorite && (
-            <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+            <span className="flex items-center gap-1 text-xs font-bold text-lime-600 bg-lime-50 border border-lime-100 px-2.5 py-1 rounded-full">
               <Star size={11} fill="currentColor" /> Favorita
             </span>
           )}

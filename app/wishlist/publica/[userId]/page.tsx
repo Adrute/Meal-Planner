@@ -5,9 +5,9 @@ import { Gift, Package, CalendarDays, Sparkles, ExternalLink, Check } from 'luci
 export const dynamic = 'force-dynamic'
 
 const TYPE_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  objeto:      { label: 'Objeto',      icon: <Package      size={12} />, color: 'bg-blue-100 text-blue-700' },
+  objeto:      { label: 'Objeto',      icon: <Package      size={12} />, color: 'bg-teal-100 text-teal-700' },
   evento:      { label: 'Evento',      icon: <CalendarDays size={12} />, color: 'bg-purple-100 text-purple-700' },
-  experiencia: { label: 'Experiencia', icon: <Sparkles     size={12} />, color: 'bg-amber-100 text-amber-700' },
+  experiencia: { label: 'Experiencia', icon: <Sparkles     size={12} />, color: 'bg-lime-100 text-lime-700' },
 }
 
 export default async function PublicWishlistPage({
@@ -47,7 +47,7 @@ export default async function PublicWishlistPage({
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8 animate-in fade-in">
       <header className="text-center space-y-2">
         <div className="flex items-center justify-center gap-3">
-          <Gift size={32} className="text-pink-500" />
+          <Gift size={32} className="text-green-500" />
           <h1 className="text-3xl font-black text-slate-900">Lista de deseos</h1>
         </div>
         <p className="text-sm font-bold text-slate-500">{ownerName}</p>
@@ -69,7 +69,7 @@ export default async function PublicWishlistPage({
                 const type = TYPE_META[item.type] ?? TYPE_META.objeto
                 return (
                   <div key={item.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className={`h-1 w-full ${item.priority === 'alta' ? 'bg-rose-400' : item.priority === 'media' ? 'bg-amber-300' : 'bg-slate-200'}`} />
+                    <div className={`h-1 w-full ${item.priority === 'alta' ? 'bg-teal-400' : item.priority === 'media' ? 'bg-lime-300' : 'bg-slate-200'}`} />
                     <div className="p-4 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -85,7 +85,7 @@ export default async function PublicWishlistPage({
                       {item.description && <p className="text-xs text-slate-500 leading-relaxed">{item.description}</p>}
                       {item.url && (
                         <a href={item.url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-500 hover:text-blue-700 transition-colors">
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-500 hover:text-teal-700 transition-colors">
                           <ExternalLink size={11} />Ver enlace
                         </a>
                       )}

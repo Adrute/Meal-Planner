@@ -90,7 +90,7 @@ export default function GastosTab({ trip, expenses }: { trip: Trip; expenses: Ex
             <div>
               <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                  className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-lime-400' : 'bg-emerald-500'}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -134,7 +134,7 @@ export default function GastosTab({ trip, expenses }: { trip: Trip; expenses: Ex
                   </p>
                   {e.notes && <p className="text-xs text-slate-400 italic">{e.notes}</p>}
                 </div>
-                <span className="font-black text-rose-600 shrink-0">{e.amount.toFixed(2)} €</span>
+                <span className="font-black text-teal-600 shrink-0">{e.amount.toFixed(2)} €</span>
                 <button onClick={() => handleDelete(e.id)} disabled={deletingId === e.id}
                   className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all p-1 rounded-lg shrink-0">
                   {deletingId === e.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -146,26 +146,26 @@ export default function GastosTab({ trip, expenses }: { trip: Trip; expenses: Ex
       )}
 
       {showForm ? (
-        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-rose-200 shadow-sm p-5 space-y-3">
+        <form onSubmit={handleAdd} className="bg-white rounded-2xl border border-teal-200 shadow-sm p-5 space-y-3">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nuevo gasto</p>
           <div className="grid grid-cols-2 gap-3">
             <input value={description} onChange={e => setDesc(e.target.value)} placeholder="Descripción *"
-              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="col-span-2 p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Importe (€) *" min="0" step="0.01"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <select value={category} onChange={e => setCat(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400">
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400">
               {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
             <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas"
-              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-rose-400" />
+              className="p-3 rounded-xl border border-slate-200 text-sm font-medium outline-none focus:border-teal-400" />
           </div>
           {error && <p className="text-red-500 text-xs">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+              className="flex-1 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {saving ? 'Guardando...' : 'Añadir gasto'}
             </button>
@@ -177,7 +177,7 @@ export default function GastosTab({ trip, expenses }: { trip: Trip; expenses: Ex
         </form>
       ) : (
         <button onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-rose-300 text-slate-400 hover:text-rose-500 font-bold py-4 rounded-2xl text-sm transition-colors">
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-teal-300 text-slate-400 hover:text-teal-500 font-bold py-4 rounded-2xl text-sm transition-colors">
           <Plus size={16} /> Añadir gasto
         </button>
       )}

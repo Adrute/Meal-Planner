@@ -85,7 +85,7 @@ export default function EditRestaurantForm({ restaurant }: { restaurant: any }) 
         <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2 m-0">
           <UtensilsCrossed className="text-emerald-500" /> Editando: {restaurant.name}
         </h2>
-        <button type="button" onClick={() => setIsFavorite(!isFavorite)} className={`p-3 rounded-full transition-colors ${isFavorite ? 'bg-amber-100 text-amber-500' : 'bg-slate-50 text-slate-300 hover:text-amber-500'}`}>
+        <button type="button" onClick={() => setIsFavorite(!isFavorite)} className={`p-3 rounded-full transition-colors ${isFavorite ? 'bg-lime-100 text-lime-500' : 'bg-slate-50 text-slate-300 hover:text-lime-500'}`}>
           <Star size={24} fill={isFavorite ? "currentColor" : "none"} />
         </button>
       </div>
@@ -164,7 +164,7 @@ export default function EditRestaurantForm({ restaurant }: { restaurant: any }) 
             <div className="flex flex-wrap gap-2 mt-2">
               {allergens.filter(tag => !PREDEFINED_TAGS.includes(tag)).map((tag, i) => (
                 <span key={i} className="bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
-                  {tag} <button type="button" onClick={() => toggleAllergen(tag)} className="hover:text-rose-500 hover:bg-rose-50 p-0.5 rounded transition-colors"><X size={14} /></button>
+                  {tag} <button type="button" onClick={() => toggleAllergen(tag)} className="hover:text-teal-500 hover:bg-teal-50 p-0.5 rounded transition-colors"><X size={14} /></button>
                 </span>
               ))}
             </div>
