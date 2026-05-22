@@ -1,4 +1,4 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, CheckSquare } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -97,6 +97,73 @@ async function FinancesWidget() {
         <Link href="/finances" className="w-full py-3 bg-sky-50 text-sky-500 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-sky-100 transition-colors border border-sky-100">
           Conectar movimientos →
         </Link>
+      )}
+    </div>
+  )
+}
+
+async function TasksWidget() {
+  const supabase = await createClient()
+  const now = new Date()
+  const today = now.toISOString().split('T')[0]
+  const todayDow = now.getDay() || 7
+  const monday = new Date(now); monday.setDate(now.getDate() - todayDow + 1)
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
+  const monStr = monday.toISOString().split('T')[0]
+  const sunStr = sunday.toISOString().split('T')[0]
+
+  const [{ data: tasks }, { data: completions }] = await Promise.all([
+    supabase.from('household_tasks').select('id, title, frequency, day_of_week, assigned_to').order('frequency').order('title'),
+    supabase.from('task_completions').select('task_id, completed_date').gte('completed_date', monStr).lte('completed_date', sunStr),
+  ])
+
+  const allTasks = (tasks ?? []).filter((t: { frequency: string }) => t.frequency === 'daily' || t.frequency === 'weekly')
+  const allComp  = completions ?? []
+
+  const isDoneTask = (t: { id: string; frequency: string }) => {
+    const tc = allComp.filter(c => c.task_id === t.id)
+    if (t.frequency === 'daily')  return tc.some(c => c.completed_date === today)
+    if (t.frequency === 'weekly') return tc.some(c => c.completed_date >= monStr && c.completed_date <= sunStr)
+    return false
+  }
+
+  const done    = allTasks.filter(isDoneTask).length
+  const pending = allTasks.filter(t => !isDoneTask(t))
+
+  return (
+    <div className="bg-white/80 rounded-3xl p-5 border border-lime-100 shadow-sm mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-lime-100 p-2 rounded-xl text-lime-600"><CheckSquare size={18} /></div>
+          <div>
+            <h2 className="font-bold text-slate-700">Tareas esta semana</h2>
+            <p className="text-xs text-slate-400">{done} completadas · {pending.length} pendientes</p>
+          </div>
+        </div>
+        <Link href="/tasks" className="text-slate-300 hover:text-lime-500 transition-colors">
+          <ArrowRight size={20} />
+        </Link>
+      </div>
+      {allTasks.length === 0 ? (
+        <p className="text-sm text-slate-400 italic">Sin tareas registradas</p>
+      ) : pending.length === 0 ? (
+        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 rounded-xl px-4 py-2.5 text-sm font-bold w-fit">
+          <CheckSquare size={16} /> ¡Todo al día esta semana!
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {pending.slice(0, 6).map((t: { id: string; title: string; assigned_to: string | null }) => (
+            <div key={t.id} className="bg-lime-50 border border-lime-100 rounded-xl px-3 py-1.5 text-xs font-bold text-lime-700">
+              {t.title}
+              {t.assigned_to && <span className="font-normal text-lime-500 ml-1">· {t.assigned_to}</span>}
+            </div>
+          ))}
+          {pending.length > 6 && (
+            <div className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-400">
+              +{pending.length - 6} más
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
@@ -314,7 +381,10 @@ export default async function HomeDashboard() {
         <UpcomingReservationsWidget />
       </div>
 
-      {/* --- FILA 3: FINANZAS + SUMINISTROS --- */}
+      {/* --- WIDGET 3: TAREAS --- */}
+      <TasksWidget />
+
+      {/* --- FILA 4: FINANZAS + SUMINISTROS --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         {/* WIDGET 3: FINANZAS */}

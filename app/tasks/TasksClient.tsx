@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckSquare, Square, Plus, Pencil, Trash2, Loader2, X, Check,
-  CalendarClock, RotateCcw, Clock, Sparkles,
+  CalendarClock, RotateCcw, Clock, Sparkles, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { createTask, updateTask, deleteTask, completeTask, uncompleteTask } from './actions'
 
@@ -15,11 +15,11 @@ type Task = {
 type Completion = { id: string; task_id: string; completed_date: string; completed_by: string | null }
 type Profile = { id: string; display_name: string | null; email: string }
 
-const FREQ_CONFIG: Record<string, { label: string; period: string; bg: string; text: string; border: string }> = {
-  daily:    { label: 'Diaria',   period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200'    },
-  weekly:   { label: 'Semanal',  period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
-  annual:   { label: 'Anual',    period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200'  },
-  punctual: { label: 'Puntual',  period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200'   },
+const FREQ_CONFIG: Record<string, { label: string; period: string; bg: string; text: string; border: string; dot: string }> = {
+  daily:    { label: 'Diaria',  period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
+  weekly:   { label: 'Semanal', period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
+  annual:   { label: 'Anual',   period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
+  punctual: { label: 'Puntual', period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -178,6 +178,171 @@ function TaskCard({
   )
 }
 
+// ── Calendar view ─────────────────────────────────────────────────────────────
+
+const DOW_ABBR = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+
+function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Completion[] }) {
+  const [mode, setMode]   = useState<'week' | 'month'>('week')
+  const [offset, setOffset] = useState(0)
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const byDate: Record<string, Completion[]> = {}
+  for (const c of completions) {
+    if (!byDate[c.completed_date]) byDate[c.completed_date] = []
+    byDate[c.completed_date].push(c)
+  }
+
+  const now = new Date()
+  const todayDow = now.getDay() || 7
+  const monBase  = new Date(now)
+  monBase.setDate(now.getDate() - todayDow + 1 + offset * 7)
+
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monBase)
+    d.setDate(monBase.getDate() + i)
+    return d
+  })
+
+  const refDate     = new Date(now.getFullYear(), now.getMonth() + (mode === 'month' ? offset : 0), 1)
+  const yr          = refDate.getFullYear()
+  const mo          = refDate.getMonth()
+  const daysInMonth = new Date(yr, mo + 1, 0).getDate()
+  const firstDow    = (new Date(yr, mo, 1).getDay() + 6) % 7
+
+  const fmtDate   = (d: Date) => d.toISOString().split('T')[0]
+  const monthName = refDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  const weekLabel = `${weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – ${weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+          {(['week', 'month'] as const).map(m => (
+            <button key={m} onClick={() => { setMode(m); setOffset(0) }}
+              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+              {m === 'week' ? 'Semana' : 'Mes'}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-0.5">
+          <button onClick={() => setOffset(o => o - 1)}
+            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+            <ChevronLeft size={18} />
+          </button>
+          <span className="text-sm font-bold text-slate-700 min-w-[190px] text-center capitalize">
+            {mode === 'week' ? weekLabel : monthName}
+          </span>
+          <button onClick={() => setOffset(o => o + 1)}
+            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+            <ChevronRight size={18} />
+          </button>
+          {offset !== 0 && (
+            <button onClick={() => setOffset(0)}
+              className="ml-1 text-xs font-bold text-violet-500 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors">
+              Hoy
+            </button>
+          )}
+        </div>
+      </div>
+
+      {mode === 'week' && (
+        <div className="grid grid-cols-7 gap-1.5">
+          {weekDays.map(d => {
+            const ds = fmtDate(d)
+            const dc = byDate[ds] ?? []
+            const isToday = ds === today
+            return (
+              <div key={ds} className={`rounded-2xl p-2.5 border flex flex-col min-h-[130px] ${isToday ? 'bg-lime-50 border-lime-200' : 'bg-white border-slate-100'}`}>
+                <div className="mb-2">
+                  <p className={`text-[9px] font-black uppercase tracking-widest ${isToday ? 'text-lime-600' : 'text-slate-400'}`}>
+                    {d.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3)}
+                  </p>
+                  <p className={`text-xl font-black leading-none ${isToday ? 'text-lime-700' : 'text-slate-700'}`}>
+                    {d.getDate()}
+                  </p>
+                </div>
+                <div className="flex-1 space-y-1">
+                  {dc.length === 0
+                    ? <p className="text-[10px] text-slate-200 mt-1">—</p>
+                    : dc.map(c => {
+                        const task = tasks.find(t => t.id === c.task_id)
+                        if (!task) return null
+                        const cfg = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
+                        return (
+                          <div key={c.id} title={task.title}
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${cfg.bg} ${cfg.text} leading-tight truncate`}>
+                            {task.title}
+                          </div>
+                        )
+                      })
+                  }
+                </div>
+                {dc.length > 0 && (
+                  <p className={`text-[9px] font-bold mt-1 pt-1 border-t ${isToday ? 'border-lime-200 text-lime-600' : 'border-slate-100 text-slate-400'}`}>
+                    {dc.length} ✓
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {mode === 'month' && (
+        <div>
+          <div className="grid grid-cols-7 mb-2">
+            {DOW_ABBR.map(a => (
+              <div key={a} className="text-[10px] font-black text-slate-400 text-center py-1.5">{a}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDow }, (_, i) => <div key={`e${i}`} />)}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const day = i + 1
+              const ds  = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+              const dc  = byDate[ds] ?? []
+              const isToday = ds === today
+              return (
+                <div key={day} className={`rounded-xl p-1 flex flex-col items-center border min-h-[48px] ${
+                  isToday ? 'bg-lime-50 border-lime-200' :
+                  dc.length > 0 ? 'bg-white border-slate-100' :
+                  'border-transparent bg-white'
+                }`}>
+                  <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-black mb-0.5 ${
+                    isToday ? 'bg-lime-400 text-white' : 'text-slate-600'
+                  }`}>
+                    {day}
+                  </div>
+                  <div className="flex flex-wrap gap-0.5 justify-center">
+                    {dc.slice(0, 3).map((c, ci) => {
+                      const task = tasks.find(t => t.id === c.task_id)
+                      const cfg  = task ? (FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual) : FREQ_CONFIG.punctual
+                      return <div key={ci} title={task?.title} className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                    })}
+                    {dc.length > 3 && (
+                      <span className="text-[8px] font-black text-slate-300">+{dc.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-slate-100">
+            {Object.entries(FREQ_CONFIG).map(([key, cfg]) => (
+              <div key={key} className="flex items-center gap-1.5">
+                <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
+                <span className="text-xs font-bold text-slate-500">{cfg.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function TasksClient({
@@ -187,7 +352,7 @@ export default function TasksClient({
 }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
-  const [view, setView] = useState<'pending' | 'all'>('pending')
+  const [view, setView] = useState<'pending' | 'all' | 'calendar'>('pending')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Task | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
@@ -289,10 +454,14 @@ export default function TasksClient({
 
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-6 w-fit">
-        {(['pending', 'all'] as const).map(v => (
+        {([
+          ['pending',  '📋 Esta semana'],
+          ['all',      '⚙️ Gestionar'],
+          ['calendar', '📅 Historial'],
+        ] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-            {v === 'pending' ? '📋 Esta semana' : '⚙️ Gestionar'}
+            {label}
           </button>
         ))}
       </div>
@@ -336,6 +505,11 @@ export default function TasksClient({
             )
           })}
         </div>
+      )}
+
+      {/* Calendar view */}
+      {view === 'calendar' && (
+        <CalendarView tasks={tasks} completions={localCompletions} />
       )}
 
       {/* All tasks view */}
