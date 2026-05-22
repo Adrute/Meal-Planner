@@ -7,7 +7,7 @@ import {
   Sparkles, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import {
-  createTask, updateTask, deleteTask, completeTask, uncompleteTask,
+  createTask, updateTask, deleteTask, completeTask, uncompleteTask, uncompleteTaskOnDate,
   setTaskWeekDay, setTaskWeekAssignee,
 } from './actions'
 
@@ -21,11 +21,11 @@ type Profile       = { id: string; display_name: string | null; email: string }
 type WeekAssignment = { id: string; task_id: string; week_start: string; day_of_week: string | null; assigned_to: string | null }
 
 const FREQ_CONFIG: Record<string, { label: string; plural: string; period: string; bg: string; text: string; border: string; dot: string }> = {
-  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today',  bg: 'bg-teal-50',    text: 'text-teal-700',    border: 'border-teal-200',    dot: 'bg-teal-400'    },
-  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',   bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-400' },
-  custom:   { label: 'Periódica', plural: 'Periódicas', period: 'recent', bg: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200',   dot: 'bg-teal-400'   },
-  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',   bg: 'bg-lime-50',  text: 'text-lime-700',  border: 'border-lime-200',  dot: 'bg-lime-400'  },
-  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',    bg: 'bg-teal-50',   text: 'text-teal-700',   border: 'border-teal-200',   dot: 'bg-teal-400'   },
+  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today',  bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     dot: 'bg-sky-400'     },
+  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',   bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  dot: 'bg-violet-400'  },
+  custom:   { label: 'Periódica', plural: 'Periódicas', period: 'recent', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-amber-400'   },
+  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',   bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    dot: 'bg-rose-400'    },
+  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',    bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  dot: 'bg-orange-400'  },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -481,12 +481,13 @@ function TaskCard({
 // ── Task row (calendar day list) ──────────────────────────────────────────────
 
 function TaskDayRow({
-  task, isComplete, profiles, weekStart, weekAssignments, onComplete, onUncomplete, onSetDay,
+  task, isComplete, profiles, weekStart, weekAssignments, date, onComplete, onUncomplete, onSetDay,
 }: {
   task: Task; isComplete: boolean; profiles: Profile[]
   weekStart: string; weekAssignments: WeekAssignment[]
-  onComplete: (task: Task, person: string) => void
-  onUncomplete: (task: Task) => void
+  date: string
+  onComplete: (task: Task, person: string, date: string) => void
+  onUncomplete: (task: Task, date: string) => void
   onSetDay: (taskId: string, weekStart: string, day: string | null) => void
 }) {
   const [mode, setMode] = useState<null | 'person' | 'day'>(null)
@@ -498,7 +499,7 @@ function TaskDayRow({
     <div className={`px-4 py-3 transition-all ${isComplete ? 'opacity-60' : ''}`}>
       <div className="flex items-center gap-3">
         <button className="shrink-0"
-          onClick={() => isComplete ? onUncomplete(task) : setMode(m => m === 'person' ? null : 'person')}>
+          onClick={() => isComplete ? onUncomplete(task, date) : setMode(m => m === 'person' ? null : 'person')}>
           {isComplete ? <CheckSquare size={18} className="text-emerald-500" /> : <Square size={18} className="text-slate-300" />}
         </button>
         <div className="flex-1 min-w-0">
@@ -523,11 +524,13 @@ function TaskDayRow({
           <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">¿Quién lo ha hecho?</p>
           <div className="flex flex-wrap gap-1">
             {filterProfiles(profiles).map(p => (
-              <button key={p.id} onClick={() => { setMode(null); onComplete(task, p.display_name!) }}
+              <button key={p.id} onClick={() => { setMode(null); onComplete(task, p.display_name!, date) }}
                 className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-emerald-50 text-slate-600">
                 {p.display_name}
               </button>
             ))}
+            <button onClick={() => { setMode(null); onComplete(task, 'N/A', date) }}
+              className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-400 hover:bg-slate-100">N/A</button>
             <button onClick={() => setMode(null)} className="text-[10px] text-slate-400 px-1">✕</button>
           </div>
         </div>
@@ -565,8 +568,8 @@ function CalendarView({
 }: {
   tasks: Task[]; completions: Completion[]; profiles: Profile[]
   weekAssignments: WeekAssignment[]; togglingId: string | null
-  onComplete: (task: Task, person: string) => void
-  onUncomplete: (task: Task) => void
+  onComplete: (task: Task, person: string, date: string) => void
+  onUncomplete: (task: Task, date: string) => void
   onSetDay: (taskId: string, weekStart: string, day: string | null) => void
 }) {
   const [offset, setOffset] = useState(0)
@@ -666,6 +669,7 @@ function CalendarView({
                             profiles={profiles}
                             weekStart={weekStart}
                             weekAssignments={weekAssignments}
+                            date={ds}
                             onComplete={onComplete}
                             onUncomplete={onUncomplete}
                             onSetDay={onSetDay}
@@ -738,30 +742,36 @@ export default function TasksClient({
   const currentWeekStart = getWeekRange().monday
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleUncomplete = async (task: Task) => {
+  const handleUncomplete = async (task: Task, date?: string) => {
     setTogglingId(task.id)
-    const period = FREQ_CONFIG[task.frequency]?.period ?? 'all'
-    setLocalCompletions(prev => prev.filter(c => {
-      if (c.task_id !== task.id) return true
-      const today = new Date().toISOString().split('T')[0]
-      const year  = new Date().getFullYear()
-      const { monday, sunday } = getWeekRange()
-      if (period === 'today')  return c.completed_date !== today
-      if (period === 'week')   return !(c.completed_date >= monday && c.completed_date <= sunday)
-      if (period === 'year')   return !c.completed_date.startsWith(String(year))
-      if (period === 'recent') return false // remove all for now (action handles the specific one)
-      return false
-    }))
-    await uncompleteTask(task.id, period)
+    if (date) {
+      setLocalCompletions(prev => prev.filter(c => !(c.task_id === task.id && c.completed_date === date)))
+      await uncompleteTaskOnDate(task.id, date)
+    } else {
+      const period = FREQ_CONFIG[task.frequency]?.period ?? 'all'
+      setLocalCompletions(prev => prev.filter(c => {
+        if (c.task_id !== task.id) return true
+        const today = new Date().toISOString().split('T')[0]
+        const year  = new Date().getFullYear()
+        const { monday, sunday } = getWeekRange()
+        if (period === 'today')  return c.completed_date !== today
+        if (period === 'week')   return !(c.completed_date >= monday && c.completed_date <= sunday)
+        if (period === 'year')   return !c.completed_date.startsWith(String(year))
+        if (period === 'recent') return false
+        return false
+      }))
+      await uncompleteTask(task.id, period)
+    }
     setTogglingId(null)
     refresh()
   }
 
-  const handleComplete = async (task: Task, person: string) => {
+  const handleComplete = async (task: Task, person: string, date?: string) => {
     setTogglingId(task.id)
-    const fake: Completion = { id: 'tmp', task_id: task.id, completed_date: new Date().toISOString().split('T')[0], completed_by: person }
+    const completedDate = date ?? new Date().toISOString().split('T')[0]
+    const fake: Completion = { id: 'tmp', task_id: task.id, completed_date: completedDate, completed_by: person }
     setLocalCompletions(prev => [...prev, fake])
-    await completeTask(task.id, person)
+    await completeTask(task.id, person, date)
     setTogglingId(null)
     refresh()
   }

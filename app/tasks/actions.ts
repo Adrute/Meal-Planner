@@ -63,17 +63,23 @@ export async function deleteTask(id: string) {
   revalidatePath('/tasks')
 }
 
-export async function completeTask(taskId: string, completedBy: string) {
+export async function completeTask(taskId: string, completedBy: string, date?: string) {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
+  const completedDate = date ?? new Date().toISOString().split('T')[0]
   const { error } = await supabase.from('task_completions').insert({
     task_id: taskId,
-    completed_date: today,
+    completed_date: completedDate,
     completed_by: completedBy,
   })
   if (error) return { error: error.message }
   revalidatePath('/tasks')
   return { success: true }
+}
+
+export async function uncompleteTaskOnDate(taskId: string, date: string) {
+  const supabase = await createClient()
+  await supabase.from('task_completions').delete().eq('task_id', taskId).eq('completed_date', date)
+  revalidatePath('/tasks')
 }
 
 export async function uncompleteTask(taskId: string, period: string) {
