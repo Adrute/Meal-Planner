@@ -109,7 +109,7 @@ function TaskForm({
 }: {
   initial?: Task | null
   profiles: Profile[]
-  onSave: (data: Omit<Task, 'id'>) => Promise<void>
+  onSave: (data: Omit<Task, 'id'> & { last_done_date?: string }) => Promise<void>
   onCancel: () => void
 }) {
   const [title,      setTitle]     = useState(initial?.title ?? '')
@@ -117,6 +117,7 @@ function TaskForm({
   const [dayOfWeek,  setDayOfWeek] = useState(initial?.day_of_week ?? '')
   const [assignedTo, setAssigned]  = useState(initial?.assigned_to ?? '')
   const [notes,      setNotes]     = useState(initial?.notes ?? '')
+  const [lastDoneDate, setLastDoneDate] = useState('')
   const [intervalValue, setIntervalValue] = useState(() => {
     if (!initial?.custom_interval_days) return 2
     if (initial.custom_interval_days % 30 === 0) return initial.custom_interval_days / 30
@@ -145,6 +146,7 @@ function TaskForm({
       assigned_to:          assignedTo || null,
       notes:                notes || null,
       custom_interval_days: frequency === 'custom' ? computedIntervalDays : null,
+      last_done_date:       frequency === 'custom' && lastDoneDate ? lastDoneDate : undefined,
     })
     setSaving(false)
   }
@@ -195,6 +197,22 @@ function TaskForm({
           </div>
         )}
       </div>
+
+      {frequency === 'custom' && !initial && (
+        <div>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+            Última vez realizada <span className="text-slate-300 font-normal normal-case">(opcional)</span>
+          </label>
+          <input type="date" value={lastDoneDate} onChange={e => setLastDoneDate(e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
+            className={cls} />
+          {lastDoneDate && computedIntervalDays > 0 && (
+            <p className="text-[10px] text-teal-600 font-bold mt-1">
+              Próxima vez: {new Date(new Date(lastDoneDate + 'T12:00:00').getTime() + computedIntervalDays * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Asignada habitualmente a</label>
@@ -768,16 +786,17 @@ export default function TasksClient({
     refresh()
   }
 
-  const handleSave = async (data: Omit<Task, 'id'>) => {
+  const handleSave = async (data: Omit<Task, 'id'> & { last_done_date?: string }) => {
+    const { last_done_date, ...rest } = data
     const payload = {
-      title: data.title, frequency: data.frequency,
-      day_of_week:          data.day_of_week ?? undefined,
-      assigned_to:          data.assigned_to ?? undefined,
-      notes:                data.notes ?? undefined,
-      custom_interval_days: data.custom_interval_days ?? undefined,
+      title: rest.title, frequency: rest.frequency,
+      day_of_week:          rest.day_of_week ?? undefined,
+      assigned_to:          rest.assigned_to ?? undefined,
+      notes:                rest.notes ?? undefined,
+      custom_interval_days: rest.custom_interval_days ?? undefined,
     }
     if (editing) { await updateTask(editing.id, payload); setEditing(null) }
-    else         { await createTask(payload); setShowForm(false) }
+    else         { await createTask({ ...payload, last_done_date }); setShowForm(false) }
     refresh()
   }
 

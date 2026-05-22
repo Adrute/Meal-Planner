@@ -10,17 +10,27 @@ export async function createTask(data: {
   assigned_to?: string
   notes?: string
   custom_interval_days?: number | null
+  last_done_date?: string | null
 }) {
   const supabase = await createClient()
-  const { error } = await supabase.from('household_tasks').insert({
+  const { data: created, error } = await supabase.from('household_tasks').insert({
     title: data.title,
     frequency: data.frequency,
     day_of_week: data.day_of_week || null,
     assigned_to: data.assigned_to || null,
     notes: data.notes || null,
     custom_interval_days: data.custom_interval_days || null,
-  })
+  }).select('id').single()
   if (error) return { error: error.message }
+
+  if (data.last_done_date && created) {
+    await supabase.from('task_completions').insert({
+      task_id: created.id,
+      completed_date: data.last_done_date,
+      completed_by: null,
+    })
+  }
+
   revalidatePath('/tasks')
   return { success: true }
 }
