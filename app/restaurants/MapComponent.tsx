@@ -32,10 +32,10 @@ function RestaurantPopupContent({ rest, tagColorsMap }: { rest: any, tagColorsMa
       
       <div className="px-3 pb-3 space-y-3 border-b border-slate-50">
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {rest.status === 'liked' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Me gusta</span>}
-          {rest.status === 'pending' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>}
-          {rest.status === 'doubtful' && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> En duda</span>}
-          {rest.status === 'rejected' && <span className="bg-teal-50 text-teal-600 border border-teal-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><XCircle size={12} /> Descartado</span>}
+          {rest.status === 'liked'    && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><CheckCircle2 size={12} /> Me gusta</span>}
+          {rest.status === 'pending'  && <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> Pendiente</span>}
+          {rest.status === 'doubtful' && <span className="bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><Clock size={12} /> En duda</span>}
+          {rest.status === 'rejected' && <span className="bg-red-50 text-red-600 border border-red-200 px-2 py-1 rounded-md text-[10px] font-bold flex items-center gap-1"><XCircle size={12} /> Descartado</span>}
           
           <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
             <UtensilsCrossed size={12}/> {rest.food_type || 'Otro'}
@@ -110,11 +110,11 @@ export default function MapComponent({ restaurants, tagColorsMap }: { restaurant
     })
     
     return {
-      iconFav: createPin('#fbbf24'),
-      iconLiked: createPin('#34d399'),
-      iconPending: createPin('#60a5fa'),
-      iconDoubtful: createPin('#a78bfa'),
-      iconRejected: createPin('#fb7185')
+      iconFav: createPin('#fbbf24'),       // gold  — favorito
+      iconLiked: createPin('#10b981'),     // emerald — me gusta
+      iconPending: createPin('#3b82f6'),   // blue  — pendiente
+      iconDoubtful: createPin('#3b82f6'),  // blue  — en duda
+      iconRejected: createPin('#ef4444')   // red   — descartado
     }
   }, [])
 

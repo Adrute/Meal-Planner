@@ -23,7 +23,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-50 to-teal-50 p-4">
+    <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-100 via-teal-50 to-teal-50 p-4">
       <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-xl shadow-emerald-100 w-full max-w-sm border border-emerald-100">
 
         <div className="flex flex-col items-center mb-8">
