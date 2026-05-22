@@ -481,9 +481,9 @@ function TaskCard({
 // ── Task row (calendar day list) ──────────────────────────────────────────────
 
 function TaskDayRow({
-  task, isComplete, profiles, weekStart, weekAssignments, date, onComplete, onUncomplete, onSetDay,
+  task, isComplete, completedBy, profiles, weekStart, weekAssignments, date, onComplete, onUncomplete, onSetDay,
 }: {
-  task: Task; isComplete: boolean; profiles: Profile[]
+  task: Task; isComplete: boolean; completedBy: string | null; profiles: Profile[]
   weekStart: string; weekAssignments: WeekAssignment[]
   date: string
   onComplete: (task: Task, person: string, date: string) => void
@@ -504,9 +504,11 @@ function TaskDayRow({
         </button>
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-bold ${isComplete ? 'line-through text-slate-400' : 'text-slate-700'}`}>{task.title}</p>
-          {weekAssignee && (
-            <p className={`text-[10px] mt-0.5 ${isComplete ? 'text-slate-300' : 'text-slate-400'}`}>{weekAssignee}</p>
-          )}
+          {isComplete && completedBy && completedBy !== 'N/A' ? (
+            <p className="text-[10px] mt-0.5 text-emerald-600 font-bold">✓ {completedBy}</p>
+          ) : !isComplete && weekAssignee ? (
+            <p className="text-[10px] mt-0.5 text-slate-400">{weekAssignee}</p>
+          ) : null}
         </div>
         {task.frequency !== 'daily' && (
           <button onClick={() => setMode(m => m === 'day' ? null : 'day')}
@@ -666,6 +668,13 @@ function CalendarView({
                             isComplete={task.frequency === 'daily'
                               ? isDoneOnDate(task, completions, ds)
                               : isDoneInWeek(task, completions, weekStart, weekEnd)}
+                            completedBy={(() => {
+                              const tc = completions.filter(c => c.task_id === task.id)
+                              const match = task.frequency === 'daily'
+                                ? tc.find(c => c.completed_date === ds)
+                                : tc.find(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
+                              return match?.completed_by ?? null
+                            })()}
                             profiles={profiles}
                             weekStart={weekStart}
                             weekAssignments={weekAssignments}
