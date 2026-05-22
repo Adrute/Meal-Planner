@@ -1,5 +1,11 @@
 # Changelog — FamilyTools
 
+## [2026-05-23] Tareas: colores por frecuencia + completar en fechas anteriores
+- Cada bloque de tareas tiene ahora un color distinto según frecuencia: azul (diarias), violeta (semanales), ámbar (periódicas), rosa (anuales), naranja (puntuales)
+- La acción `completeTask` acepta una fecha opcional; si no se pasa usa hoy
+- Nueva acción `uncompleteTaskOnDate` para desmarcar una completación en una fecha exacta
+- En la vista de calendario, marcar/desmarcar una tarea ahora usa la fecha del día concreto, no siempre la fecha de hoy
+
 ## [2026-04-23] Dashboard: rediseño de widgets
 - Widget Menú ocupa el ancho completo y muestra hoy + próximos 3 días (Cole / Almuerzo / Cena por día)
 - Widget Próximos Planes dividido en dos columnas: reservas de restaurantes y viajes
