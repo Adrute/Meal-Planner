@@ -10,16 +10,16 @@ import {
 import { signOut } from '@/app/actions/auth'
 
 const ALL_NAV_ITEMS = [
-  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-emerald-400',  activeBg: 'bg-emerald-50',   hoverColor: 'hover:text-emerald-400  hover:bg-emerald-50/60'  },
+  { key: 'meals',       href: '/meals',          label: 'Comidas',          icon: Utensils,        activeColor: 'text-orange-500',  activeBg: 'bg-orange-50',   hoverColor: 'hover:text-orange-500  hover:bg-orange-50/60'  },
   { key: 'recipes',     href: '/recipes',         label: 'Recetas',          icon: BookOpen,        activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
-  { key: 'shopping',    href: '/shopping-list',   label: 'Compra',           icon: ShoppingBasket,  activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
-  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-teal-500',     activeBg: 'bg-teal-50',      hoverColor: 'hover:text-teal-500     hover:bg-teal-50/60'     },
-  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-lime-500',   activeBg: 'bg-lime-50',    hoverColor: 'hover:text-lime-500   hover:bg-lime-50/60'   },
-  { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-teal-500',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-500    hover:bg-teal-50/60'    },
-  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-teal-400',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-400    hover:bg-teal-50/60'    },
-  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-green-400',    activeBg: 'bg-green-50',     hoverColor: 'hover:text-green-400    hover:bg-green-50/60'    },
-  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-teal-400',    activeBg: 'bg-teal-50',     hoverColor: 'hover:text-teal-400    hover:bg-teal-50/60'    },
-  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-emerald-400',  activeBg: 'bg-emerald-50',   hoverColor: 'hover:text-emerald-400  hover:bg-emerald-50/60'  },
+  { key: 'shopping',    href: '/shopping-list',   label: 'Compra',           icon: ShoppingBasket,  activeColor: 'text-cyan-500',    activeBg: 'bg-cyan-50',     hoverColor: 'hover:text-cyan-500    hover:bg-cyan-50/60'    },
+  { key: 'finances',    href: '/finances',        label: 'Finanzas',         icon: Wallet,          activeColor: 'text-sky-500',     activeBg: 'bg-sky-50',      hoverColor: 'hover:text-sky-500     hover:bg-sky-50/60'     },
+  { key: 'utilities',   href: '/utilities',       label: 'Suministros',      icon: Zap,             activeColor: 'text-amber-500',   activeBg: 'bg-amber-50',    hoverColor: 'hover:text-amber-500   hover:bg-amber-50/60'   },
+  { key: 'services',    href: '/services',        label: 'Bonos',            icon: CalendarHeart,   activeColor: 'text-violet-500',  activeBg: 'bg-violet-50',   hoverColor: 'hover:text-violet-500  hover:bg-violet-50/60'  },
+  { key: 'restaurants', href: '/restaurants',     label: 'Restaurantes',     icon: UtensilsCrossed, activeColor: 'text-rose-500',    activeBg: 'bg-rose-50',     hoverColor: 'hover:text-rose-500    hover:bg-rose-50/60'    },
+  { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-500',    activeBg: 'bg-pink-50',     hoverColor: 'hover:text-pink-500    hover:bg-pink-50/60'    },
+  { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-red-400',     activeBg: 'bg-red-50',      hoverColor: 'hover:text-red-400     hover:bg-red-50/60'     },
+  { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-indigo-500',  activeBg: 'bg-indigo-50',   hoverColor: 'hover:text-indigo-500  hover:bg-indigo-50/60'  },
   { key: 'tasks',       href: '/tasks',           label: 'Tareas',           icon: CheckSquare,     activeColor: 'text-lime-500',    activeBg: 'bg-lime-50',     hoverColor: 'hover:text-lime-500    hover:bg-lime-50/60'    },
 ]
 
