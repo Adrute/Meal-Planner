@@ -315,7 +315,11 @@ function TaskCard({
   }
 
   const toggleName = (name: string) =>
-    setSelectedNames(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name])
+    setSelectedNames(prev => {
+      if (name === 'N/A') return ['N/A']
+      const withoutNA = prev.filter(n => n !== 'N/A')
+      return withoutNA.includes(name) ? withoutNA.filter(n => n !== name) : [...withoutNA, name]
+    })
 
   const badgeText = assignedNames.length === 0 ? '···'
     : assignedNames.length === 1 ? assignedNames[0]
@@ -400,6 +404,21 @@ function TaskCard({
                 </button>
               )
             })}
+            {pickMode === 'complete' && (
+              <button onClick={() => { onComplete('N/A'); setPickMode(null) }}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-100 transition-all">
+                N/A
+              </button>
+            )}
+            {pickMode === 'assign' && (
+              <button onClick={() => toggleName('N/A')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                  selectedNames.includes('N/A') ? 'bg-slate-500 text-white border-slate-500' :
+                  'border-slate-200 text-slate-400 hover:bg-slate-100'
+                }`}>
+                {selectedNames.includes('N/A') ? '✓ N/A' : 'N/A'}
+              </button>
+            )}
           </div>
           {pickMode === 'assign' && (
             <div className="flex gap-2 mt-2">
