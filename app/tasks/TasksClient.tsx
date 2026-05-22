@@ -77,12 +77,7 @@ function isDoneInWeek(task: Task, completions: Completion[], weekStart: string, 
   if (task.frequency === 'weekly')   return tc.some(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
   if (task.frequency === 'annual')   return tc.some(c => c.completed_date.startsWith(weekStart.slice(0, 4)))
   if (task.frequency === 'punctual') return tc.length > 0
-  if (task.frequency === 'custom' && task.custom_interval_days) {
-    const last = tc.sort((a, b) => b.completed_date.localeCompare(a.completed_date))[0]
-    if (!last) return false
-    const days = Math.floor((Date.now() - new Date(last.completed_date + 'T12:00:00').getTime()) / 86400000)
-    return days < task.custom_interval_days
-  }
+  if (task.frequency === 'custom')   return tc.some(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
   return false
 }
 
