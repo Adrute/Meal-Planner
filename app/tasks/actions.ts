@@ -9,6 +9,7 @@ export async function createTask(data: {
   day_of_week?: string
   assigned_to?: string
   notes?: string
+  custom_interval_days?: number | null
 }) {
   const supabase = await createClient()
   const { error } = await supabase.from('household_tasks').insert({
@@ -17,6 +18,7 @@ export async function createTask(data: {
     day_of_week: data.day_of_week || null,
     assigned_to: data.assigned_to || null,
     notes: data.notes || null,
+    custom_interval_days: data.custom_interval_days || null,
   })
   if (error) return { error: error.message }
   revalidatePath('/tasks')
@@ -29,6 +31,7 @@ export async function updateTask(id: string, data: {
   day_of_week?: string
   assigned_to?: string
   notes?: string
+  custom_interval_days?: number | null
 }) {
   const supabase = await createClient()
   const { error } = await supabase.from('household_tasks').update({
@@ -37,6 +40,7 @@ export async function updateTask(id: string, data: {
     day_of_week: data.day_of_week || null,
     assigned_to: data.assigned_to || null,
     notes: data.notes || null,
+    custom_interval_days: data.custom_interval_days || null,
   }).eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/tasks')
@@ -62,22 +66,8 @@ export async function completeTask(taskId: string, completedBy: string) {
   return { success: true }
 }
 
-export async function setTaskWeekDay(taskId: string, weekStart: string, dayOfWeek: string | null) {
-  const supabase = await createClient()
-  if (dayOfWeek === null) {
-    await supabase.from('task_week_assignments').delete().eq('task_id', taskId).eq('week_start', weekStart)
-  } else {
-    const { error } = await supabase.from('task_week_assignments')
-      .upsert({ task_id: taskId, week_start: weekStart, day_of_week: dayOfWeek }, { onConflict: 'task_id,week_start' })
-    if (error) return { error: error.message }
-  }
-  revalidatePath('/tasks')
-  return { success: true }
-}
-
 export async function uncompleteTask(taskId: string, period: string) {
   const supabase = await createClient()
-
   let query = supabase.from('task_completions').delete().eq('task_id', taskId)
 
   if (period === 'today') {
@@ -86,22 +76,52 @@ export async function uncompleteTask(taskId: string, period: string) {
   } else if (period === 'week') {
     const now = new Date()
     const day = now.getDay() || 7
-    const monday = new Date(now)
-    monday.setDate(now.getDate() - day + 1)
-    const sunday = new Date(monday)
-    sunday.setDate(monday.getDate() + 6)
+    const monday = new Date(now); monday.setDate(now.getDate() - day + 1)
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
     query = query
       .gte('completed_date', monday.toISOString().split('T')[0])
       .lte('completed_date', sunday.toISOString().split('T')[0])
   } else if (period === 'year') {
     const year = new Date().getFullYear()
-    query = query
-      .gte('completed_date', `${year}-01-01`)
-      .lte('completed_date', `${year}-12-31`)
-  } else {
-    // punctual: delete all
+    query = query.gte('completed_date', `${year}-01-01`).lte('completed_date', `${year}-12-31`)
+  } else if (period === 'recent') {
+    // custom interval tasks: delete the most recent completion
+    const { data } = await supabase.from('task_completions')
+      .select('id').eq('task_id', taskId).order('completed_date', { ascending: false }).limit(1).single()
+    if (data) await supabase.from('task_completions').delete().eq('id', data.id)
+    revalidatePath('/tasks')
+    return
   }
 
   await query
   revalidatePath('/tasks')
+}
+
+// Uses select+update to avoid overwriting unrelated columns
+export async function setTaskWeekDay(taskId: string, weekStart: string, dayOfWeek: string | null) {
+  const supabase = await createClient()
+  const { data: existing } = await supabase.from('task_week_assignments')
+    .select('id').eq('task_id', taskId).eq('week_start', weekStart).maybeSingle()
+
+  if (existing) {
+    await supabase.from('task_week_assignments').update({ day_of_week: dayOfWeek }).eq('id', existing.id)
+  } else if (dayOfWeek !== null) {
+    await supabase.from('task_week_assignments').insert({ task_id: taskId, week_start: weekStart, day_of_week: dayOfWeek })
+  }
+  revalidatePath('/tasks')
+  return { success: true }
+}
+
+export async function setTaskWeekAssignee(taskId: string, weekStart: string, assignedTo: string | null) {
+  const supabase = await createClient()
+  const { data: existing } = await supabase.from('task_week_assignments')
+    .select('id').eq('task_id', taskId).eq('week_start', weekStart).maybeSingle()
+
+  if (existing) {
+    await supabase.from('task_week_assignments').update({ assigned_to: assignedTo }).eq('id', existing.id)
+  } else if (assignedTo !== null) {
+    await supabase.from('task_week_assignments').insert({ task_id: taskId, week_start: weekStart, assigned_to: assignedTo })
+  }
+  revalidatePath('/tasks')
+  return { success: true }
 }
