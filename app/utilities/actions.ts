@@ -35,13 +35,25 @@ export async function processMultipleInvoices(formData: FormData) {
 
             // --- EXTRACCIÓN AFINADA PARA TOTALENERGIES ---
 
-            const invoiceMatch = cleanText.match(/Factura\s*nº\s*([A-Z0-9]+)/i)
+            const invoiceMatch = cleanText.match(/(?:N[ºo°]\s+de\s+factura|Factura\s+(?:\w+\s+)?n[ºo°]):\s*([A-Z0-9]+)/i)
             const invoiceNumber = invoiceMatch ? invoiceMatch[1] : `DOC-${Date.now()}`
 
-            const dateMatch = cleanText.match(/Fecha\s*emisi[oó]n:\s*(\d{2})\.(\d{2})\.(\d{4})/i)
+            const MONTHS: Record<string, string> = {
+                enero:'01', febrero:'02', marzo:'03', abril:'04', mayo:'05', junio:'06',
+                julio:'07', agosto:'08', septiembre:'09', octubre:'10', noviembre:'11', diciembre:'12',
+            }
+            // Formato largo: "14 de mayo de 2026"
+            const dateLongMatch = cleanText.match(/Fecha\s+de\s+emisi[oó]n:\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i)
+            // Formato corto: "14.05.2026"
+            const dateShortMatch = cleanText.match(/Fecha\s*(?:de\s*)?emisi[oó]n:\s*(\d{2})\.(\d{2})\.(\d{4})/i)
             let issueDate = new Date().toISOString().split('T')[0]
-            if (dateMatch) {
-                issueDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`
+            if (dateLongMatch) {
+                const day   = dateLongMatch[1].padStart(2, '0')
+                const month = MONTHS[dateLongMatch[2].toLowerCase()] ?? '01'
+                const year  = dateLongMatch[3]
+                issueDate = `${year}-${month}-${day}`
+            } else if (dateShortMatch) {
+                issueDate = `${dateShortMatch[3]}-${dateShortMatch[2]}-${dateShortMatch[1]}`
             }
 
             // IMPORTES
