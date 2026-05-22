@@ -35,6 +35,17 @@ const DAY_LABEL: Record<string, string> = {
 
 function fmtDate(d: Date) { return d.toISOString().split('T')[0] }
 
+function parseNames(val: string | null | undefined): string[] {
+  if (!val) return []
+  return val.split(',').map(s => s.trim()).filter(Boolean)
+}
+function joinNames(names: string[]): string | null {
+  return names.length > 0 ? names.join(', ') : null
+}
+function filterProfiles(profiles: Profile[]): Profile[] {
+  return profiles.filter(p => p.display_name && p.display_name.toLowerCase() !== 'admin')
+}
+
 function getWeekRange() {
   const now = new Date()
   const day = now.getDay() || 7
@@ -128,7 +139,7 @@ function TaskForm({
   const [title,      setTitle]     = useState(initial?.title ?? '')
   const [frequency,  setFrequency] = useState(initial?.frequency ?? 'weekly')
   const [dayOfWeek,  setDayOfWeek] = useState(initial?.day_of_week ?? '')
-  const [assignedTo, setAssigned]  = useState(initial?.assigned_to ?? '')
+  const [assignedTo, setAssigned]  = useState<string[]>(parseNames(initial?.assigned_to))
   const [notes,      setNotes]     = useState(initial?.notes ?? '')
   const [lastDoneDate, setLastDoneDate] = useState('')
   const [intervalValue, setIntervalValue] = useState(() => {
@@ -156,7 +167,7 @@ function TaskForm({
     await onSave({
       title: title.trim(), frequency,
       day_of_week:          dayOfWeek || null,
-      assigned_to:          assignedTo || null,
+      assigned_to:          joinNames(assignedTo),
       notes:                notes || null,
       custom_interval_days: frequency === 'custom' ? computedIntervalDays : null,
       last_done_date:       frequency === 'custom' && lastDoneDate ? lastDoneDate : undefined,
@@ -229,12 +240,25 @@ function TaskForm({
 
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Asignada habitualmente a</label>
-        <select value={assignedTo} onChange={e => setAssigned(e.target.value)} className={cls}>
-          <option value="">Sin asignar</option>
-          {profiles.map(p => (
-            <option key={p.id} value={p.display_name ?? p.email}>{p.display_name ?? p.email}</option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-1.5">
+          {filterProfiles(profiles).map(p => {
+            const name = p.display_name!
+            const active = assignedTo.includes(name)
+            return (
+              <button key={p.id} type="button"
+                onClick={() => setAssigned(prev => active ? prev.filter(n => n !== name) : [...prev, name])}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${active ? 'bg-violet-500 text-white border-violet-500' : 'bg-white text-slate-500 border-slate-200 hover:border-violet-300 hover:text-violet-500'}`}>
+                {name}
+              </button>
+            )
+          })}
+          {assignedTo.length > 0 && (
+            <button type="button" onClick={() => setAssigned([])}
+              className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400">
+              Quitar todos
+            </button>
+          )}
+        </div>
       </div>
       <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas (opcional)" className={cls} />
       <div className="flex gap-2 pt-1">
@@ -270,28 +294,32 @@ function TaskCard({
 }) {
   const [pickMode,      setPickMode]      = useState<null | 'assign' | 'complete'>(null)
   const [showDayPicker, setShowDayPicker] = useState(false)
+  const [selectedNames, setSelectedNames] = useState<string[]>([])
   const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
 
-  const weekAssignee = getWeekAssignee(task.id, weekStart, weekAssignments)
-  const effectiveDay = getEffectiveDay(task, weekStart, weekAssignments)
+  const weekAssignee  = getWeekAssignee(task.id, weekStart, weekAssignments)
+  const assignedNames = parseNames(weekAssignee)
+  const effectiveDay  = getEffectiveDay(task, weekStart, weekAssignments)
 
   const handleCheckbox = () => {
     if (done) { onUncomplete(); return }
-    if (weekAssignee) { onComplete(weekAssignee); return }
+    if (weekAssignee) { onComplete(assignedNames[0] ?? weekAssignee); return }
     setPickMode('complete')
     setShowDayPicker(false)
   }
 
-  const handlePersonPick = (name: string) => {
-    if (pickMode === 'complete') onComplete(name)
-    else onAssignWeek(name)
-    setPickMode(null)
-  }
-
   const togglePersonPicker = () => {
+    if (pickMode !== 'assign') setSelectedNames(assignedNames)
     setPickMode(m => m === 'assign' ? null : 'assign')
     setShowDayPicker(false)
   }
+
+  const toggleName = (name: string) =>
+    setSelectedNames(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name])
+
+  const badgeText = assignedNames.length === 0 ? '···'
+    : assignedNames.length === 1 ? assignedNames[0]
+    : `${assignedNames[0]} +${assignedNames.length - 1}`
 
   const toggleDayPicker = () => {
     setShowDayPicker(v => !v)
@@ -334,12 +362,12 @@ function TaskCard({
             </button>
           )}
           <button onClick={togglePersonPicker}
-            className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors ${
+            className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors max-w-[90px] truncate ${
               pickMode === 'assign' ? 'bg-violet-500 text-white border-violet-500' :
-              weekAssignee ? `${freq.bg} ${freq.text} ${freq.border}` :
+              assignedNames.length > 0 ? `${freq.bg} ${freq.text} ${freq.border}` :
               'bg-slate-100 text-slate-400 border-transparent hover:bg-violet-50 hover:text-violet-500'
             }`}>
-            {weekAssignee ?? '···'}
+            {badgeText}
           </button>
         </div>
       </div>
@@ -351,30 +379,52 @@ function TaskCard({
             {pickMode === 'complete' ? '¿Quién lo ha hecho?' : '¿Quién lo va a hacer?'}
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {profiles.map(p => {
-              const name = p.display_name ?? p.email.split('@')[0]
-              const isCurrent = weekAssignee === name && pickMode === 'assign'
+            {filterProfiles(profiles).map(p => {
+              const name = p.display_name!
+              if (pickMode === 'complete') {
+                return (
+                  <button key={p.id} onClick={() => { onComplete(name); setPickMode(null) }}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`}>
+                    {name}
+                  </button>
+                )
+              }
+              const isSelected = selectedNames.includes(name)
               return (
-                <button key={p.id} onClick={() => handlePersonPick(name)}
+                <button key={p.id} onClick={() => toggleName(name)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    isCurrent ? 'bg-violet-500 text-white border-violet-500' :
+                    isSelected ? 'bg-violet-500 text-white border-violet-500' :
                     `${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`
                   }`}>
-                  {name}
+                  {isSelected ? `✓ ${name}` : name}
                 </button>
               )
             })}
-            {weekAssignee && pickMode === 'assign' && (
-              <button onClick={() => { onAssignWeek(null); setPickMode(null) }}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-500">
-                Quitar
+          </div>
+          {pickMode === 'assign' && (
+            <div className="flex gap-2 mt-2">
+              <button onClick={() => { onAssignWeek(joinNames(selectedNames)); setPickMode(null) }}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-violet-500 text-white hover:bg-violet-600 transition-colors">
+                Confirmar
               </button>
-            )}
+              {assignedNames.length > 0 && (
+                <button onClick={() => { onAssignWeek(null); setPickMode(null) }}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-500">
+                  Quitar todos
+                </button>
+              )}
+              <button onClick={() => setPickMode(null)}
+                className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
+                Cancelar
+              </button>
+            </div>
+          )}
+          {pickMode === 'complete' && (
             <button onClick={() => setPickMode(null)}
-              className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
+              className="text-xs mt-2 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
               Cancelar
             </button>
-          </div>
+          )}
         </div>
       )}
 
@@ -453,15 +503,12 @@ function TaskDayRow({
         <div className="mt-2 ml-9 pt-2 border-t border-slate-100">
           <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">¿Quién lo ha hecho?</p>
           <div className="flex flex-wrap gap-1">
-            {profiles.map(p => {
-              const name = p.display_name ?? p.email.split('@')[0]
-              return (
-                <button key={p.id} onClick={() => { setMode(null); onComplete(task, name) }}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-violet-50 text-slate-600">
-                  {name}
-                </button>
-              )
-            })}
+            {filterProfiles(profiles).map(p => (
+              <button key={p.id} onClick={() => { setMode(null); onComplete(task, p.display_name!) }}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-violet-50 text-slate-600">
+                {p.display_name}
+              </button>
+            ))}
             <button onClick={() => setMode(null)} className="text-[10px] text-slate-400 px-1">✕</button>
           </div>
         </div>
