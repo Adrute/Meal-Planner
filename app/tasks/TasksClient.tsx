@@ -560,8 +560,6 @@ function TaskDayRow({
 
 // ── Calendar / Planning view ───────────────────────────────────────────────────
 
-const DOW_ABBR = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
 function CalendarView({
   tasks, completions, profiles, weekAssignments, togglingId, onComplete, onUncomplete, onSetDay,
 }: {
@@ -571,18 +569,10 @@ function CalendarView({
   onUncomplete: (task: Task) => void
   onSetDay: (taskId: string, weekStart: string, day: string | null) => void
 }) {
-  const [mode, setMode]     = useState<'week' | 'month'>('week')
   const [offset, setOffset] = useState(0)
 
   const today = new Date().toISOString().split('T')[0]
 
-  const byDate: Record<string, Completion[]> = {}
-  for (const c of completions) {
-    if (!byDate[c.completed_date]) byDate[c.completed_date] = []
-    byDate[c.completed_date].push(c)
-  }
-
-  // ── Week calculations ──────────────────────────────────────────────────────
   const now      = new Date()
   const todayDow = now.getDay() || 7
   const monBase  = new Date(now)
@@ -592,14 +582,6 @@ function CalendarView({
   const weekStart = fmtDate(weekDays[0])
   const weekEnd   = fmtDate(weekDays[6])
 
-  // ── Month calculations ─────────────────────────────────────────────────────
-  const refDate     = new Date(now.getFullYear(), now.getMonth() + (mode === 'month' ? offset : 0), 1)
-  const yr          = refDate.getFullYear()
-  const mo          = refDate.getMonth()
-  const daysInMonth = new Date(yr, mo + 1, 0).getDate()
-  const firstDow    = (new Date(yr, mo, 1).getDay() + 6) % 7
-
-  const monthName = refDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
   const weekLabel = `${weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – ${weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
 
   const unscheduled = tasks.filter(t =>
@@ -610,41 +592,28 @@ function CalendarView({
 
   return (
     <div>
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
-          {(['week', 'month'] as const).map(m => (
-            <button key={m} onClick={() => { setMode(m); setOffset(0) }}
-              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-              {m === 'week' ? 'Semana' : 'Mes'}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-0.5">
-          <button onClick={() => setOffset(o => o - 1)}
-            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
-            <ChevronLeft size={18} />
+      {/* Navigation */}
+      <div className="flex items-center justify-end mb-5 gap-0.5">
+        <button onClick={() => setOffset(o => o - 1)}
+          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+          <ChevronLeft size={18} />
+        </button>
+        <span className="text-sm font-bold text-slate-700 min-w-[190px] text-center capitalize">
+          {weekLabel}
+        </span>
+        <button onClick={() => setOffset(o => o + 1)}
+          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+          <ChevronRight size={18} />
+        </button>
+        {offset !== 0 && (
+          <button onClick={() => setOffset(0)}
+            className="ml-1 text-xs font-bold text-violet-500 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors">
+            Hoy
           </button>
-          <span className="text-sm font-bold text-slate-700 min-w-[190px] text-center capitalize">
-            {mode === 'week' ? weekLabel : monthName}
-          </span>
-          <button onClick={() => setOffset(o => o + 1)}
-            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
-            <ChevronRight size={18} />
-          </button>
-          {offset !== 0 && (
-            <button onClick={() => setOffset(0)}
-              className="ml-1 text-xs font-bold text-violet-500 hover:bg-violet-50 px-2.5 py-1 rounded-lg transition-colors">
-              Hoy
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* ── WEEK LIST VIEW ──────────────────────────────────────────────────── */}
-      {mode === 'week' && (
-        <>
-          <div className="space-y-3 mb-4">
+      <div className="space-y-3 mb-4">
             {weekDays.map(d => {
               const ds      = fmtDate(d)
               const dayName = DAYS[(d.getDay() + 6) % 7]
@@ -739,56 +708,6 @@ function CalendarView({
               </div>
             </div>
           )}
-        </>
-      )}
-
-      {/* ── MONTH VIEW (history dots) ───────────────────────────────────────── */}
-      {mode === 'month' && (
-        <div>
-          <div className="grid grid-cols-7 mb-2">
-            {DOW_ABBR.map(a => (
-              <div key={a} className="text-[10px] font-black text-slate-400 text-center py-1.5">{a}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: firstDow }, (_, i) => <div key={`e${i}`} />)}
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1
-              const ds  = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-              const dc  = byDate[ds] ?? []
-              const isToday = ds === today
-              return (
-                <div key={day} className={`rounded-xl p-1 flex flex-col items-center border min-h-[48px] ${
-                  isToday ? 'bg-lime-50 border-lime-200' :
-                  dc.length > 0 ? 'bg-white border-slate-100' : 'border-transparent bg-white'
-                }`}>
-                  <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-black mb-0.5 ${
-                    isToday ? 'bg-lime-400 text-white' : 'text-slate-600'
-                  }`}>
-                    {day}
-                  </div>
-                  <div className="flex flex-wrap gap-0.5 justify-center">
-                    {dc.slice(0, 3).map((c, ci) => {
-                      const task = tasks.find(t => t.id === c.task_id)
-                      const cfg  = task ? (FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual) : FREQ_CONFIG.punctual
-                      return <div key={ci} title={task?.title} className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                    })}
-                    {dc.length > 3 && <span className="text-[8px] font-black text-slate-300">+{dc.length - 3}</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-slate-100">
-            {Object.entries(FREQ_CONFIG).map(([key, cfg]) => (
-              <div key={key} className="flex items-center gap-1.5">
-                <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
-                <span className="text-xs font-bold text-slate-500">{cfg.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
