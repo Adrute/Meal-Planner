@@ -55,3 +55,12 @@ Todas las operaciones pasan por funciones `SECURITY DEFINER`:
 | `ItemForm` | Formulario de creación/edición |
 | `UserSharePicker` | Dropdown para compartir con usuarios de la app |
 | `SharePanel` | Dropdown para generar texto WhatsApp |
+
+## Vista pública (`/wishlist/publica/[userId]`)
+Ruta pública (requiere estar autenticado pero no permiso `wishlist`) para que un familiar pueda ver la lista de deseos de otro usuario.
+
+- Carga el perfil del propietario (`profiles`) para mostrar su nombre
+- Carga los items de `wishlist_items` del propietario (RLS filtra automáticamente los que no están compartidos)
+- Muestra los pendientes (`is_purchased = false`) en grid de 2 columnas con tipo, nombre, precio estimado y enlace
+- Muestra los conseguidos (`is_purchased = true`) en sección separada con texto tachado
+- La barra de color indica prioridad (teal = alta, lima = media, gris = baja)

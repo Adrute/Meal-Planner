@@ -59,3 +59,62 @@ RESEND_API_KEY
 NOTIFY_EMAIL (opcional, default: claudrian1992@gmail.com)
 GROQ_API_KEY  (planificador IA — tier gratuito en console.groq.com)
 ```
+
+## Lessons Learned
+
+Patrones problemáticos que han aparecido en este proyecto y cómo evitarlos:
+
+### useState(prop) sin useEffect de sincronización
+**Problema**: `useState(serverProp)` solo inicializa el estado con el valor del primer render. Cuando el Server Component refresca via `router.refresh()`, el prop cambia pero el estado local no se actualiza.
+
+**Solución**: Añadir `useEffect` de sincronización:
+```ts
+useEffect(() => { setLocalCompletions(completions) }, [completions])
+useEffect(() => { setLocalWeekAssignments(weekAssignments) }, [weekAssignments])
+```
+Ver commit `467f509`.
+
+### Upsert sin UNIQUE constraint en la base de datos
+**Problema**: Supabase/PostgreSQL ignora el campo `onConflict` si no existe un UNIQUE constraint real en la tabla. El upsert se convierte en un insert silencioso y se crean duplicados.
+
+**Solución**: Crear el constraint en la migración antes de usar upsert:
+```sql
+ALTER TABLE weight_logs ADD CONSTRAINT weight_logs_user_date UNIQUE (user_id, date);
+```
+
+### Resend inicializado a nivel de módulo
+**Problema**: `const resend = new Resend(process.env.RESEND_API_KEY)` a nivel de módulo falla en build time porque la variable de entorno no está disponible en ese momento.
+
+**Solución**: Inicialización lazy dentro de la función:
+```ts
+export async function sendBonoAgotadoEmail(...) {
+  if (!process.env.RESEND_API_KEY) return
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  ...
+}
+```
+
+### Parsers de PDF basados en IA — no deterministas
+**Problema**: Un parser LLM para el menú escolar producía errores de desfase de días (el lunes se asignaba al martes, etc.) de forma inconsistente.
+
+**Solución**: Parser determinista que detecta las cabeceras de semana (5 números consecutivos ascendentes) y los marcadores de postre como anclas. Más robusto y predecible. Ver commits `36cf142` y `f4ae647`.
+
+### Server Actions duplicadas entre dashboard y módulo
+**Patrón observado**: `consumeSession`, `renewService` y `deleteService` están definidas tanto en `app/page.tsx` como en `app/services/page.tsx` con lógica idéntica.
+
+**Riesgo**: Si se modifica la lógica en un sitio, hay que acordarse de hacerlo en el otro.
+
+**Solución futura**: Extraer a `app/services/actions.ts` e importar desde ambas páginas.
+
+### Órdenes Leaflet / SSR
+**Problema**: Leaflet accede a `window` en el import y falla en SSR de Next.js.
+
+**Solución**: Siempre cargar componentes de mapa con `dynamic(..., { ssr: false })`:
+```ts
+const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false })
+```
+
+### Trips — user_id en tablas hijas
+**Problema inicial**: Las tablas hijas de viajes (`trip_transport`, etc.) usaban RLS basada en `user_id`, pero los viajes son compartidos entre toda la familia.
+
+**Solución**: Las tablas hijas filtran por `EXISTS (SELECT 1 FROM trips WHERE id = trip_id)` sin `user_id`, y los viajes no tienen `user_id` en los filtros de consulta. Ver commit `516da8b`.

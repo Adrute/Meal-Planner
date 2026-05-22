@@ -21,6 +21,9 @@ Los permisos se almacenan como array de strings en dos lugares sincronizados:
 | `services` | Bonos/Servicios |
 | `restaurants` | Restaurantes |
 | `wishlist` | Lista de deseos |
+| `health` | Salud |
+| `trips` | Viajes |
+| `tasks` | Tareas del hogar |
 
 ### Flujo de actualización de permisos
 1. Admin edita permisos en `/admin` → `UserRow` chips

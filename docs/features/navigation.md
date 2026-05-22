@@ -42,13 +42,18 @@ las secciones a las que el usuario no tiene acceso. La protección real de las r
 está en `proxy.ts`.
 
 ## Secciones disponibles
-`meals`, `recipes`, `shopping`, `finances`, `utilities`, `services`, `restaurants`, `wishlist`, `health`, `trips`.
+`meals`, `recipes`, `shopping`, `finances`, `utilities`, `services`, `restaurants`, `wishlist`, `health`, `trips`, `tasks`.
 Cada una con su key, href, icono lucide y colores activo/hover definidos en `ALL_NAV_ITEMS`.
 
+El link "Inicio" (`/`) siempre es visible sin permiso. El link "Administración" (`/admin`) solo aparece si `isAdmin = true`.
+
 ## Dashboard (`app/page.tsx`)
+Ver [dashboard.md](./dashboard.md) para el detalle completo de cada widget.
+
+Resumen:
 - **Widget Menú**: ancho completo, muestra hoy + próximos 3 días en grid de 4 columnas (Cole / Almuerzo / Cena por día)
-- **Widget Próximos Planes**: dos columnas — reservas de restaurantes (izquierda) + viajes (derecha)
-  - Viajes: próximo viaje destacado + contadores por estado
+- **Widget Próximos Planes**: reservas de restaurantes + próximo viaje
+- **Widget Tareas**: progreso semanal de tareas diarias y semanales
 - **Widget Finanzas**: gasto mes actual vs anterior, top 3 categorías
 - **Widget Suministros**: medias de luz/gas/servicios, alerta de tarifa
 - **Módulo Bonos**: detalle completo si hay bonos activos

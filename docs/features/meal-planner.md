@@ -16,7 +16,15 @@
 Las semanas se añaden manualmente con un date picker o se auto-incluyen si hay plan guardado para esas fechas.
 
 ### Menú escolar (cole)
-Se importa un PDF mensual arrastrándolo a `SchoolMenuSection`. El PDF se envía a `/api/parse-school-menu` que usa `unpdf` para extraer texto y Groq (Llama 3.3 70b) para estructurar los datos en JSON. Se guardan todos los días laborables del mes en `school_menu_items` (upsert por fecha). En el planificador cada día muestra el menú del cole con un badge verde "Cole".
+Se importa un PDF mensual arrastrándolo a `SchoolMenuSection`. El PDF se envía a `/api/parse-school-menu` que usa `unpdf` para extraer texto y un **parser determinista** (`parseCoomedoresBlanco`) para estructurar los datos en JSON. El parser funciona así:
+1. Detecta año (el más alto encontrado en el texto) y mes
+2. Localiza la cabecera del calendario ("JUEVES VIERNES")
+3. Identifica semanas como grupos de 5 números consecutivos ascendentes en ≤300 chars
+4. Para cada semana extrae los platos separando por marcadores de postre (`YOGUR`, `FRUTA y LECHE`) y festivos
+
+Se guardan todos los días laborables del mes en `school_menu_items` (upsert por fecha). En el planificador y en el dashboard, cada día muestra el menú del cole con el icono de graduación y badge "Cole".
+
+El parser está ajustado al formato de **Comedores Blanco** específicamente.
 
 ### Generación de cenas con IA
 Botón "Generar Cenas IA" en cada `WeekBlock`. Llama a `/api/generate-meal-plan` con:
