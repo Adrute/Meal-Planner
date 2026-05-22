@@ -102,6 +102,24 @@ function lastDone(task: Task, completions: Completion[]): string | null {
   return tc[0]?.completed_date ?? null
 }
 
+function getNextDueDate(task: Task, completions: Completion[]): string | null {
+  if (task.frequency !== 'custom' || !task.custom_interval_days) return null
+  const last = lastDone(task, completions)
+  if (!last) return new Date().toISOString().split('T')[0]
+  const d = new Date(last + 'T12:00:00')
+  d.setDate(d.getDate() + task.custom_interval_days)
+  return fmtDate(d)
+}
+
+// Returns the day name in the given week where a custom task should appear,
+// or null if it is not due during that week.
+function getCustomDayForWeek(task: Task, completions: Completion[], weekStart: string, weekEnd: string): string | null {
+  const nextDue = getNextDueDate(task, completions)
+  if (!nextDue || nextDue > weekEnd) return null
+  if (nextDue >= weekStart) return DAYS[(new Date(nextDue + 'T12:00:00').getDay() + 6) % 7]
+  return DAYS[0] // overdue → show at start of week
+}
+
 // ── Task form ─────────────────────────────────────────────────────────────────
 
 function TaskForm({
@@ -523,7 +541,11 @@ function CalendarView({
   const monthName = refDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
   const weekLabel = `${weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – ${weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
 
-  const unscheduled = tasks.filter(t => t.frequency !== 'daily' && getEffectiveDay(t, weekStart, weekAssignments) === null)
+  const unscheduled = tasks.filter(t =>
+    t.frequency !== 'daily' &&
+    t.frequency !== 'custom' &&
+    getEffectiveDay(t, weekStart, weekAssignments) === null
+  )
 
   return (
     <div>
@@ -568,8 +590,12 @@ function CalendarView({
               const isToday = ds === today
 
               const dailyTasks     = tasks.filter(t => t.frequency === 'daily')
-              const scheduledTasks = tasks.filter(t => t.frequency !== 'daily' && getEffectiveDay(t, weekStart, weekAssignments) === dayName)
-              const allInDay       = [...dailyTasks, ...scheduledTasks]
+              const scheduledTasks = tasks.filter(t => {
+                if (t.frequency === 'daily') return false
+                if (t.frequency === 'custom') return getCustomDayForWeek(t, completions, weekStart, weekEnd) === dayName
+                return getEffectiveDay(t, weekStart, weekAssignments) === dayName
+              })
+              const allInDay = [...dailyTasks, ...scheduledTasks]
 
               const doneCount = allInDay.filter(t =>
                 t.frequency === 'daily'
@@ -891,9 +917,17 @@ export default function TasksClient({
           )}
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
             const cfg       = FREQ_CONFIG[freq]
-            const freqTasks = (byFreq[freq] ?? []).slice().sort((a, b) =>
-              freq === 'weekly' ? DAYS.indexOf(a.day_of_week ?? '') - DAYS.indexOf(b.day_of_week ?? '') : 0
-            )
+            const { sunday } = getWeekRange()
+            const freqTasks = (byFreq[freq] ?? [])
+              .filter(t => {
+                if (t.frequency !== 'custom') return true
+                const nextDue = getNextDueDate(t, localCompletions)
+                return !nextDue || nextDue <= sunday // only show if due this week or overdue
+              })
+              .slice().sort((a, b) =>
+                freq === 'weekly' ? DAYS.indexOf(a.day_of_week ?? '') - DAYS.indexOf(b.day_of_week ?? '') : 0
+              )
+            if (freqTasks.length === 0) return null
             const doneCnt = freqTasks.filter(t => isDone(t, localCompletions)).length
             const pct     = freqTasks.length > 0 ? Math.round((doneCnt / freqTasks.length) * 100) : 0
             return (
