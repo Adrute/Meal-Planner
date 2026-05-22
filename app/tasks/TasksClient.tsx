@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckSquare, Square, Plus, Pencil, Trash2, Loader2, X, Check,
@@ -791,6 +791,10 @@ export default function TasksClient({
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [localCompletions,     setLocalCompletions]     = useState<Completion[]>(completions)
   const [localWeekAssignments, setLocalWeekAssignments] = useState<WeekAssignment[]>(weekAssignments)
+
+  // Sync local state when server data refreshes (router.refresh() brings new props)
+  useEffect(() => { setLocalCompletions(completions) },     [completions])
+  useEffect(() => { setLocalWeekAssignments(weekAssignments) }, [weekAssignments])
 
   const refresh = () => startTransition(() => router.refresh())
   const currentWeekStart = getWeekRange().monday
