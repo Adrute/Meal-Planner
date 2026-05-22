@@ -7,20 +7,22 @@
 - **Email**: Resend API — lazy init dentro de la función, nunca a nivel de módulo
 - **Estilos**: Tailwind CSS
 
-## Flujo de trabajo Git (OBLIGATORIO)
+## Flujo de trabajo Git (OBLIGATORIO — SIN EXCEPCIONES)
+
+> ⚠️ **NUNCA** hacer merge a main ni `git push` hasta que el usuario dé el OK explícito. Aplica a toda tarea, por pequeña que sea.
 
 Antes de empezar cualquier tarea:
 1. **Crear rama** con prefijo según tipo: `feat/`, `fix/`, `refactor/`, `chore/`
 2. **Hacer el trabajo** en esa rama
-3. Al terminar: avisar al usuario para que pruebe en local
-4. Cuando el usuario dé el **OK explícito**: merge a main, push y borrar la rama local
+3. Al terminar: avisar al usuario para que pruebe en local — **PARAR AQUÍ**
+4. Cuando el usuario dé el **OK explícito** ("ok", "publica", "mergea", etc.): merge a main, push y borrar la rama local
 
 ```bash
 git checkout -b feat/nombre-descriptivo
 # ... trabajo ...
 git add <archivos relevantes>
 git commit -m "feat: descripción del cambio"
-# ← ESPERAR OK DEL USUARIO antes de continuar
+# ← ESPERAR OK DEL USUARIO — NO hacer merge ni push sin confirmación
 git checkout main
 git merge feat/nombre-descriptivo
 git push origin main

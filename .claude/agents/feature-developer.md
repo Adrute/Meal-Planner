@@ -158,6 +158,15 @@ Para añadir un nuevo módulo protegido:
 - `app/api/generate-meal-plan/route.ts` — planificador con Groq SDK (llama3-70b-8192)
 - Email: `lib/email.ts` exporta funciones específicas (ej. `sendBonoAgotadoEmail`). Siempre lazy init de Resend dentro de la función.
 
+## Flujo de trabajo Git (OBLIGATORIO — SIN EXCEPCIONES)
+
+**NUNCA** hacer merge a main ni `git push` hasta que el usuario dé el OK explícito.
+
+1. Crear rama antes de empezar: `git checkout -b feat/nombre-descriptivo`
+2. Hacer commits en esa rama
+3. Al terminar, avisar al usuario para que pruebe en local — **PARAR AQUÍ**
+4. Solo al recibir confirmación explícita del usuario: merge a main + push + borrar rama
+
 ## Qué NO hacer
 
 - No leer permisos desde la DB en middleware o server components de layout — usar el JWT
@@ -165,3 +174,4 @@ Para añadir un nuevo módulo protegido:
 - No usar `upsert` si la tabla no tiene `UNIQUE` constraint en la columna de conflicto — usa select + update/insert
 - No añadir `error handling` para escenarios imposibles — confía en las garantías del framework
 - No tocar Tailwind, colores, espaciados ni decisiones visuales — eso es del frontend-stylist
+- **No hacer merge a main ni push sin OK explícito del usuario**
