@@ -62,6 +62,19 @@ export async function completeTask(taskId: string, completedBy: string) {
   return { success: true }
 }
 
+export async function setTaskWeekDay(taskId: string, weekStart: string, dayOfWeek: string | null) {
+  const supabase = await createClient()
+  if (dayOfWeek === null) {
+    await supabase.from('task_week_assignments').delete().eq('task_id', taskId).eq('week_start', weekStart)
+  } else {
+    const { error } = await supabase.from('task_week_assignments')
+      .upsert({ task_id: taskId, week_start: weekStart, day_of_week: dayOfWeek }, { onConflict: 'task_id,week_start' })
+    if (error) return { error: error.message }
+  }
+  revalidatePath('/tasks')
+  return { success: true }
+}
+
 export async function uncompleteTask(taskId: string, period: string) {
   const supabase = await createClient()
 

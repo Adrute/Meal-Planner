@@ -4,22 +4,23 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckSquare, Square, Plus, Pencil, Trash2, Loader2, X, Check,
-  CalendarClock, RotateCcw, Clock, Sparkles, ChevronLeft, ChevronRight,
+  Sparkles, ChevronLeft, ChevronRight, Calendar,
 } from 'lucide-react'
-import { createTask, updateTask, deleteTask, completeTask, uncompleteTask } from './actions'
+import { createTask, updateTask, deleteTask, completeTask, uncompleteTask, setTaskWeekDay } from './actions'
 
 type Task = {
   id: string; title: string; frequency: string
   day_of_week: string | null; assigned_to: string | null; notes: string | null
 }
 type Completion = { id: string; task_id: string; completed_date: string; completed_by: string | null }
-type Profile = { id: string; display_name: string | null; email: string }
+type Profile   = { id: string; display_name: string | null; email: string }
+type WeekAssignment = { id: string; task_id: string; week_start: string; day_of_week: string }
 
 const FREQ_CONFIG: Record<string, { label: string; plural: string; period: string; bg: string; text: string; border: string; dot: string }> = {
-  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
-  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
-  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
-  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
+  daily:    { label: 'Diaria',  plural: 'Diarias',   period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
+  weekly:   { label: 'Semanal', plural: 'Semanales', period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
+  annual:   { label: 'Anual',   plural: 'Anuales',   period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
+  punctual: { label: 'Puntual', plural: 'Puntuales', period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -27,15 +28,14 @@ const DAY_LABEL: Record<string, string> = {
   lunes:'Lun', martes:'Mar', miércoles:'Mié', jueves:'Jue', viernes:'Vie', sábado:'Sáb', domingo:'Dom'
 }
 
+function fmtDate(d: Date) { return d.toISOString().split('T')[0] }
+
 function getWeekRange() {
   const now = new Date()
   const day = now.getDay() || 7
   const monday = new Date(now); monday.setDate(now.getDate() - day + 1)
-  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
-  return {
-    monday: monday.toISOString().split('T')[0],
-    sunday:  sunday.toISOString().split('T')[0],
-  }
+  const sunday  = new Date(monday); sunday.setDate(monday.getDate() + 6)
+  return { monday: fmtDate(monday), sunday: fmtDate(sunday) }
 }
 
 function isDone(task: Task, completions: Completion[]): boolean {
@@ -43,7 +43,6 @@ function isDone(task: Task, completions: Completion[]): boolean {
   const year  = new Date().getFullYear()
   const { monday, sunday } = getWeekRange()
   const tc = completions.filter(c => c.task_id === task.id)
-
   if (task.frequency === 'daily')    return tc.some(c => c.completed_date === today)
   if (task.frequency === 'weekly')   return tc.some(c => c.completed_date >= monday && c.completed_date <= sunday)
   if (task.frequency === 'annual')   return tc.some(c => c.completed_date.startsWith(String(year)))
@@ -51,10 +50,28 @@ function isDone(task: Task, completions: Completion[]): boolean {
   return false
 }
 
+function isDoneOnDate(task: Task, completions: Completion[], date: string): boolean {
+  return completions.some(c => c.task_id === task.id && c.completed_date === date)
+}
+
+function isDoneInWeek(task: Task, completions: Completion[], weekStart: string, weekEnd: string): boolean {
+  const tc = completions.filter(c => c.task_id === task.id)
+  if (task.frequency === 'weekly')   return tc.some(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
+  if (task.frequency === 'annual')   return tc.some(c => c.completed_date.startsWith(weekStart.slice(0, 4)))
+  if (task.frequency === 'punctual') return tc.length > 0
+  return false
+}
+
+function getEffectiveDay(task: Task, weekStart: string, assignments: WeekAssignment[]): string | null {
+  const override = assignments.find(a => a.task_id === task.id && a.week_start === weekStart)
+  if (override) return override.day_of_week
+  if (task.frequency === 'weekly' && task.day_of_week) return task.day_of_week
+  return null
+}
+
 function lastDone(task: Task, completions: Completion[]): string | null {
   const tc = completions.filter(c => c.task_id === task.id).sort((a, b) => b.completed_date.localeCompare(a.completed_date))
-  if (!tc.length) return null
-  return tc[0].completed_date
+  return tc[0]?.completed_date ?? null
 }
 
 // ── Task form ─────────────────────────────────────────────────────────────────
@@ -82,19 +99,17 @@ function TaskForm({
     setSaving(false)
   }
 
-  const inputCls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-violet-300 bg-white'
+  const cls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-violet-300 bg-white'
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-violet-200 p-5 space-y-3 shadow-sm">
       <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{initial ? 'Editar tarea' : 'Nueva tarea'}</p>
-
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre de la tarea *"
-        className={inputCls} autoFocus required />
-
+        className={cls} autoFocus required />
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Frecuencia</label>
-          <select value={frequency} onChange={e => setFrequency(e.target.value)} className={inputCls}>
+          <select value={frequency} onChange={e => setFrequency(e.target.value)} className={cls}>
             <option value="daily">Diaria</option>
             <option value="weekly">Semanal</option>
             <option value="annual">Anual</option>
@@ -103,28 +118,24 @@ function TaskForm({
         </div>
         {frequency === 'weekly' && (
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Día</label>
-            <select value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)} className={inputCls}>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Día habitual</label>
+            <select value={dayOfWeek} onChange={e => setDayOfWeek(e.target.value)} className={cls}>
               <option value="">Sin día fijo</option>
               {DAYS.map(d => <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>)}
             </select>
           </div>
         )}
       </div>
-
       <div>
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Asignada a</label>
-        <select value={assignedTo} onChange={e => setAssigned(e.target.value)} className={inputCls}>
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Asignada habitualmente a</label>
+        <select value={assignedTo} onChange={e => setAssigned(e.target.value)} className={cls}>
           <option value="">Sin asignar</option>
           {profiles.map(p => (
             <option key={p.id} value={p.display_name ?? p.email}>{p.display_name ?? p.email}</option>
           ))}
         </select>
       </div>
-
-      <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas (opcional)"
-        className={inputCls} />
-
+      <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas (opcional)" className={cls} />
       <div className="flex gap-2 pt-1">
         <button type="submit" disabled={saving}
           className="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl disabled:opacity-50">
@@ -140,7 +151,7 @@ function TaskForm({
   )
 }
 
-// ── Task card (pending view) ───────────────────────────────────────────────────
+// ── Task card (pending / Esta semana view) ────────────────────────────────────
 
 function TaskCard({
   task, done, last, profiles, onUncomplete, onComplete,
@@ -151,24 +162,16 @@ function TaskCard({
   const [picking, setPicking] = useState(false)
   const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
 
-  const handleClick = () => {
-    if (done) { onUncomplete() } else { setPicking(true) }
-  }
-
   return (
     <div className={`flex flex-col p-4 rounded-2xl border transition-all ${done ? 'bg-slate-50/60 border-slate-100 opacity-70' : `${freq.bg} ${freq.border}`}`}>
       <div className="flex items-center gap-3">
-        <button onClick={handleClick} className="shrink-0">
-          {done
-            ? <CheckSquare size={22} className="text-emerald-500" />
-            : <Square size={22} className="text-slate-300" />}
+        <button onClick={() => done ? onUncomplete() : setPicking(true)} className="shrink-0">
+          {done ? <CheckSquare size={22} className="text-emerald-500" /> : <Square size={22} className="text-slate-300" />}
         </button>
         <div className="flex-1 min-w-0">
           <p className={`font-bold text-sm ${done ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title}</p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            {task.assigned_to && (
-              <span className="text-[10px] font-bold text-slate-400">{task.assigned_to}</span>
-            )}
+            {task.assigned_to && <span className="text-[10px] font-bold text-slate-400">{task.assigned_to}</span>}
             {task.day_of_week && (
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${freq.bg} ${freq.text}`}>
                 {DAY_LABEL[task.day_of_week] ?? task.day_of_week}
@@ -182,7 +185,6 @@ function TaskCard({
           </div>
         </div>
       </div>
-
       {picking && (
         <div className="mt-3 pt-3 border-t border-slate-200/60">
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">¿Quién lo ha hecho?</p>
@@ -190,8 +192,7 @@ function TaskCard({
             {profiles.map(p => {
               const name = p.display_name ?? p.email.split('@')[0]
               return (
-                <button key={p.id}
-                  onClick={() => { setPicking(false); onComplete(name) }}
+                <button key={p.id} onClick={() => { setPicking(false); onComplete(name) }}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`}>
                   {name}
                 </button>
@@ -208,12 +209,100 @@ function TaskCard({
   )
 }
 
-// ── Calendar view ─────────────────────────────────────────────────────────────
+// ── Task chip (calendar day view) ─────────────────────────────────────────────
+
+function TaskDayChip({
+  task, isComplete, profiles, weekStart, weekAssignments, onComplete, onUncomplete, onSetDay,
+}: {
+  task: Task; isComplete: boolean; profiles: Profile[]
+  weekStart: string; weekAssignments: WeekAssignment[]
+  onComplete: (task: Task, person: string) => void
+  onUncomplete: (task: Task) => void
+  onSetDay: (taskId: string, weekStart: string, day: string | null) => void
+}) {
+  const [mode, setMode] = useState<null | 'person' | 'day'>(null)
+  const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
+  const effectiveDay = getEffectiveDay(task, weekStart, weekAssignments)
+
+  return (
+    <div className={`rounded-xl p-2 border text-xs transition-all ${
+      isComplete ? 'bg-slate-50 border-slate-100 opacity-60' : `${freq.bg} ${freq.border}`
+    }`}>
+      <div className="flex items-center gap-1.5">
+        <button className="shrink-0" onClick={() => isComplete ? onUncomplete(task) : setMode(m => m === 'person' ? null : 'person')}>
+          {isComplete ? <CheckSquare size={13} className="text-emerald-500" /> : <Square size={13} className="text-slate-300" />}
+        </button>
+        <p className={`flex-1 font-semibold leading-tight truncate ${isComplete ? 'line-through text-slate-400' : freq.text}`}>
+          {task.title}
+        </p>
+        {task.frequency !== 'daily' && (
+          <button onClick={() => setMode(m => m === 'day' ? null : 'day')}
+            title="Cambiar día"
+            className={`shrink-0 w-6 h-5 flex items-center justify-center rounded text-[9px] font-black transition-colors ${
+              mode === 'day' ? 'bg-violet-500 text-white' : effectiveDay ? `${freq.bg} ${freq.text}` : 'bg-slate-100 text-slate-400 hover:bg-violet-50 hover:text-violet-500'
+            }`}>
+            {effectiveDay ? DAY_LABEL[effectiveDay] : <Calendar size={10} />}
+          </button>
+        )}
+      </div>
+
+      {mode === 'person' && (
+        <div className="mt-1.5 pt-1.5 border-t border-slate-200/50">
+          <p className="text-[9px] font-black text-slate-400 uppercase mb-1">¿Quién lo ha hecho?</p>
+          <div className="flex flex-wrap gap-1">
+            {profiles.map(p => {
+              const name = p.display_name ?? p.email.split('@')[0]
+              return (
+                <button key={p.id} onClick={() => { setMode(null); onComplete(task, name) }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-violet-50 text-slate-600">
+                  {name}
+                </button>
+              )
+            })}
+            <button onClick={() => setMode(null)} className="text-[10px] text-slate-400 px-1">✕</button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'day' && (
+        <div className="mt-1.5 pt-1.5 border-t border-slate-200/50">
+          <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Mover a</p>
+          <div className="flex flex-wrap gap-1">
+            {DAYS.map(d => (
+              <button key={d} onClick={() => { setMode(null); onSetDay(task.id, weekStart, d) }}
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                  effectiveDay === d ? 'bg-violet-500 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-violet-50'
+                }`}>
+                {DAY_LABEL[d]}
+              </button>
+            ))}
+            {task.frequency !== 'weekly' && (
+              <button onClick={() => { setMode(null); onSetDay(task.id, weekStart, null) }}
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-400 hover:bg-red-50">
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Calendar / Planning view ───────────────────────────────────────────────────
 
 const DOW_ABBR = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Completion[] }) {
-  const [mode, setMode]   = useState<'week' | 'month'>('week')
+function CalendarView({
+  tasks, completions, profiles, weekAssignments, togglingId, onComplete, onUncomplete, onSetDay,
+}: {
+  tasks: Task[]; completions: Completion[]; profiles: Profile[]
+  weekAssignments: WeekAssignment[]; togglingId: string | null
+  onComplete: (task: Task, person: string) => void
+  onUncomplete: (task: Task) => void
+  onSetDay: (taskId: string, weekStart: string, day: string | null) => void
+}) {
+  const [mode, setMode]     = useState<'week' | 'month'>('week')
   const [offset, setOffset] = useState(0)
 
   const today = new Date().toISOString().split('T')[0]
@@ -224,29 +313,36 @@ function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Comp
     byDate[c.completed_date].push(c)
   }
 
-  const now = new Date()
+  // ── Week ──────────────────────────────────────────────────────────────────
+  const now     = new Date()
   const todayDow = now.getDay() || 7
   const monBase  = new Date(now)
   monBase.setDate(now.getDate() - todayDow + 1 + offset * 7)
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monBase)
-    d.setDate(monBase.getDate() + i)
-    return d
+    const d = new Date(monBase); d.setDate(monBase.getDate() + i); return d
   })
+  const weekStart = fmtDate(weekDays[0])
+  const weekEnd   = fmtDate(weekDays[6])
 
+  // ── Month ─────────────────────────────────────────────────────────────────
   const refDate     = new Date(now.getFullYear(), now.getMonth() + (mode === 'month' ? offset : 0), 1)
   const yr          = refDate.getFullYear()
   const mo          = refDate.getMonth()
   const daysInMonth = new Date(yr, mo + 1, 0).getDate()
   const firstDow    = (new Date(yr, mo, 1).getDay() + 6) % 7
 
-  const fmtDate   = (d: Date) => d.toISOString().split('T')[0]
   const monthName = refDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
   const weekLabel = `${weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – ${weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`
 
+  // Tasks unscheduled for this week (non-daily, no effective day assigned)
+  const unscheduled = tasks.filter(t =>
+    t.frequency !== 'daily' && getEffectiveDay(t, weekStart, weekAssignments) === null
+  )
+
   return (
     <div>
+      {/* Controls */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
           {(['week', 'month'] as const).map(m => (
@@ -277,49 +373,109 @@ function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Comp
         </div>
       </div>
 
+      {/* ── WEEK PLANNING VIEW ─────────────────────────────────────────────── */}
       {mode === 'week' && (
-        <div className="grid grid-cols-7 gap-1.5">
-          {weekDays.map(d => {
-            const ds = fmtDate(d)
-            const dc = byDate[ds] ?? []
-            const isToday = ds === today
-            return (
-              <div key={ds} className={`rounded-2xl p-2.5 border flex flex-col min-h-[130px] ${isToday ? 'bg-lime-50 border-lime-200' : 'bg-white border-slate-100'}`}>
-                <div className="mb-2">
-                  <p className={`text-[9px] font-black uppercase tracking-widest ${isToday ? 'text-lime-600' : 'text-slate-400'}`}>
-                    {d.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3)}
-                  </p>
-                  <p className={`text-xl font-black leading-none ${isToday ? 'text-lime-700' : 'text-slate-700'}`}>
-                    {d.getDate()}
-                  </p>
-                </div>
-                <div className="flex-1 space-y-1">
-                  {dc.length === 0
-                    ? <p className="text-[10px] text-slate-200 mt-1">—</p>
-                    : dc.map(c => {
-                        const task = tasks.find(t => t.id === c.task_id)
-                        if (!task) return null
-                        const cfg = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
-                        return (
-                          <div key={c.id} title={task.title}
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${cfg.bg} ${cfg.text} leading-tight truncate`}>
-                            {task.title}
+        <>
+          <div className="grid grid-cols-7 gap-1.5 mb-4">
+            {weekDays.map(d => {
+              const ds      = fmtDate(d)
+              const dayName = DAYS[(d.getDay() + 6) % 7]
+              const isToday = ds === today
+
+              const dailyTasks     = tasks.filter(t => t.frequency === 'daily')
+              const scheduledTasks = tasks.filter(t =>
+                t.frequency !== 'daily' && getEffectiveDay(t, weekStart, weekAssignments) === dayName
+              )
+              const allInDay = [...dailyTasks, ...scheduledTasks]
+
+              const doneCount = allInDay.filter(t => {
+                if (t.frequency === 'daily') return isDoneOnDate(t, completions, ds)
+                return isDoneInWeek(t, completions, weekStart, weekEnd)
+              }).length
+
+              return (
+                <div key={ds} className={`rounded-2xl border flex flex-col overflow-hidden ${
+                  isToday ? 'border-lime-300 shadow-sm' : 'border-slate-100'
+                }`}>
+                  {/* Day header */}
+                  <div className={`px-2 pt-2 pb-1.5 ${isToday ? 'bg-lime-400' : 'bg-slate-50'}`}>
+                    <p className={`text-[9px] font-black uppercase tracking-widest ${isToday ? 'text-white' : 'text-slate-400'}`}>
+                      {d.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3)}
+                    </p>
+                    <div className="flex items-end justify-between">
+                      <span className={`text-xl font-black leading-none ${isToday ? 'text-white' : 'text-slate-700'}`}>
+                        {d.getDate()}
+                      </span>
+                      {allInDay.length > 0 && (
+                        <span className={`text-[9px] font-black pb-0.5 ${isToday ? 'text-white/70' : 'text-slate-400'}`}>
+                          {doneCount}/{allInDay.length}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tasks */}
+                  <div className="flex-1 p-1.5 space-y-1 min-h-[90px]">
+                    {allInDay.length === 0
+                      ? <p className="text-[10px] text-slate-200 text-center pt-3">—</p>
+                      : allInDay.map(task => (
+                          <div key={task.id} className="relative">
+                            {togglingId === task.id && (
+                              <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60 rounded-lg">
+                                <Loader2 size={12} className="animate-spin text-violet-500" />
+                              </div>
+                            )}
+                            <TaskDayChip
+                              task={task}
+                              isComplete={task.frequency === 'daily'
+                                ? isDoneOnDate(task, completions, ds)
+                                : isDoneInWeek(task, completions, weekStart, weekEnd)}
+                              profiles={profiles}
+                              weekStart={weekStart}
+                              weekAssignments={weekAssignments}
+                              onComplete={onComplete}
+                              onUncomplete={onUncomplete}
+                              onSetDay={onSetDay}
+                            />
                           </div>
-                        )
-                      })
-                  }
+                        ))
+                    }
+                  </div>
                 </div>
-                {dc.length > 0 && (
-                  <p className={`text-[9px] font-bold mt-1 pt-1 border-t ${isToday ? 'border-lime-200 text-lime-600' : 'border-slate-100 text-slate-400'}`}>
-                    {dc.length} ✓
-                  </p>
-                )}
+              )
+            })}
+          </div>
+
+          {/* Unscheduled tasks */}
+          {unscheduled.length > 0 && (
+            <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Sin asignar esta semana</p>
+              <div className="space-y-2.5">
+                {unscheduled.map(task => {
+                  const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
+                  return (
+                    <div key={task.id} className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-xl border ${freq.bg} ${freq.text} ${freq.border}`}>
+                        {task.title}
+                      </span>
+                      <div className="flex gap-1 flex-wrap">
+                        {DAYS.map(d => (
+                          <button key={d} onClick={() => onSetDay(task.id, weekStart, d)}
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-violet-50 hover:border-violet-300 transition-colors">
+                            {DAY_LABEL[d]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
+      {/* ── MONTH HISTORY VIEW ─────────────────────────────────────────────── */}
       {mode === 'month' && (
         <div>
           <div className="grid grid-cols-7 mb-2">
@@ -337,8 +493,7 @@ function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Comp
               return (
                 <div key={day} className={`rounded-xl p-1 flex flex-col items-center border min-h-[48px] ${
                   isToday ? 'bg-lime-50 border-lime-200' :
-                  dc.length > 0 ? 'bg-white border-slate-100' :
-                  'border-transparent bg-white'
+                  dc.length > 0 ? 'bg-white border-slate-100' : 'border-transparent bg-white'
                 }`}>
                   <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-black mb-0.5 ${
                     isToday ? 'bg-lime-400 text-white' : 'text-slate-600'
@@ -351,9 +506,7 @@ function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Comp
                       const cfg  = task ? (FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual) : FREQ_CONFIG.punctual
                       return <div key={ci} title={task?.title} className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                     })}
-                    {dc.length > 3 && (
-                      <span className="text-[8px] font-black text-slate-300">+{dc.length - 3}</span>
-                    )}
+                    {dc.length > 3 && <span className="text-[8px] font-black text-slate-300">+{dc.length - 3}</span>}
                   </div>
                 </div>
               )
@@ -376,21 +529,24 @@ function CalendarView({ tasks, completions }: { tasks: Task[]; completions: Comp
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function TasksClient({
-  tasks, completions, profiles, currentUser,
+  tasks, completions, profiles, weekAssignments, currentUser,
 }: {
-  tasks: Task[]; completions: Completion[]; profiles: Profile[]; currentUser: string
+  tasks: Task[]; completions: Completion[]; profiles: Profile[]
+  weekAssignments: WeekAssignment[]; currentUser: string
 }) {
   const router = useRouter()
   const [, startTransition] = useTransition()
-  const [view, setView] = useState<'pending' | 'all' | 'calendar'>('pending')
-  const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<Task | null>(null)
+  const [view, setView]     = useState<'pending' | 'all' | 'calendar'>('pending')
+  const [showForm, setShowForm]   = useState(false)
+  const [editing, setEditing]     = useState<Task | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [localCompletions, setLocalCompletions] = useState<Completion[]>(completions)
+  const [localCompletions,    setLocalCompletions]    = useState<Completion[]>(completions)
+  const [localWeekAssignments, setLocalWeekAssignments] = useState<WeekAssignment[]>(weekAssignments)
 
   const refresh = () => startTransition(() => router.refresh())
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleUncomplete = async (task: Task) => {
     setTogglingId(task.id)
     const period = FREQ_CONFIG[task.frequency]?.period ?? 'all'
@@ -418,21 +574,25 @@ export default function TasksClient({
     refresh()
   }
 
+  const handleSetDay = async (taskId: string, ws: string, day: string | null) => {
+    setLocalWeekAssignments(prev => {
+      const without = prev.filter(a => !(a.task_id === taskId && a.week_start === ws))
+      if (day === null) return without
+      return [...without, { id: 'tmp', task_id: taskId, week_start: ws, day_of_week: day }]
+    })
+    await setTaskWeekDay(taskId, ws, day)
+    refresh()
+  }
+
   const handleSave = async (data: Omit<Task, 'id'>) => {
     const payload = {
-      title: data.title,
-      frequency: data.frequency,
+      title: data.title, frequency: data.frequency,
       day_of_week: data.day_of_week ?? undefined,
       assigned_to: data.assigned_to ?? undefined,
       notes: data.notes ?? undefined,
     }
-    if (editing) {
-      await updateTask(editing.id, payload)
-      setEditing(null)
-    } else {
-      await createTask(payload)
-      setShowForm(false)
-    }
+    if (editing) { await updateTask(editing.id, payload); setEditing(null) }
+    else         { await createTask(payload); setShowForm(false) }
     refresh()
   }
 
@@ -444,10 +604,12 @@ export default function TasksClient({
     refresh()
   }
 
-  const totalPending = tasks.filter(t => !isDone(t, localCompletions)).length
+  // ── Progress ───────────────────────────────────────────────────────────────
   const totalDone    = tasks.filter(t =>  isDone(t, localCompletions)).length
+  const totalPending = tasks.filter(t => !isDone(t, localCompletions)).length
+  const overallPct   = tasks.length > 0 ? Math.round((totalDone / tasks.length) * 100) : 0
 
-  // Group by frequency for "all" view
+  // Group by frequency
   const byFreq: Record<string, Task[]> = {}
   for (const t of tasks) {
     if (!byFreq[t.frequency]) byFreq[t.frequency] = []
@@ -456,21 +618,43 @@ export default function TasksClient({
   const freqOrder = ['daily', 'weekly', 'annual', 'punctual']
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-8 py-10 animate-in fade-in">
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-10 animate-in fade-in">
 
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
+      <header className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tareas del hogar</h1>
-          <p className="text-slate-400 font-medium mt-1 text-sm">
-            {totalDone} completadas · {totalPending} pendientes
-          </p>
+          <p className="text-slate-400 font-medium mt-1 text-sm">{totalDone} completadas · {totalPending} pendientes</p>
         </div>
         <button onClick={() => { setShowForm(true); setEditing(null) }}
           className="flex items-center gap-2 bg-violet-500 hover:bg-violet-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
           <Plus size={16} /> Añadir tarea
         </button>
       </header>
+
+      {/* Progress bar — always visible */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 mb-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${overallPct === 100 ? 'bg-emerald-400' : 'bg-lime-400'}`}
+              style={{ width: `${overallPct}%` }} />
+          </div>
+          <span className="text-sm font-black text-slate-600 shrink-0">{overallPct}%</span>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
+            const cfg = FREQ_CONFIG[freq]
+            const fc  = byFreq[freq] ?? []
+            const fd  = fc.filter(t => isDone(t, localCompletions)).length
+            return (
+              <div key={freq} className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+                <span className="text-[11px] font-bold text-slate-500">{cfg.plural} {fd}/{fc.length}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       {/* New task form */}
       {(showForm && !editing) && (
@@ -484,7 +668,7 @@ export default function TasksClient({
         {([
           ['pending',  '📋 Esta semana'],
           ['all',      '⚙️ Gestionar'],
-          ['calendar', '📅 Historial'],
+          ['calendar', '📅 Semana'],
         ] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
@@ -493,7 +677,7 @@ export default function TasksClient({
         ))}
       </div>
 
-      {/* Pending view */}
+      {/* ── ESTA SEMANA ────────────────────────────────────────────────────── */}
       {view === 'pending' && (
         <div className="space-y-6">
           {tasks.length === 0 && (
@@ -503,14 +687,13 @@ export default function TasksClient({
               <p className="text-sm mt-1">Añade tareas con el botón de arriba</p>
             </div>
           )}
-
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
-            const cfg = FREQ_CONFIG[freq]
+            const cfg       = FREQ_CONFIG[freq]
             const freqTasks = (byFreq[freq] ?? []).slice().sort((a, b) =>
               freq === 'weekly' ? DAYS.indexOf(a.day_of_week ?? '') - DAYS.indexOf(b.day_of_week ?? '') : 0
             )
             const doneCnt = freqTasks.filter(t => isDone(t, localCompletions)).length
-            const pct = freqTasks.length > 0 ? Math.round((doneCnt / freqTasks.length) * 100) : 0
+            const pct     = freqTasks.length > 0 ? Math.round((doneCnt / freqTasks.length) * 100) : 0
             return (
               <div key={freq}>
                 <div className="flex items-center gap-3 mb-3">
@@ -545,12 +728,21 @@ export default function TasksClient({
         </div>
       )}
 
-      {/* Calendar view */}
+      {/* ── SEMANA (PLANNING CALENDAR) ─────────────────────────────────────── */}
       {view === 'calendar' && (
-        <CalendarView tasks={tasks} completions={localCompletions} />
+        <CalendarView
+          tasks={tasks}
+          completions={localCompletions}
+          profiles={profiles}
+          weekAssignments={localWeekAssignments}
+          togglingId={togglingId}
+          onComplete={handleComplete}
+          onUncomplete={handleUncomplete}
+          onSetDay={handleSetDay}
+        />
       )}
 
-      {/* All tasks view */}
+      {/* ── GESTIONAR ─────────────────────────────────────────────────────── */}
       {view === 'all' && (
         <div className="space-y-6">
           {tasks.length === 0 && (
@@ -558,7 +750,6 @@ export default function TasksClient({
               <p className="font-bold">Sin tareas. Añade la primera.</p>
             </div>
           )}
-
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
             const cfg = FREQ_CONFIG[freq]
             return (
