@@ -129,10 +129,12 @@ async function TasksWidget() {
 
   const done    = allTasks.filter(isDoneTask).length
   const pending = allTasks.filter(t => !isDoneTask(t))
+  const total   = allTasks.length
+  const pct     = total > 0 ? Math.round((done / total) * 100) : 0
 
   return (
     <div className="bg-white/80 rounded-3xl p-5 border border-lime-100 shadow-sm mb-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="bg-lime-100 p-2 rounded-xl text-lime-600"><CheckSquare size={18} /></div>
           <div>
@@ -144,7 +146,18 @@ async function TasksWidget() {
           <ArrowRight size={20} />
         </Link>
       </div>
-      {allTasks.length === 0 ? (
+
+      {total > 0 && (
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-400' : 'bg-lime-400'}`}
+              style={{ width: `${pct}%` }} />
+          </div>
+          <span className="text-xs font-bold text-slate-400 shrink-0">{pct}%</span>
+        </div>
+      )}
+
+      {total === 0 ? (
         <p className="text-sm text-slate-400 italic">Sin tareas registradas</p>
       ) : pending.length === 0 ? (
         <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 rounded-xl px-4 py-2.5 text-sm font-bold w-fit">

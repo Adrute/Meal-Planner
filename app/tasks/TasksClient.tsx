@@ -15,11 +15,11 @@ type Task = {
 type Completion = { id: string; task_id: string; completed_date: string; completed_by: string | null }
 type Profile = { id: string; display_name: string | null; email: string }
 
-const FREQ_CONFIG: Record<string, { label: string; period: string; bg: string; text: string; border: string; dot: string }> = {
-  daily:    { label: 'Diaria',  period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
-  weekly:   { label: 'Semanal', period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
-  annual:   { label: 'Anual',   period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
-  punctual: { label: 'Puntual', period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
+const FREQ_CONFIG: Record<string, { label: string; plural: string; period: string; bg: string; text: string; border: string; dot: string }> = {
+  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today', bg: 'bg-sky-50',    text: 'text-sky-700',    border: 'border-sky-200',    dot: 'bg-sky-400'    },
+  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',  bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-400' },
+  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',  bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400'  },
+  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',   bg: 'bg-rose-50',   text: 'text-rose-700',   border: 'border-rose-200',   dot: 'bg-rose-400'   },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -143,37 +143,67 @@ function TaskForm({
 // ── Task card (pending view) ───────────────────────────────────────────────────
 
 function TaskCard({
-  task, done, last, currentUser, onToggle,
+  task, done, last, profiles, onUncomplete, onComplete,
 }: {
-  task: Task; done: boolean; last: string | null; currentUser: string; onToggle: () => void
+  task: Task; done: boolean; last: string | null
+  profiles: Profile[]; onUncomplete: () => void; onComplete: (person: string) => void
 }) {
+  const [picking, setPicking] = useState(false)
   const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
 
+  const handleClick = () => {
+    if (done) { onUncomplete() } else { setPicking(true) }
+  }
+
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${done ? 'bg-slate-50/60 border-slate-100 opacity-70' : `${freq.bg} ${freq.border}`}`}>
-      <button onClick={onToggle} className="shrink-0">
-        {done
-          ? <CheckSquare size={22} className="text-emerald-500" />
-          : <Square size={22} className="text-slate-300" />}
-      </button>
-      <div className="flex-1 min-w-0">
-        <p className={`font-bold text-sm ${done ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title}</p>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          {task.assigned_to && (
-            <span className="text-[10px] font-bold text-slate-400">{task.assigned_to}</span>
-          )}
-          {task.day_of_week && (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${freq.bg} ${freq.text}`}>
-              {DAY_LABEL[task.day_of_week] ?? task.day_of_week}
-            </span>
-          )}
-          {last && done && (
-            <span className="text-[10px] text-emerald-600 font-medium">
-              ✓ {new Date(last + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-            </span>
-          )}
+    <div className={`flex flex-col p-4 rounded-2xl border transition-all ${done ? 'bg-slate-50/60 border-slate-100 opacity-70' : `${freq.bg} ${freq.border}`}`}>
+      <div className="flex items-center gap-3">
+        <button onClick={handleClick} className="shrink-0">
+          {done
+            ? <CheckSquare size={22} className="text-emerald-500" />
+            : <Square size={22} className="text-slate-300" />}
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className={`font-bold text-sm ${done ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title}</p>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            {task.assigned_to && (
+              <span className="text-[10px] font-bold text-slate-400">{task.assigned_to}</span>
+            )}
+            {task.day_of_week && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${freq.bg} ${freq.text}`}>
+                {DAY_LABEL[task.day_of_week] ?? task.day_of_week}
+              </span>
+            )}
+            {last && done && (
+              <span className="text-[10px] text-emerald-600 font-medium">
+                ✓ {new Date(last + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
+      {picking && (
+        <div className="mt-3 pt-3 border-t border-slate-200/60">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">¿Quién lo ha hecho?</p>
+          <div className="flex flex-wrap gap-1.5">
+            {profiles.map(p => {
+              const name = p.display_name ?? p.email.split('@')[0]
+              return (
+                <button key={p.id}
+                  onClick={() => { setPicking(false); onComplete(name) }}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`}>
+                  {name}
+                </button>
+              )
+            })}
+            <button onClick={() => setPicking(false)}
+              className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -361,32 +391,29 @@ export default function TasksClient({
 
   const refresh = () => startTransition(() => router.refresh())
 
-  const displayName = profiles.find(p => p.email === currentUser)?.display_name ?? currentUser.split('@')[0]
-
-  const handleToggle = async (task: Task) => {
+  const handleUncomplete = async (task: Task) => {
     setTogglingId(task.id)
-    const done = isDone(task, localCompletions)
     const period = FREQ_CONFIG[task.frequency]?.period ?? 'all'
+    setLocalCompletions(prev => prev.filter(c => {
+      if (c.task_id !== task.id) return true
+      const today = new Date().toISOString().split('T')[0]
+      const year  = new Date().getFullYear()
+      const { monday, sunday } = getWeekRange()
+      if (period === 'today') return c.completed_date !== today
+      if (period === 'week')  return !(c.completed_date >= monday && c.completed_date <= sunday)
+      if (period === 'year')  return !c.completed_date.startsWith(String(year))
+      return false
+    }))
+    await uncompleteTask(task.id, period)
+    setTogglingId(null)
+    refresh()
+  }
 
-    if (done) {
-      // Optimistic remove
-      setLocalCompletions(prev => prev.filter(c => {
-        if (c.task_id !== task.id) return true
-        const today = new Date().toISOString().split('T')[0]
-        const year = new Date().getFullYear()
-        const { monday, sunday } = getWeekRange()
-        if (period === 'today')  return c.completed_date !== today
-        if (period === 'week')   return !(c.completed_date >= monday && c.completed_date <= sunday)
-        if (period === 'year')   return !c.completed_date.startsWith(String(year))
-        return false
-      }))
-      await uncompleteTask(task.id, period)
-    } else {
-      // Optimistic add
-      const fake: Completion = { id: 'tmp', task_id: task.id, completed_date: new Date().toISOString().split('T')[0], completed_by: displayName }
-      setLocalCompletions(prev => [...prev, fake])
-      await completeTask(task.id, displayName)
-    }
+  const handleComplete = async (task: Task, person: string) => {
+    setTogglingId(task.id)
+    const fake: Completion = { id: 'tmp', task_id: task.id, completed_date: new Date().toISOString().split('T')[0], completed_by: person }
+    setLocalCompletions(prev => [...prev, fake])
+    await completeTask(task.id, person)
     setTogglingId(null)
     refresh()
   }
@@ -479,15 +506,25 @@ export default function TasksClient({
 
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
             const cfg = FREQ_CONFIG[freq]
-            const freqTasks = byFreq[freq] ?? []
+            const freqTasks = (byFreq[freq] ?? []).slice().sort((a, b) =>
+              freq === 'weekly' ? DAYS.indexOf(a.day_of_week ?? '') - DAYS.indexOf(b.day_of_week ?? '') : 0
+            )
+            const doneCnt = freqTasks.filter(t => isDone(t, localCompletions)).length
+            const pct = freqTasks.length > 0 ? Math.round((doneCnt / freqTasks.length) * 100) : 0
             return (
               <div key={freq}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-3 ${cfg.text}`}>{cfg.label}s</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <p className={`text-xs font-black uppercase tracking-widest shrink-0 ${cfg.text}`}>{cfg.plural}</p>
+                  <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div className={`h-full rounded-full transition-all duration-500 ${cfg.dot}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 shrink-0">{doneCnt}/{freqTasks.length}</span>
+                </div>
                 <div className="space-y-2">
                   {freqTasks.map(task => (
                     <div key={task.id} className="relative">
                       {togglingId === task.id && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/50 rounded-2xl">
                           <Loader2 size={16} className="animate-spin text-violet-500" />
                         </div>
                       )}
@@ -495,8 +532,9 @@ export default function TasksClient({
                         task={task}
                         done={isDone(task, localCompletions)}
                         last={lastDone(task, localCompletions)}
-                        currentUser={currentUser}
-                        onToggle={() => handleToggle(task)}
+                        profiles={profiles}
+                        onUncomplete={() => handleUncomplete(task)}
+                        onComplete={(person) => handleComplete(task, person)}
                       />
                     </div>
                   ))}
@@ -525,7 +563,7 @@ export default function TasksClient({
             const cfg = FREQ_CONFIG[freq]
             return (
               <div key={freq}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-3 ${cfg.text}`}>{cfg.label}s</p>
+                <p className={`text-xs font-black uppercase tracking-widest mb-3 ${cfg.text}`}>{cfg.plural}</p>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-50">
                   {(byFreq[freq] ?? []).map(task => (
                     <div key={task.id}>
