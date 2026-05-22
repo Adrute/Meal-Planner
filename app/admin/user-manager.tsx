@@ -17,6 +17,7 @@ const PERMISSIONS = [
   { key: 'wishlist',    label: 'Lista de deseos'  },
   { key: 'health',      label: 'Salud'            },
   { key: 'trips',       label: 'Viajes'           },
+  { key: 'tasks',       label: 'Tareas'           },
 ]
 
 function UserRow({ profile, isCurrentUser }: { profile: Profile; isCurrentUser: boolean }) {
