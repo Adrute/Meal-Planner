@@ -1,4 +1,4 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, CheckSquare } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, Swords } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -136,9 +136,9 @@ async function TasksWidget() {
     <div className="bg-white/80 rounded-3xl p-5 border border-lime-100 shadow-sm mb-6">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="bg-lime-100 p-2 rounded-xl text-lime-600"><CheckSquare size={18} /></div>
+          <div className="bg-lime-100 p-2 rounded-xl text-lime-600"><Swords size={18} /></div>
           <div>
-            <h2 className="font-bold text-slate-700">Tareas esta semana</h2>
+            <h2 className="font-bold text-slate-700">Quests esta semana</h2>
             <p className="text-xs text-slate-400">{done} completadas · {pending.length} pendientes</p>
           </div>
         </div>
@@ -158,10 +158,10 @@ async function TasksWidget() {
       )}
 
       {total === 0 ? (
-        <p className="text-sm text-slate-400 italic">Sin tareas registradas</p>
+        <p className="text-sm text-slate-400 italic">Sin misiones registradas</p>
       ) : pending.length === 0 ? (
         <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 rounded-xl px-4 py-2.5 text-sm font-bold w-fit">
-          <CheckSquare size={16} /> ¡Todo al día esta semana!
+          <Swords size={16} /> ¡Todo al día esta semana!
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
