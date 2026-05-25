@@ -1,5 +1,12 @@
 # Changelog — FamilyTools
 
+## [2026-05-26] Quests: rediseño RPG del módulo de tareas
+- Módulo de tareas renombrado a "Quests" en nav, dashboard y toda la UI
+- Nuevo estilo RPG: cabecera oscura tipo tablero de gremio de aventureros con barra de XP
+- Tarjetas de misiones en colores claros por frecuencia (coherente con el resto de la app)
+- Iconos RPG por tipo: Swords (diarias), Shield (semanales), Gem (épicas), Crown (legendarias), ScrollText (contratos)
+- Dashboard: widget actualizado con icono Swords y textos "Quests"/"misiones"
+
 ## [2026-05-23] Tareas: colores por frecuencia + completar en fechas anteriores
 - Cada bloque de tareas tiene ahora un color distinto según frecuencia: azul (diarias), violeta (semanales), ámbar (periódicas), rosa (anuales), naranja (puntuales)
 - La acción `completeTask` acepta una fecha opcional; si no se pasa usa hoy
