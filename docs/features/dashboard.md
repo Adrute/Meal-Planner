@@ -25,11 +25,13 @@ school_menu_items.select('date, first_course, second_course, dessert').in('date'
 - Próximas reservas de restaurantes (con fecha, hora y nombre del local)
 - Próximo viaje: tarjeta con destino y fechas + contadores de viajes por estado (Deseos / Planificando / Confirmados)
 
-### Widget 3 — Tareas esta semana
+### Widget 3 — Quests esta semana
 `TasksWidget` (función async inline en `app/page.tsx`):
+- Cabecera con icono Swords y título "Quests esta semana"
 - Solo muestra tareas `daily` y `weekly`
 - Barra de progreso, contador completadas/pendientes
-- Chips de las tareas pendientes (máx. 6 + contador de restantes)
+- Chips de las misiones pendientes (máx. 6 + contador de restantes)
+- Mensaje vacío: "Sin misiones registradas"
 - Si todo completado: mensaje de celebración
 
 **Datos cargados:**

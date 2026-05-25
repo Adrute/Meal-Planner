@@ -1,7 +1,9 @@
-# Tareas del Hogar
+# Quests (Tareas del Hogar)
+
+> El módulo se llama internamente "Quests" desde el rediseño RPG de 2026-05-26. La ruta, el permiso y las tablas de base de datos conservan el nombre técnico `tasks`/`household_tasks`.
 
 ## Rutas
-- `/tasks` — gestión y seguimiento de tareas domésticas
+- `/tasks` — gestión y seguimiento de misiones (quests)
 
 ## Permiso necesario
 El usuario debe tener `"tasks"` en `user_metadata.permissions`.
@@ -43,24 +45,37 @@ Sobreescritura semanal de día asignado y responsable (sin alterar los valores p
 - Todos los `task_week_assignments` del año en curso
 
 ## Frecuencias disponibles
-| valor | etiqueta | Lógica de "completada" |
-|---|---|---|
-| `daily` | Diaria | Si hay completion con `completed_date = hoy` |
-| `weekly` | Semanal | Si hay completion en el rango lunes–domingo de la semana actual |
-| `custom` | Periódica | Si la última completion fue hace menos de `custom_interval_days` días |
-| `annual` | Anual | Si hay completion en el año en curso |
-| `punctual` | Puntual | Si existe alguna completion (se completa una sola vez) |
+
+La constante `FREQ_CONFIG` en `TasksClient.tsx` define etiqueta, icono RPG y color de tarjeta para cada frecuencia:
+
+| valor | etiqueta UI | icono (lucide) | color tarjeta | Lógica de "completada" |
+|---|---|---|---|---|
+| `daily` | Diarias | Swords | sky-50 | Si hay completion con `completed_date = hoy` |
+| `weekly` | Semanales | Shield | violet-50 | Si hay completion en el rango lunes–domingo de la semana actual |
+| `custom` | Épicas | Gem | amber-50 | Si la última completion fue hace menos de `custom_interval_days` días |
+| `annual` | Legendarias | Crown | rose-50 | Si hay completion en el año en curso |
+| `punctual` | Contratos | ScrollText | orange-50 | Si existe alguna completion (se completa una sola vez) |
+
+## Diseño visual (RPG)
+
+La cabecera de la página es oscura (`slate-900`) con estética de "tablero del gremio de aventureros":
+- Título "Tablero del Gremio" con icono Swords
+- Barra de XP semanal (progreso global de misiones completadas en la semana)
+- Botón "Nueva Misión" en lugar de "Nueva Tarea"
+
+Las tarjetas de misiones en el tab "Esta semana" tienen fondo claro por frecuencia (ver tabla anterior). El resto de la app usa el mismo esquema de colores claros, de modo que solo la cabecera rompe intencionalmente con el diseño general.
 
 ## Vistas (tabs)
 
 ### Tab "Esta semana" (`pending`)
-- Agrupa tareas por frecuencia en el orden: diaria → semanal → periódica → anual → puntual
+- Agrupa misiones por frecuencia en el orden: diaria → semanal → periódica → anual → puntual
+- Cada grupo lleva el icono RPG y el color de tarjeta de su frecuencia
 - Las tareas periódicas solo aparecen si su próxima fecha de vencimiento cae en la semana actual o ya está vencida
 - Las semanales se ordenan por día de la semana
-- Barra de progreso por grupo y barra global en la cabecera
+- Barra de progreso por grupo y barra de XP global en la cabecera
 
 ### Tab "Gestionar" (`all`)
-- Lista plana de todas las tareas agrupadas por frecuencia
+- Lista plana de todas las misiones agrupadas por frecuencia
 - Iconos de editar y eliminar visibles al hacer hover
 - Formulario inline de edición
 
@@ -74,8 +89,8 @@ Sobreescritura semanal de día asignado y responsable (sin alterar los valores p
 ## Componentes principales (`TasksClient.tsx`)
 | componente | descripción |
 |---|---|
-| `TaskForm` | Formulario de creación/edición con todos los campos. Para tareas periódicas permite especificar la fecha de la última realización al crearla |
-| `TaskCard` | Tarjeta en el tab "Esta semana": checkbox, badge de persona, badge de día; despliega pickers inline |
+| `TaskForm` | Formulario de creación/edición con todos los campos. Para tareas periódicas permite especificar la fecha de la última realización al crearla. El botón de submit dice "Crear Misión" / "Guardar Cambios" |
+| `TaskCard` | Tarjeta en el tab "Esta semana": checkbox, badge de persona, badge de día; despliega pickers inline. Fondo de color según `FREQ_CONFIG` |
 | `TaskDayRow` | Fila en el tab "Semana" (calendario) |
 | `CalendarView` | Vista semanal completa con navegación de semanas |
 
@@ -100,9 +115,11 @@ El campo `assigned_to` almacena nombres separados por coma: `"Adrián, Paula"`. 
 | `setTaskWeekAssignee` | Upsert manual en `task_week_assignments` para el asignado |
 
 ## Widget en el Dashboard
-`TasksWidget` en `app/page.tsx`:
+`TasksWidget` en `app/page.tsx` (aparece como "Quests esta semana"):
+- Icono Swords en la cabecera del widget
 - Carga solo tareas `daily` y `weekly` con sus completions de la semana actual
-- Muestra barra de progreso, contador y chips de tareas pendientes (máx. 6, con "+N más")
+- Muestra barra de progreso, contador y chips de misiones pendientes (máx. 6, con "+N más")
+- Mensaje vacío: "Sin misiones registradas" (en lugar del antiguo "Sin tareas registradas")
 - Se filtra `Admin` de la lista de perfiles con `filterProfiles`
 
 ## Lógica de próxima fecha (tareas periódicas)

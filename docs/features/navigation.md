@@ -47,13 +47,19 @@ Cada una con su key, href, icono lucide y colores activo/hover definidos en `ALL
 
 El link "Inicio" (`/`) siempre es visible sin permiso. El link "Administración" (`/admin`) solo aparece si `isAdmin = true`.
 
+### Entrada "Quests" (key: `tasks`)
+- Icono: `Swords` (lucide)
+- Label: "Quests"
+- Color activo: `lime-500` / fondo `lime-50`
+- Href: `/tasks`
+
 ## Dashboard (`app/page.tsx`)
 Ver [dashboard.md](./dashboard.md) para el detalle completo de cada widget.
 
 Resumen:
 - **Widget Menú**: ancho completo, muestra hoy + próximos 3 días en grid de 4 columnas (Cole / Almuerzo / Cena por día)
 - **Widget Próximos Planes**: reservas de restaurantes + próximo viaje
-- **Widget Tareas**: progreso semanal de tareas diarias y semanales
+- **Widget Quests**: progreso semanal de misiones diarias y semanales (icono Swords)
 - **Widget Finanzas**: gasto mes actual vs anterior, top 3 categorías
 - **Widget Suministros**: medias de luz/gas/servicios, alerta de tarifa
 - **Módulo Bonos**: detalle completo si hay bonos activos
