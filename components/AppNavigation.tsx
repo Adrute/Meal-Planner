@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Home, Utensils, ShoppingBasket, Wallet, Zap, CalendarHeart,
-  LogOut, BookOpen, UtensilsCrossed, Gift, Menu, X, Database, HeartPulse, Plane, CheckSquare,
+  LogOut, BookOpen, UtensilsCrossed, Gift, Menu, X, Database, HeartPulse, Plane, Swords,
 } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 
@@ -20,7 +20,7 @@ const ALL_NAV_ITEMS = [
   { key: 'wishlist',    href: '/wishlist',        label: 'Lista de deseos',  icon: Gift,            activeColor: 'text-pink-500',    activeBg: 'bg-pink-50',     hoverColor: 'hover:text-pink-500    hover:bg-pink-50/60'    },
   { key: 'health',      href: '/health',          label: 'Salud',            icon: HeartPulse,      activeColor: 'text-red-400',     activeBg: 'bg-red-50',      hoverColor: 'hover:text-red-400     hover:bg-red-50/60'     },
   { key: 'trips',       href: '/trips',           label: 'Viajes',           icon: Plane,           activeColor: 'text-indigo-500',  activeBg: 'bg-indigo-50',   hoverColor: 'hover:text-indigo-500  hover:bg-indigo-50/60'  },
-  { key: 'tasks',       href: '/tasks',           label: 'Tareas',           icon: CheckSquare,     activeColor: 'text-lime-500',    activeBg: 'bg-lime-50',     hoverColor: 'hover:text-lime-500    hover:bg-lime-50/60'    },
+  { key: 'tasks',       href: '/tasks',           label: 'Quests',           icon: Swords,          activeColor: 'text-lime-500',    activeBg: 'bg-lime-50',     hoverColor: 'hover:text-lime-500    hover:bg-lime-50/60'    },
 ]
 
 type Props = {

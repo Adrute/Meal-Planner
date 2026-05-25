@@ -3,8 +3,8 @@
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  CheckSquare, Square, Plus, Pencil, Trash2, Loader2, X, Check,
-  Sparkles, ChevronLeft, ChevronRight,
+  Shield, ShieldCheck, Plus, Pencil, Trash2, Loader2, X, Check,
+  Swords, Crown, Gem, Trophy, Sparkles, ChevronLeft, ChevronRight, ScrollText, Flame,
 } from 'lucide-react'
 import {
   createTask, updateTask, deleteTask, completeTask, uncompleteTask, uncompleteTaskOnDate,
@@ -20,12 +20,17 @@ type Completion    = { id: string; task_id: string; completed_date: string; comp
 type Profile       = { id: string; display_name: string | null; email: string }
 type WeekAssignment = { id: string; task_id: string; week_start: string; day_of_week: string | null; assigned_to: string | null }
 
-const FREQ_CONFIG: Record<string, { label: string; plural: string; period: string; bg: string; text: string; border: string; dot: string }> = {
-  daily:    { label: 'Diaria',    plural: 'Diarias',    period: 'today',  bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     dot: 'bg-sky-400'     },
-  weekly:   { label: 'Semanal',   plural: 'Semanales',  period: 'week',   bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  dot: 'bg-violet-400'  },
-  custom:   { label: 'Periódica', plural: 'Periódicas', period: 'recent', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-amber-400'   },
-  annual:   { label: 'Anual',     plural: 'Anuales',    period: 'year',   bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    dot: 'bg-rose-400'    },
-  punctual: { label: 'Puntual',   plural: 'Puntuales',  period: 'all',    bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  dot: 'bg-orange-400'  },
+const FREQ_CONFIG: Record<string, {
+  label: string; plural: string; period: string
+  bg: string; text: string; border: string; dot: string
+  darkBg: string; darkText: string; darkBorder: string
+  Icon: React.ElementType
+}> = {
+  daily:    { label: 'Diaria',      plural: 'Misiones Diarias',      period: 'today',  bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     dot: 'bg-sky-400',     darkBg: 'bg-sky-900/40',    darkText: 'text-sky-300',    darkBorder: 'border-sky-700',    Icon: Swords   },
+  weekly:   { label: 'Semanal',     plural: 'Misiones Semanales',    period: 'week',   bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  dot: 'bg-violet-400',  darkBg: 'bg-violet-900/40', darkText: 'text-violet-300', darkBorder: 'border-violet-700', Icon: Shield   },
+  custom:   { label: 'Épica',       plural: 'Misiones Épicas',       period: 'recent', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-amber-400',   darkBg: 'bg-amber-900/40',  darkText: 'text-amber-300',  darkBorder: 'border-amber-700',  Icon: Gem      },
+  annual:   { label: 'Legendaria',  plural: 'Misiones Legendarias',  period: 'year',   bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    dot: 'bg-rose-400',    darkBg: 'bg-rose-900/40',   darkText: 'text-rose-300',   darkBorder: 'border-rose-700',   Icon: Crown    },
+  punctual: { label: 'Única',       plural: 'Contratos',             period: 'all',    bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  dot: 'bg-orange-400',  darkBg: 'bg-orange-900/40', darkText: 'text-orange-300', darkBorder: 'border-orange-700', Icon: ScrollText },
 }
 
 const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']
@@ -117,16 +122,14 @@ function getNextDueDate(task: Task, completions: Completion[]): string | null {
   return fmtDate(d)
 }
 
-// Returns the day name in the given week where a custom task should appear,
-// or null if it is not due during that week.
 function getCustomDayForWeek(task: Task, completions: Completion[], weekStart: string, weekEnd: string): string | null {
   const nextDue = getNextDueDate(task, completions)
   if (!nextDue || nextDue > weekEnd) return null
   if (nextDue >= weekStart) return DAYS[(new Date(nextDue + 'T12:00:00').getDay() + 6) % 7]
-  return DAYS[0] // overdue → show at start of week
+  return DAYS[0]
 }
 
-// ── Task form ─────────────────────────────────────────────────────────────────
+// ── Quest form ─────────────────────────────────────────────────────────────────
 
 function TaskForm({
   initial, profiles, onSave, onCancel,
@@ -175,23 +178,26 @@ function TaskForm({
     setSaving(false)
   }
 
-  const cls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white'
+  const cls = 'w-full border border-slate-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-amber-500 bg-slate-800 text-slate-100 placeholder:text-slate-500'
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-emerald-200 p-5 space-y-3 shadow-sm">
-      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{initial ? 'Editar tarea' : 'Nueva tarea'}</p>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre de la tarea *"
+    <form onSubmit={handleSubmit} className="bg-slate-900 rounded-2xl border border-amber-500/30 p-5 space-y-3 shadow-xl">
+      <div className="flex items-center gap-2 mb-1">
+        <ScrollText size={14} className="text-amber-400" />
+        <p className="text-xs font-black text-amber-400 uppercase tracking-widest">{initial ? 'Editar misión' : 'Nueva misión'}</p>
+      </div>
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre de la misión *"
         className={cls} autoFocus required />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Frecuencia</label>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tipo de misión</label>
           <select value={frequency} onChange={e => setFrequency(e.target.value)} className={cls}>
-            <option value="daily">Diaria</option>
-            <option value="weekly">Semanal</option>
-            <option value="custom">Periódica (intervalo…)</option>
-            <option value="annual">Anual</option>
-            <option value="punctual">Puntual</option>
+            <option value="daily">Diaria ⚔️</option>
+            <option value="weekly">Semanal 🛡️</option>
+            <option value="custom">Épica (intervalo…) 💎</option>
+            <option value="annual">Legendaria 👑</option>
+            <option value="punctual">Única ✨</option>
           </select>
         </div>
         {frequency === 'weekly' && (
@@ -209,15 +215,15 @@ function TaskForm({
             <div className="flex gap-1.5">
               <input type="number" min={1} max={365} value={intervalValue}
                 onChange={e => setIntervalValue(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-16 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white text-center font-bold" />
+                className="w-16 border border-slate-700 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-amber-500 bg-slate-800 text-slate-100 text-center font-bold" />
               <select value={intervalUnit} onChange={e => setIntervalUnit(e.target.value as 'dias' | 'semanas' | 'meses')}
-                className="flex-1 border border-slate-200 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-emerald-300 bg-white">
+                className="flex-1 border border-slate-700 rounded-xl px-2 py-2.5 text-sm outline-none focus:border-amber-500 bg-slate-800 text-slate-100">
                 <option value="dias">días</option>
                 <option value="semanas">semanas</option>
                 <option value="meses">meses</option>
               </select>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">= cada {computedIntervalDays} días</p>
+            <p className="text-[10px] text-slate-500 mt-1">= cada {computedIntervalDays} días</p>
           </div>
         )}
       </div>
@@ -225,21 +231,21 @@ function TaskForm({
       {frequency === 'custom' && !initial && (
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-            Última vez realizada <span className="text-slate-300 font-normal normal-case">(opcional)</span>
+            Última vez completada <span className="text-slate-600 font-normal normal-case">(opcional)</span>
           </label>
           <input type="date" value={lastDoneDate} onChange={e => setLastDoneDate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
             className={cls} />
           {lastDoneDate && computedIntervalDays > 0 && (
-            <p className="text-[10px] text-teal-600 font-bold mt-1">
-              Próxima vez: {new Date(new Date(lastDoneDate + 'T12:00:00').getTime() + computedIntervalDays * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+            <p className="text-[10px] text-amber-400 font-bold mt-1">
+              Próxima misión: {new Date(new Date(lastDoneDate + 'T12:00:00').getTime() + computedIntervalDays * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           )}
         </div>
       )}
 
       <div>
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Asignada habitualmente a</label>
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Aventurero asignado</label>
         <div className="flex flex-wrap gap-1.5">
           {filterProfiles(profiles).map(p => {
             const name = p.display_name!
@@ -247,28 +253,28 @@ function TaskForm({
             return (
               <button key={p.id} type="button"
                 onClick={() => setAssigned(prev => active ? prev.filter(n => n !== name) : [...prev, name])}
-                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${active ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-500'}`}>
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${active ? 'bg-amber-500 text-slate-900 border-amber-500' : 'bg-slate-800 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-400'}`}>
                 {name}
               </button>
             )
           })}
           {assignedTo.length > 0 && (
             <button type="button" onClick={() => setAssigned([])}
-              className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-red-50 hover:text-red-400">
+              className="text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-500 hover:bg-red-900/30 hover:text-red-400">
               Quitar todos
             </button>
           )}
         </div>
       </div>
-      <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas (opcional)" className={cls} />
+      <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas de la misión (opcional)" className={cls} />
       <div className="flex gap-2 pt-1">
         <button type="submit" disabled={saving}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl disabled:opacity-50">
+          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-sm px-4 py-2.5 rounded-xl disabled:opacity-50 transition-colors">
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-          {initial ? 'Guardar cambios' : 'Crear tarea'}
+          {initial ? 'Guardar misión' : 'Crear misión'}
         </button>
         <button type="button" onClick={onCancel}
-          className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50">
+          className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-400 font-bold text-sm hover:bg-slate-800">
           Cancelar
         </button>
       </div>
@@ -276,10 +282,7 @@ function TaskForm({
   )
 }
 
-// ── Task card (Esta semana tab) ────────────────────────────────────────────────
-// - Click name/person badge → assign who will do it (no completion)
-// - Click checkbox → auto-complete with pre-assigned person, or ask if none
-// - Day badge → day picker for this week
+// ── Quest card (Misiones activas tab) ─────────────────────────────────────────
 
 function TaskCard({
   task, done, last, profiles, weekStart, weekAssignments,
@@ -296,6 +299,7 @@ function TaskCard({
   const [showDayPicker, setShowDayPicker] = useState(false)
   const [selectedNames, setSelectedNames] = useState<string[]>([])
   const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
+  const FreqIcon = freq.Icon
 
   const weekAssignee  = getWeekAssignee(task.id, weekStart, weekAssignments)
   const assignedNames = parseNames(weekAssignee)
@@ -333,22 +337,31 @@ function TaskCard({
   const isDayable = task.frequency !== 'daily'
 
   return (
-    <div className={`flex flex-col p-4 rounded-2xl border transition-all ${done ? 'bg-slate-50/60 border-slate-100 opacity-70' : `${freq.bg} ${freq.border}`}`}>
-      <div className="flex items-center gap-3">
+    <div className={`flex flex-col rounded-2xl border transition-all overflow-hidden ${
+      done
+        ? 'bg-slate-900/60 border-slate-700/50 opacity-60'
+        : `bg-slate-900 border-slate-700 shadow-lg`
+    }`}>
+      {/* Color strip on top */}
+      {!done && <div className={`h-0.5 w-full ${freq.dot}`} />}
+
+      <div className="flex items-center gap-3 p-4">
         <button onClick={handleCheckbox} className="shrink-0">
-          {done ? <CheckSquare size={22} className="text-emerald-500" /> : <Square size={22} className="text-slate-300" />}
+          {done
+            ? <ShieldCheck size={22} className="text-emerald-400" />
+            : <Shield size={22} className={freq.darkText} />
+          }
         </button>
 
-        {/* Task name — click to assign person */}
         <button className="flex-1 min-w-0 text-left" onClick={togglePersonPicker}>
-          <p className={`font-bold text-sm ${done ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+          <p className={`font-bold text-sm ${done ? 'line-through text-slate-500' : 'text-slate-100'}`}>
             {task.title}
           </p>
           {task.frequency === 'custom' && task.custom_interval_days && (
-            <p className="text-[10px] text-slate-400 mt-0.5">{formatInterval(task.custom_interval_days)}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">{formatInterval(task.custom_interval_days)}</p>
           )}
           {last && done && (
-            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">
+            <p className="text-[10px] text-emerald-500 font-medium mt-0.5">
               ✓ {new Date(last + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
             </p>
           )}
@@ -358,29 +371,28 @@ function TaskCard({
           {isDayable && (
             <button onClick={toggleDayPicker}
               className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors min-w-[30px] text-center ${
-                showDayPicker ? 'bg-emerald-500 text-white border-emerald-500' :
-                effectiveDay  ? `${freq.bg} ${freq.text} ${freq.border}` :
-                'bg-slate-100 text-slate-400 border-transparent hover:bg-emerald-50 hover:text-emerald-500'
+                showDayPicker ? 'bg-amber-500 text-slate-900 border-amber-500' :
+                effectiveDay  ? `${freq.darkBg} ${freq.darkText} ${freq.darkBorder}` :
+                'bg-slate-800 text-slate-600 border-slate-700 hover:border-amber-500 hover:text-amber-400'
               }`}>
               {effectiveDay ? DAY_LABEL[effectiveDay] : '—'}
             </button>
           )}
           <button onClick={togglePersonPicker}
             className={`text-[10px] font-black px-2 py-1 rounded-lg border transition-colors max-w-[90px] truncate ${
-              pickMode === 'assign' ? 'bg-emerald-500 text-white border-emerald-500' :
-              assignedNames.length > 0 ? `${freq.bg} ${freq.text} ${freq.border}` :
-              'bg-slate-100 text-slate-400 border-transparent hover:bg-emerald-50 hover:text-emerald-500'
+              pickMode === 'assign' ? 'bg-amber-500 text-slate-900 border-amber-500' :
+              assignedNames.length > 0 ? `${freq.darkBg} ${freq.darkText} ${freq.darkBorder}` :
+              'bg-slate-800 text-slate-600 border-slate-700 hover:border-amber-500 hover:text-amber-400'
             }`}>
             {badgeText}
           </button>
         </div>
       </div>
 
-      {/* Person picker */}
       {(pickMode === 'assign' || pickMode === 'complete') && (
-        <div className="mt-3 pt-3 border-t border-slate-200/60">
+        <div className="mx-4 mb-4 pt-3 border-t border-slate-700/60">
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-            {pickMode === 'complete' ? '¿Quién lo ha hecho?' : '¿Quién lo va a hacer?'}
+            {pickMode === 'complete' ? '¿Qué aventurero lo completa?' : '¿Quién acepta la misión?'}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {filterProfiles(profiles).map(p => {
@@ -388,7 +400,7 @@ function TaskCard({
               if (pickMode === 'complete') {
                 return (
                   <button key={p.id} onClick={() => { onComplete(name); setPickMode(null) }}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`}>
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${freq.darkBg} ${freq.darkText} ${freq.darkBorder} hover:opacity-70`}>
                     {name}
                   </button>
                 )
@@ -397,8 +409,8 @@ function TaskCard({
               return (
                 <button key={p.id} onClick={() => toggleName(name)}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    isSelected ? 'bg-emerald-500 text-white border-emerald-500' :
-                    `${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`
+                    isSelected ? 'bg-amber-500 text-slate-900 border-amber-500' :
+                    `${freq.darkBg} ${freq.darkText} ${freq.darkBorder} hover:opacity-70`
                   }`}>
                   {isSelected ? `✓ ${name}` : name}
                 </button>
@@ -406,15 +418,15 @@ function TaskCard({
             })}
             {pickMode === 'complete' && (
               <button onClick={() => { onComplete('N/A'); setPickMode(null) }}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-100 transition-all">
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 text-slate-500 hover:bg-slate-800 transition-all">
                 N/A
               </button>
             )}
             {pickMode === 'assign' && (
               <button onClick={() => toggleName('N/A')}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                  selectedNames.includes('N/A') ? 'bg-slate-500 text-white border-slate-500' :
-                  'border-slate-200 text-slate-400 hover:bg-slate-100'
+                  selectedNames.includes('N/A') ? 'bg-slate-600 text-white border-slate-600' :
+                  'border-slate-700 text-slate-500 hover:bg-slate-800'
                 }`}>
                 {selectedNames.includes('N/A') ? '✓ N/A' : 'N/A'}
               </button>
@@ -423,52 +435,51 @@ function TaskCard({
           {pickMode === 'assign' && (
             <div className="flex gap-2 mt-2">
               <button onClick={() => { onAssignWeek(joinNames(selectedNames)); setPickMode(null) }}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
+                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500 text-slate-900 hover:bg-amber-400 transition-colors">
                 Confirmar
               </button>
               {assignedNames.length > 0 && (
                 <button onClick={() => { onAssignWeek(null); setPickMode(null) }}
-                  className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-500">
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 text-slate-500 hover:bg-red-900/30 hover:text-red-400">
                   Quitar todos
                 </button>
               )}
               <button onClick={() => setPickMode(null)}
-                className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
+                className="text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-600 hover:bg-slate-800">
                 Cancelar
               </button>
             </div>
           )}
           {pickMode === 'complete' && (
             <button onClick={() => setPickMode(null)}
-              className="text-xs mt-2 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
+              className="text-xs mt-2 px-3 py-1.5 rounded-xl border border-slate-700 text-slate-600 hover:bg-slate-800">
               Cancelar
             </button>
           )}
         </div>
       )}
 
-      {/* Day picker */}
       {showDayPicker && (
-        <div className="mt-3 pt-3 border-t border-slate-200/60">
+        <div className="mx-4 mb-4 pt-3 border-t border-slate-700/60">
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Asignar día esta semana</p>
           <div className="flex flex-wrap gap-1.5">
             {DAYS.map(d => (
               <button key={d} onClick={() => { setShowDayPicker(false); onSetDayForWeek(d) }}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                  effectiveDay === d ? 'bg-emerald-500 text-white border-emerald-500' :
-                  `${freq.bg} ${freq.text} ${freq.border} hover:opacity-70`
+                  effectiveDay === d ? 'bg-amber-500 text-slate-900 border-amber-500' :
+                  `${freq.darkBg} ${freq.darkText} ${freq.darkBorder} hover:opacity-70`
                 }`}>
                 {DAY_LABEL[d]}
               </button>
             ))}
             {task.frequency !== 'weekly' && effectiveDay && (
               <button onClick={() => { setShowDayPicker(false); onSetDayForWeek(null) }}
-                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-red-50">
+                className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 text-slate-500 hover:bg-red-900/30">
                 Sin día
               </button>
             )}
             <button onClick={() => setShowDayPicker(false)}
-              className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 text-slate-300 hover:bg-slate-50">
+              className="text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-600 hover:bg-slate-800">
               Cancelar
             </button>
           </div>
@@ -478,7 +489,7 @@ function TaskCard({
   )
 }
 
-// ── Task row (calendar day list) ──────────────────────────────────────────────
+// ── Quest row (calendar day list) ─────────────────────────────────────────────
 
 function TaskDayRow({
   task, isComplete, completedBy, profiles, weekStart, weekAssignments, date, onComplete, onUncomplete, onSetDay,
@@ -496,25 +507,28 @@ function TaskDayRow({
   const weekAssignee = getWeekAssignee(task.id, weekStart, weekAssignments)
 
   return (
-    <div className={`px-4 py-3 transition-all ${isComplete ? 'opacity-60' : ''}`}>
+    <div className={`px-4 py-3 transition-all ${isComplete ? 'opacity-50' : ''}`}>
       <div className="flex items-center gap-3">
         <button className="shrink-0"
           onClick={() => isComplete ? onUncomplete(task, date) : setMode(m => m === 'person' ? null : 'person')}>
-          {isComplete ? <CheckSquare size={18} className="text-emerald-500" /> : <Square size={18} className="text-slate-300" />}
+          {isComplete
+            ? <ShieldCheck size={18} className="text-emerald-400" />
+            : <Shield size={18} className={freq.darkText} />
+          }
         </button>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-bold ${isComplete ? 'line-through text-slate-400' : 'text-slate-700'}`}>{task.title}</p>
+          <p className={`text-sm font-bold ${isComplete ? 'line-through text-slate-500' : 'text-slate-200'}`}>{task.title}</p>
           {isComplete && completedBy && completedBy !== 'N/A' ? (
-            <p className="text-[10px] mt-0.5 text-emerald-600 font-bold">✓ {completedBy}</p>
+            <p className="text-[10px] mt-0.5 text-emerald-400 font-bold">✓ {completedBy}</p>
           ) : !isComplete && weekAssignee ? (
-            <p className="text-[10px] mt-0.5 text-slate-400">{weekAssignee}</p>
+            <p className="text-[10px] mt-0.5 text-slate-500">{weekAssignee}</p>
           ) : null}
         </div>
         {task.frequency !== 'daily' && (
           <button onClick={() => setMode(m => m === 'day' ? null : 'day')}
             className={`text-[10px] font-black px-1.5 py-0.5 rounded-md shrink-0 transition-colors ${
-              mode === 'day' ? 'bg-emerald-500 text-white' :
-              effectiveDay  ? `${freq.bg} ${freq.text}` : 'text-slate-300 hover:text-emerald-400'
+              mode === 'day' ? 'bg-amber-500 text-slate-900' :
+              effectiveDay  ? `${freq.darkBg} ${freq.darkText}` : 'text-slate-600 hover:text-amber-400'
             }`}>
             {effectiveDay ? DAY_LABEL[effectiveDay] : '·'}
           </button>
@@ -522,37 +536,37 @@ function TaskDayRow({
       </div>
 
       {mode === 'person' && (
-        <div className="mt-2 ml-9 pt-2 border-t border-slate-100">
-          <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">¿Quién lo ha hecho?</p>
+        <div className="mt-2 ml-9 pt-2 border-t border-slate-700/50">
+          <p className="text-[9px] font-black text-slate-500 uppercase mb-1.5">¿Qué aventurero lo completa?</p>
           <div className="flex flex-wrap gap-1">
             {filterProfiles(profiles).map(p => (
               <button key={p.id} onClick={() => { setMode(null); onComplete(task, p.display_name!, date) }}
-                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 hover:bg-emerald-50 text-slate-600">
+                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 hover:border-amber-500 hover:text-amber-400 text-slate-400">
                 {p.display_name}
               </button>
             ))}
             <button onClick={() => { setMode(null); onComplete(task, 'N/A', date) }}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-400 hover:bg-slate-100">N/A</button>
-            <button onClick={() => setMode(null)} className="text-[10px] text-slate-400 px-1">✕</button>
+              className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-slate-600 hover:bg-slate-700">N/A</button>
+            <button onClick={() => setMode(null)} className="text-[10px] text-slate-600 px-1">✕</button>
           </div>
         </div>
       )}
 
       {mode === 'day' && (
-        <div className="mt-2 ml-9 pt-2 border-t border-slate-100">
-          <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">Mover a</p>
+        <div className="mt-2 ml-9 pt-2 border-t border-slate-700/50">
+          <p className="text-[9px] font-black text-slate-500 uppercase mb-1.5">Mover a</p>
           <div className="flex flex-wrap gap-1">
             {DAYS.map(d => (
               <button key={d} onClick={() => { setMode(null); onSetDay(task.id, weekStart, d) }}
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                  effectiveDay === d ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50'
+                  effectiveDay === d ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-amber-500'
                 }`}>
                 {DAY_LABEL[d]}
               </button>
             ))}
             {task.frequency !== 'weekly' && effectiveDay && (
               <button onClick={() => { setMode(null); onSetDay(task.id, weekStart, null) }}
-                className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-400 hover:bg-red-50">
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-slate-500 hover:bg-red-900/30">
                 ✕
               </button>
             )}
@@ -563,7 +577,7 @@ function TaskDayRow({
   )
 }
 
-// ── Calendar / Planning view ───────────────────────────────────────────────────
+// ── Map / Planning view ───────────────────────────────────────────────────────
 
 function CalendarView({
   tasks, completions, profiles, weekAssignments, togglingId, onComplete, onUncomplete, onSetDay,
@@ -597,130 +611,130 @@ function CalendarView({
 
   return (
     <div>
-      {/* Navigation */}
       <div className="flex items-center justify-end mb-5 gap-0.5">
         <button onClick={() => setOffset(o => o - 1)}
-          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+          className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <span className="text-sm font-bold text-slate-700 min-w-[190px] text-center capitalize">
+        <span className="text-sm font-bold text-slate-300 min-w-[190px] text-center capitalize">
           {weekLabel}
         </span>
         <button onClick={() => setOffset(o => o + 1)}
-          className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+          className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors">
           <ChevronRight size={18} />
         </button>
         {offset !== 0 && (
           <button onClick={() => setOffset(0)}
-            className="ml-1 text-xs font-bold text-emerald-500 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">
+            className="ml-1 text-xs font-bold text-amber-400 hover:bg-slate-800 px-2.5 py-1 rounded-lg transition-colors">
             Hoy
           </button>
         )}
       </div>
 
       <div className="space-y-3 mb-4">
-            {weekDays.map(d => {
-              const ds      = fmtDate(d)
-              const dayName = DAYS[(d.getDay() + 6) % 7]
-              const isToday = ds === today
+        {weekDays.map(d => {
+          const ds      = fmtDate(d)
+          const dayName = DAYS[(d.getDay() + 6) % 7]
+          const isToday = ds === today
 
-              const dailyTasks     = tasks.filter(t => t.frequency === 'daily')
-              const scheduledTasks = tasks.filter(t => {
-                if (t.frequency === 'daily') return false
-                if (t.frequency === 'custom') return getCustomDayForWeek(t, completions, weekStart, weekEnd) === dayName
-                return getEffectiveDay(t, weekStart, weekAssignments) === dayName
-              })
-              const allInDay = [...dailyTasks, ...scheduledTasks]
+          const dailyTasks     = tasks.filter(t => t.frequency === 'daily')
+          const scheduledTasks = tasks.filter(t => {
+            if (t.frequency === 'daily') return false
+            if (t.frequency === 'custom') return getCustomDayForWeek(t, completions, weekStart, weekEnd) === dayName
+            return getEffectiveDay(t, weekStart, weekAssignments) === dayName
+          })
+          const allInDay = [...dailyTasks, ...scheduledTasks]
 
-              const doneCount = allInDay.filter(t =>
-                t.frequency === 'daily'
-                  ? isDoneOnDate(t, completions, ds)
-                  : isDoneInWeek(t, completions, weekStart, weekEnd)
-              ).length
+          const doneCount = allInDay.filter(t =>
+            t.frequency === 'daily'
+              ? isDoneOnDate(t, completions, ds)
+              : isDoneInWeek(t, completions, weekStart, weekEnd)
+          ).length
 
-              return (
-                <div key={ds} className={`rounded-2xl border overflow-hidden ${isToday ? 'border-lime-300 shadow-sm' : 'border-slate-100'}`}>
-                  <div className={`flex items-center justify-between px-4 py-2.5 ${isToday ? 'bg-lime-400' : 'bg-slate-50'}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-black capitalize ${isToday ? 'text-white' : 'text-slate-700'}`}>
-                        {d.toLocaleDateString('es-ES', { weekday: 'long' })}
-                      </span>
-                      <span className={`text-xs ${isToday ? 'text-white/70' : 'text-slate-400'}`}>
-                        {d.getDate()} {d.toLocaleDateString('es-ES', { month: 'short' })}
-                      </span>
-                    </div>
-                    <span className={`text-xs font-black ${isToday ? 'text-white/70' : 'text-slate-400'}`}>
-                      {doneCount}/{allInDay.length}
-                    </span>
-                  </div>
+          return (
+            <div key={ds} className={`rounded-2xl border overflow-hidden ${isToday ? 'border-amber-500 shadow-amber-900/40 shadow-lg' : 'border-slate-700/50'}`}>
+              <div className={`flex items-center justify-between px-4 py-2.5 ${isToday ? 'bg-amber-500' : 'bg-slate-800'}`}>
+                <div className="flex items-center gap-2">
+                  {isToday && <Flame size={14} className="text-slate-900" />}
+                  <span className={`text-sm font-black capitalize ${isToday ? 'text-slate-900' : 'text-slate-300'}`}>
+                    {d.toLocaleDateString('es-ES', { weekday: 'long' })}
+                  </span>
+                  <span className={`text-xs ${isToday ? 'text-slate-900/70' : 'text-slate-500'}`}>
+                    {d.getDate()} {d.toLocaleDateString('es-ES', { month: 'short' })}
+                  </span>
+                </div>
+                <span className={`text-xs font-black ${isToday ? 'text-slate-900/70' : 'text-slate-500'}`}>
+                  {doneCount}/{allInDay.length}
+                </span>
+              </div>
 
-                  {allInDay.length > 0 ? (
-                    <div className="divide-y divide-slate-50 bg-white">
-                      {allInDay.map(task => (
-                        <div key={task.id} className="relative">
-                          {togglingId === task.id && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/60">
-                              <Loader2 size={12} className="animate-spin text-emerald-500" />
-                            </div>
-                          )}
-                          <TaskDayRow
-                            task={task}
-                            isComplete={task.frequency === 'daily'
-                              ? isDoneOnDate(task, completions, ds)
-                              : isDoneInWeek(task, completions, weekStart, weekEnd)}
-                            completedBy={(() => {
-                              const tc = completions.filter(c => c.task_id === task.id)
-                              const match = task.frequency === 'daily'
-                                ? tc.find(c => c.completed_date === ds)
-                                : tc.find(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
-                              return match?.completed_by ?? null
-                            })()}
-                            profiles={profiles}
-                            weekStart={weekStart}
-                            weekAssignments={weekAssignments}
-                            date={ds}
-                            onComplete={onComplete}
-                            onUncomplete={onUncomplete}
-                            onSetDay={onSetDay}
-                          />
+              {allInDay.length > 0 ? (
+                <div className="divide-y divide-slate-800 bg-slate-900">
+                  {allInDay.map(task => (
+                    <div key={task.id} className="relative">
+                      {togglingId === task.id && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-slate-900/60">
+                          <Loader2 size={12} className="animate-spin text-amber-400" />
                         </div>
-                      ))}
+                      )}
+                      <TaskDayRow
+                        task={task}
+                        isComplete={task.frequency === 'daily'
+                          ? isDoneOnDate(task, completions, ds)
+                          : isDoneInWeek(task, completions, weekStart, weekEnd)}
+                        completedBy={(() => {
+                          const tc = completions.filter(c => c.task_id === task.id)
+                          const match = task.frequency === 'daily'
+                            ? tc.find(c => c.completed_date === ds)
+                            : tc.find(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
+                          return match?.completed_by ?? null
+                        })()}
+                        profiles={profiles}
+                        weekStart={weekStart}
+                        weekAssignments={weekAssignments}
+                        date={ds}
+                        onComplete={onComplete}
+                        onUncomplete={onUncomplete}
+                        onSetDay={onSetDay}
+                      />
                     </div>
-                  ) : (
-                    <div className="bg-white px-4 py-3">
-                      <p className="text-xs text-slate-300">Sin tareas asignadas</p>
-                    </div>
-                  )}
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-slate-900 px-4 py-3">
+                  <p className="text-xs text-slate-600">Sin misiones asignadas</p>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {unscheduled.length > 0 && (
+        <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-4">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Misiones sin asignar esta semana</p>
+          <div className="space-y-2.5">
+            {unscheduled.map(task => {
+              const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
+              return (
+                <div key={task.id} className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-xl border ${freq.darkBg} ${freq.darkText} ${freq.darkBorder}`}>
+                    {task.title}
+                  </span>
+                  <div className="flex gap-1 flex-wrap">
+                    {DAYS.map(d => (
+                      <button key={d} onClick={() => onSetDay(task.id, weekStart, d)}
+                        className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:border-amber-500 hover:text-amber-400 transition-colors">
+                        {DAY_LABEL[d]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )
             })}
           </div>
-
-          {unscheduled.length > 0 && (
-            <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Sin asignar esta semana</p>
-              <div className="space-y-2.5">
-                {unscheduled.map(task => {
-                  const freq = FREQ_CONFIG[task.frequency] ?? FREQ_CONFIG.punctual
-                  return (
-                    <div key={task.id} className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-xl border ${freq.bg} ${freq.text} ${freq.border}`}>
-                        {task.title}
-                      </span>
-                      <div className="flex gap-1 flex-wrap">
-                        {DAYS.map(d => (
-                          <button key={d} onClick={() => onSetDay(task.id, weekStart, d)}
-                            className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:border-emerald-300 transition-colors">
-                            {DAY_LABEL[d]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -743,7 +757,6 @@ export default function TasksClient({
   const [localCompletions,     setLocalCompletions]     = useState<Completion[]>(completions)
   const [localWeekAssignments, setLocalWeekAssignments] = useState<WeekAssignment[]>(weekAssignments)
 
-  // Sync local state when server data refreshes (router.refresh() brings new props)
   useEffect(() => { setLocalCompletions(completions) },     [completions])
   useEffect(() => { setLocalWeekAssignments(weekAssignments) }, [weekAssignments])
 
@@ -830,7 +843,7 @@ export default function TasksClient({
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Eliminar esta tarea?')) return
+    if (!confirm('¿Abandonar esta misión permanentemente?')) return
     setDeletingId(id)
     await deleteTask(id)
     setDeletingId(null)
@@ -852,28 +865,41 @@ export default function TasksClient({
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-10 animate-in fade-in">
 
-      {/* Header */}
-      <header className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tareas del hogar</h1>
-          <p className="text-slate-400 font-medium mt-1 text-sm">{totalDone} completadas · {totalPending} pendientes</p>
+      {/* Header RPG */}
+      <header className="mb-5">
+        <div className="bg-slate-900 rounded-2xl px-6 py-5 border border-slate-800 shadow-xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-900/20 via-slate-900 to-slate-900 pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Swords size={14} className="text-amber-400" />
+                <span className="text-amber-400 font-black text-[10px] uppercase tracking-widest">Gremio de Aventureros</span>
+              </div>
+              <h1 className="text-3xl font-black text-white tracking-tight">Tablero de Misiones</h1>
+              <p className="text-slate-500 font-medium mt-1 text-sm">
+                {totalDone} completadas · {totalPending} pendientes
+              </p>
+            </div>
+            <button onClick={() => { setShowForm(true); setEditing(null) }}
+              className="flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-900 font-black px-4 py-2.5 rounded-xl text-sm transition-colors shrink-0 shadow-lg">
+              <Plus size={16} /> Nueva misión
+            </button>
+          </div>
         </div>
-        <button onClick={() => { setShowForm(true); setEditing(null) }}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
-          <Plus size={16} /> Añadir tarea
-        </button>
       </header>
 
-      {/* Global progress bar — always visible */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-500 ${overallPct === 100 ? 'bg-emerald-400' : 'bg-lime-400'}`}
-              style={{ width: `${overallPct}%` }} />
-          </div>
-          <span className="text-sm font-black text-slate-600 shrink-0">{overallPct}%</span>
+      {/* XP bar */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm px-5 py-4 mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy size={14} className="text-amber-400" />
+          <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Experiencia del Gremio</span>
+          <span className="ml-auto text-sm font-black text-white">{overallPct}%</span>
         </div>
-        <div className="flex flex-wrap gap-4">
+        <div className="bg-slate-800 rounded-full h-2.5 overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-700 ${overallPct === 100 ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'}`}
+            style={{ width: `${overallPct}%` }} />
+        </div>
+        <div className="flex flex-wrap gap-4 mt-3">
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
             const cfg = FREQ_CONFIG[freq]; const fc = byFreq[freq] ?? []
             const fd  = fc.filter(t => isDone(t, localCompletions)).length
@@ -887,7 +913,7 @@ export default function TasksClient({
         </div>
       </div>
 
-      {/* New task form */}
+      {/* New quest form */}
       {(showForm && !editing) && (
         <div className="mb-6">
           <TaskForm profiles={profiles} onSave={handleSave} onCancel={() => setShowForm(false)} />
@@ -895,37 +921,38 @@ export default function TasksClient({
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-6 w-fit">
+      <div className="flex gap-1 bg-slate-900 rounded-xl p-1 mb-6 w-fit border border-slate-800">
         {([
-          ['pending',  '📋 Esta semana'],
-          ['all',      '⚙️ Gestionar'],
-          ['calendar', '📅 Semana'],
+          ['pending',  '⚔️ Misiones Activas'],
+          ['all',      '📜 Tablero del Gremio'],
+          ['calendar', '🗺️ Mapa Semanal'],
         ] as const).map(([v, label]) => (
           <button key={v} onClick={() => setView(v)}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${view === v ? 'bg-amber-400 text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>
             {label}
           </button>
         ))}
       </div>
 
-      {/* ── ESTA SEMANA ────────────────────────────────────────────────────── */}
+      {/* ── MISIONES ACTIVAS ───────────────────────────────────────────────── */}
       {view === 'pending' && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {tasks.length === 0 && (
-            <div className="text-center py-16 text-slate-400">
+            <div className="text-center py-16 text-slate-600">
               <Sparkles size={40} className="mx-auto mb-3 opacity-20" />
-              <p className="font-bold">Sin tareas registradas</p>
-              <p className="text-sm mt-1">Añade tareas con el botón de arriba</p>
+              <p className="font-bold text-slate-400">El tablero está vacío, aventurero</p>
+              <p className="text-sm mt-1">Crea tu primera misión con el botón de arriba</p>
             </div>
           )}
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
             const cfg       = FREQ_CONFIG[freq]
+            const FreqIcon  = cfg.Icon
             const { sunday } = getWeekRange()
             const freqTasks = (byFreq[freq] ?? [])
               .filter(t => {
                 if (t.frequency !== 'custom') return true
                 const nextDue = getNextDueDate(t, localCompletions)
-                return !nextDue || nextDue <= sunday // only show if due this week or overdue
+                return !nextDue || nextDue <= sunday
               })
               .slice().sort((a, b) =>
                 freq === 'weekly' ? DAYS.indexOf(a.day_of_week ?? '') - DAYS.indexOf(b.day_of_week ?? '') : 0
@@ -936,18 +963,19 @@ export default function TasksClient({
             return (
               <div key={freq}>
                 <div className="flex items-center gap-3 mb-3">
+                  <FreqIcon size={14} className={cfg.text} />
                   <p className={`text-xs font-black uppercase tracking-widest shrink-0 ${cfg.text}`}>{cfg.plural}</p>
-                  <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div className="flex-1 bg-slate-800 rounded-full h-1.5 overflow-hidden">
                     <div className={`h-full rounded-full transition-all duration-500 ${cfg.dot}`} style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="text-xs font-bold text-slate-400 shrink-0">{doneCnt}/{freqTasks.length}</span>
+                  <span className="text-xs font-bold text-slate-600 shrink-0">{doneCnt}/{freqTasks.length}</span>
                 </div>
                 <div className="space-y-2">
                   {freqTasks.map(task => (
                     <div key={task.id} className="relative">
                       {togglingId === task.id && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/50 rounded-2xl">
-                          <Loader2 size={16} className="animate-spin text-emerald-500" />
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-slate-900/50 rounded-2xl">
+                          <Loader2 size={16} className="animate-spin text-amber-400" />
                         </div>
                       )}
                       <TaskCard
@@ -971,7 +999,7 @@ export default function TasksClient({
         </div>
       )}
 
-      {/* ── SEMANA (PLANNING CALENDAR) ─────────────────────────────────────── */}
+      {/* ── MAPA SEMANAL ──────────────────────────────────────────────────── */}
       {view === 'calendar' && (
         <CalendarView
           tasks={tasks}
@@ -985,20 +1013,24 @@ export default function TasksClient({
         />
       )}
 
-      {/* ── GESTIONAR ─────────────────────────────────────────────────────── */}
+      {/* ── TABLERO DEL GREMIO ────────────────────────────────────────────── */}
       {view === 'all' && (
         <div className="space-y-6">
           {tasks.length === 0 && (
-            <div className="text-center py-16 text-slate-400">
-              <p className="font-bold">Sin tareas. Añade la primera.</p>
+            <div className="text-center py-16 text-slate-600">
+              <p className="font-bold">El tablero del gremio está vacío. Crea la primera misión.</p>
             </div>
           )}
           {freqOrder.filter(f => byFreq[f]?.length).map(freq => {
-            const cfg = FREQ_CONFIG[freq]
+            const cfg      = FREQ_CONFIG[freq]
+            const FreqIcon = cfg.Icon
             return (
               <div key={freq}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-3 ${cfg.text}`}>{cfg.plural}</p>
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <FreqIcon size={14} className={cfg.text} />
+                  <p className={`text-xs font-black uppercase tracking-widest ${cfg.text}`}>{cfg.plural}</p>
+                </div>
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm divide-y divide-slate-800">
                   {(byFreq[freq] ?? []).map(task => (
                     <div key={task.id}>
                       {editing?.id === task.id ? (
@@ -1007,10 +1039,10 @@ export default function TasksClient({
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 px-4 py-3 group">
-                          <div className={`w-2 h-2 rounded-full shrink-0 ${cfg.bg} border ${cfg.border}`} />
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm text-slate-800">{task.title}</p>
-                            <p className="text-xs text-slate-400">
+                            <p className="font-bold text-sm text-slate-200">{task.title}</p>
+                            <p className="text-xs text-slate-600">
                               {task.assigned_to && <span>{task.assigned_to}</span>}
                               {task.day_of_week && <span> · {task.day_of_week.charAt(0).toUpperCase() + task.day_of_week.slice(1)}</span>}
                               {task.custom_interval_days && <span> · {formatInterval(task.custom_interval_days)}</span>}
@@ -1022,11 +1054,11 @@ export default function TasksClient({
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => { setEditing(task); setShowForm(false) }}
-                              className="p-1.5 rounded-lg text-slate-300 hover:text-teal-500 hover:bg-teal-50 transition-colors">
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-900/30 transition-colors">
                               <Pencil size={14} />
                             </button>
                             <button onClick={() => handleDelete(task.id)} disabled={deletingId === task.id}
-                              className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-900/30 transition-colors disabled:opacity-50">
                               {deletingId === task.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                             </button>
                           </div>
