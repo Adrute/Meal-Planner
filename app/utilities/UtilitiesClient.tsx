@@ -113,10 +113,8 @@ export default function UtilitiesClient({
 
   return (
     <>
-      {/* --- TARJETAS DE RESUMEN --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-        {/* LUZ */}
         <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -149,7 +147,6 @@ export default function UtilitiesClient({
           </div>
         </section>
 
-        {/* GAS */}
         <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -182,7 +179,6 @@ export default function UtilitiesClient({
           </div>
         </section>
 
-        {/* SERVICIOS */}
         <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
@@ -203,7 +199,6 @@ export default function UtilitiesClient({
         </section>
       </div>
 
-      {/* --- FILTRO DE FECHAS --- */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
           Desde
@@ -231,7 +226,6 @@ export default function UtilitiesClient({
         </button>
       </div>
 
-      {/* --- GRÁFICA DE LÍNEAS --- */}
       <section className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600"><BarChart3 size={20} /></div>
@@ -248,7 +242,6 @@ export default function UtilitiesClient({
         )}
       </section>
 
-      {/* --- HISTÓRICO CON PAGINACIÓN --- */}
       <section className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
