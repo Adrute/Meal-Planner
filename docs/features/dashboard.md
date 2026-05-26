@@ -28,7 +28,7 @@ school_menu_items.select('date, first_course, second_course, dessert').in('date'
 ### Widget 3 — Quests esta semana
 `TasksWidget` (función async inline en `app/page.tsx`):
 - Cabecera con icono Swords y título "Quests esta semana"
-- Solo muestra tareas `daily` y `weekly`
+- Solo muestra quests `daily` y `weekly`
 - Barra de progreso, contador completadas/pendientes
 - Chips de las misiones pendientes (máx. 6 + contador de restantes)
 - Mensaje vacío: "Sin misiones registradas"

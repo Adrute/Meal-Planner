@@ -1,5 +1,10 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Docs: actualizar documentación del módulo Quests
+- Renombrado `docs/features/tasks.md` → `docs/features/quests.md`
+- Actualizadas referencias en texto libre de "tarea/tareas" a "quest/quests" en `quests.md`, `dashboard.md` y `auth-permissions.md`
+- Los identificadores técnicos (tablas, ruta `/tasks`, permiso `tasks`) se mantienen sin cambios
+
 ## [2026-05-27] Quests: corregir etiqueta de frecuencia puntual en formulario
 - El selector de tipo de misión ahora muestra "Contrato 📜" en lugar de "Única ✨", alineando el formulario de creación con el agrupador del listado (`FREQ_CONFIG.punctual.plural`)
 
