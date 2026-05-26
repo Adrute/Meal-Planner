@@ -6,8 +6,12 @@ export default function UtilitiesLineChart({ data }: { data: any[] }) {
   // Damos formato a los datos para que la librería los lea fácilmente
   const formattedData = data.map(inv => {
     const dateObj = new Date(inv.issue_date);
+    const label = new Date(Date.UTC(dateObj.getUTCFullYear(), dateObj.getUTCMonth(), 1))
+      .toLocaleDateString('es-ES', { month: 'short', year: '2-digit', timeZone: 'UTC' })
+      .replace('.', '')
+      .toUpperCase();
     return {
-      name: dateObj.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }).replace('.', '').toUpperCase(),
+      name: label,
       Luz: Number(inv.elec_amount),
       Gas: Number(inv.gas_amount),
       Servicios: Number(inv.services_amount),
