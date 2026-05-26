@@ -3,7 +3,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 export default function UtilitiesLineChart({ data }: { data: any[] }) {
-  // Damos formato a los datos para que la librería los lea fácilmente
   const formattedData = data.map(inv => {
     const dateObj = new Date(inv.issue_date);
     const label = new Date(Date.UTC(dateObj.getUTCFullYear(), dateObj.getUTCMonth(), 1))
