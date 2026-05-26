@@ -1,5 +1,8 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Quests: corregir etiqueta de frecuencia puntual en formulario
+- El selector de tipo de misión ahora muestra "Contrato 📜" en lugar de "Única ✨", alineando el formulario de creación con el agrupador del listado (`FREQ_CONFIG.punctual.plural`)
+
 ## [2026-05-26] Quests: rediseño RPG del módulo de tareas
 - Módulo de tareas renombrado a "Quests" en nav, dashboard y toda la UI
 - Nuevo estilo RPG: cabecera oscura tipo tablero de gremio de aventureros con barra de XP
