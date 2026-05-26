@@ -37,7 +37,12 @@ const DAY_LABEL: Record<string, string> = {
   lunes:'Lun', martes:'Mar', miércoles:'Mié', jueves:'Jue', viernes:'Vie', sábado:'Sáb', domingo:'Dom'
 }
 
-function fmtDate(d: Date) { return d.toISOString().split('T')[0] }
+function fmtDate(d: Date) {
+  const y  = d.getFullYear()
+  const m  = String(d.getMonth() + 1).padStart(2, '0')
+  const dy = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dy}`
+}
 
 function parseNames(val: string | null | undefined): string[] {
   if (!val) return []
@@ -65,7 +70,7 @@ function formatInterval(days: number): string {
 }
 
 function isDone(task: Task, completions: Completion[]): boolean {
-  const today = new Date().toISOString().split('T')[0]
+  const today = fmtDate(new Date())
   const year  = new Date().getFullYear()
   const { monday, sunday } = getWeekRange()
   const tc = completions.filter(c => c.task_id === task.id)
@@ -114,7 +119,7 @@ function lastDone(task: Task, completions: Completion[]): string | null {
 function getNextDueDate(task: Task, completions: Completion[]): string | null {
   if (task.frequency !== 'custom' || !task.custom_interval_days) return null
   const last = lastDone(task, completions)
-  if (!last) return new Date().toISOString().split('T')[0]
+  if (!last) return fmtDate(new Date())
   const d = new Date(last + 'T12:00:00')
   d.setDate(d.getDate() + task.custom_interval_days)
   return fmtDate(d)
@@ -232,7 +237,7 @@ function TaskForm({
             Última vez completada <span className="text-slate-300 font-normal normal-case">(opcional)</span>
           </label>
           <input type="date" value={lastDoneDate} onChange={e => setLastDoneDate(e.target.value)}
-            max={new Date().toISOString().split('T')[0]} className={cls} />
+            max={fmtDate(new Date())} className={cls} />
           {lastDoneDate && computedIntervalDays > 0 && (
             <p className="text-[10px] text-amber-600 font-bold mt-1">
               Próxima misión: {new Date(new Date(lastDoneDate + 'T12:00:00').getTime() + computedIntervalDays * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -579,7 +584,7 @@ function CalendarView({
   onSetDay: (taskId: string, weekStart: string, day: string | null) => void
 }) {
   const [offset, setOffset] = useState(0)
-  const today   = new Date().toISOString().split('T')[0]
+  const today   = fmtDate(new Date())
   const now     = new Date()
   const todayDow = now.getDay() || 7
   const monBase  = new Date(now)
@@ -756,7 +761,7 @@ export default function TasksClient({
       const period = FREQ_CONFIG[task.frequency]?.period ?? 'all'
       setLocalCompletions(prev => prev.filter(c => {
         if (c.task_id !== task.id) return true
-        const today = new Date().toISOString().split('T')[0]
+        const today = fmtDate(new Date())
         const year  = new Date().getFullYear()
         const { monday, sunday } = getWeekRange()
         if (period === 'today')  return c.completed_date !== today
@@ -773,7 +778,7 @@ export default function TasksClient({
 
   const handleComplete = async (task: Task, person: string, date?: string) => {
     setTogglingId(task.id)
-    const completedDate = date ?? new Date().toISOString().split('T')[0]
+    const completedDate = date ?? fmtDate(new Date())
     const fake: Completion = { id: 'tmp', task_id: task.id, completed_date: completedDate, completed_by: person }
     setLocalCompletions(prev => [...prev, fake])
     await completeTask(task.id, person, date)

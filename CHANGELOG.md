@@ -1,5 +1,10 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Fix: asignaciones de día en Quests se reseteaban al pasar medianoche
+- Causa: `fmtDate` usaba `toISOString()` (UTC) para calcular el lunes de la semana, dando un día incorrecto entre medianoche y las 02:00 en Madrid (UTC+2)
+- Fix: `fmtDate` ahora usa `getFullYear/getMonth/getDate` (hora local), igual que los métodos que calculan la fecha
+- Se corrigen también los cálculos de `today` en `isDone`, `CalendarView` y `handleComplete/handleUncomplete`
+
 ## [2026-05-27] Docs: actualizar documentación del módulo Quests
 - Renombrado `docs/features/tasks.md` → `docs/features/quests.md`
 - Actualizadas referencias en texto libre de "tarea/tareas" a "quest/quests" en `quests.md`, `dashboard.md` y `auth-permissions.md`
