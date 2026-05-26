@@ -9,7 +9,6 @@ export const dynamic = 'force-dynamic'
 export default async function UtilitiesDashboard() {
     const supabase = await createClient()
 
-    // 1. Cargar facturas ordenadas por fecha
     const { data: invoices } = await supabase
         .from('home_invoices')
         .select('*')
@@ -19,7 +18,6 @@ export default async function UtilitiesDashboard() {
     const latestInvoice = hasData ? invoices[0] : null;
     const prevInvoice = hasData && invoices.length > 1 ? invoices[1] : null;
 
-    // 2. Calcular Medias Mensuales (media ponderada por período de facturación)
     let avgElec = 0, avgGas = 0, avgServ = 0;
     if (hasData) {
         const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
@@ -30,7 +28,6 @@ export default async function UtilitiesDashboard() {
         }
     }
 
-    // 3. Tendencias (Comparar última factura con la anterior)
     const getTrend = (current: number, previous: number) => {
         if (!previous) return null;
         const diff = current - previous;
@@ -43,7 +40,6 @@ export default async function UtilitiesDashboard() {
     const trendElec = latestInvoice && prevInvoice ? getTrend(Number(latestInvoice.elec_amount), Number(prevInvoice.elec_amount)) : null;
     const trendGas = latestInvoice && prevInvoice ? getTrend(Number(latestInvoice.gas_amount), Number(prevInvoice.gas_amount)) : null;
 
-    // 4. Preparar datos para la Gráfica de Líneas
     const chartData = hasData ? [...invoices].slice(0, 6).reverse() : [];
 
     return (

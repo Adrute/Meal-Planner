@@ -1,4 +1,3 @@
-// app/utilities/export-csv.tsx
 'use client'
 
 import { Download } from 'lucide-react'
@@ -8,7 +7,6 @@ export default function ExportCsvButton({ invoices }: { invoices: any[] }) {
     // 1. Definir cabeceras (Usamos punto y coma para que Excel en España lo lea bien)
     const headers = ['Factura', 'Fecha Emision', 'Período (meses)', 'Electricidad', 'Gas Natural', 'Servicios', 'Impuestos', 'Total']
 
-    // 2. Mapear datos
     const rows = invoices.map(inv => [
       inv.invoice_number,
       inv.issue_date,
@@ -20,13 +18,11 @@ export default function ExportCsvButton({ invoices }: { invoices: any[] }) {
       Number(inv.total_amount || 0).toFixed(2)
     ])
 
-    // 3. Unir todo en formato CSV
     const csvContent = [
       headers.join(';'),
       ...rows.map(row => row.join(';'))
     ].join('\n')
 
-    // 4. Crear el archivo y forzar descarga
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
