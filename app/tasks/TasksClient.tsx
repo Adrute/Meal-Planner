@@ -195,7 +195,7 @@ function TaskForm({
             <option value="weekly">Semanal 🛡️</option>
             <option value="custom">Épica (intervalo…) 💎</option>
             <option value="annual">Legendaria 👑</option>
-            <option value="punctual">Única ✨</option>
+            <option value="punctual">Contrato 📜</option>
           </select>
         </div>
         {frequency === 'weekly' && (
