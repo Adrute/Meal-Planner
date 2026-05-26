@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ArrowLeft, UploadCloud, FileText, Loader2, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
-import { processMultipleInvoices } from '../actions'
+import { processInvoice } from '../actions'
 import { useRouter } from 'next/navigation'
 
 export default function ImportInvoicePage() {
@@ -14,7 +14,6 @@ export default function ImportInvoicePage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Convertimos el FileList a Array para poder manejarlo mejor
       setFiles(Array.from(e.target.files))
       setError(null)
     }
@@ -25,23 +24,23 @@ export default function ImportInvoicePage() {
     setLoading(true)
     setError(null)
 
-    const formData = new FormData()
-    // Añadimos TODOS los archivos al FormData bajo la misma clave 'pdfs'
-    files.forEach(file => {
-      formData.append('pdfs', file)
-    })
-
-    try {
-      const result = await processMultipleInvoices(formData)
-      if (result.error) {
-        setError(result.error)
-        setLoading(false)
-      } else {
-        router.push('/utilities')
+    const errors: string[] = []
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append('pdf', file)
+      try {
+        const result = await processInvoice(formData)
+        if (result.error) errors.push(result.error)
+      } catch {
+        errors.push(`Error inesperado procesando ${file.name}`)
       }
-    } catch (err: any) {
-      setError("Error inesperado en el servidor.")
-      setLoading(false)
+    }
+
+    setLoading(false)
+    if (errors.length > 0) {
+      setError(errors.join(' | '))
+    } else {
+      router.push('/utilities')
     }
   }
 

@@ -217,9 +217,12 @@ export default async function HomeDashboard() {
 
   let avgElec = 0, avgGas = 0, avgServ = 0;
   if (hasInvoices) {
-    avgElec = (invoices.reduce((acc, inv) => acc + Number(inv.elec_amount || 0), 0) / invoices.length) / 2;
-    avgGas = (invoices.reduce((acc, inv) => acc + Number(inv.gas_amount || 0), 0) / invoices.length) / 2;
-    avgServ = (invoices.reduce((acc, inv) => acc + Number(inv.services_amount || 0), 0) / invoices.length) / 2;
+    const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
+    if (totalMonths > 0) {
+      avgElec = invoices.reduce((s, inv) => s + Number(inv.elec_amount || 0), 0) / totalMonths
+      avgGas  = invoices.reduce((s, inv) => s + Number(inv.gas_amount || 0), 0) / totalMonths
+      avgServ = invoices.reduce((s, inv) => s + Number(inv.services_amount || 0), 0) / totalMonths
+    }
   }
 
   // Análisis automático de Luz

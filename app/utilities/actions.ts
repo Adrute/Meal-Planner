@@ -4,89 +4,100 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import PDFParser from 'pdf2json'
 
-export async function processMultipleInvoices(formData: FormData) {
+function extractBillingPeriodMonths(cleanText: string): number {
+    // TotalEnergies includes billing period as two DD/MM/YYYY dates separated by " - " or " – "
+    const periodMatch = cleanText.match(
+        /(\d{2})\/(\d{2})\/(\d{4})\s*[-–]\s*(\d{2})\/(\d{2})\/(\d{4})/
+    )
+    if (!periodMatch) return 2
+
+    const start = new Date(
+        parseInt(periodMatch[3]),
+        parseInt(periodMatch[2]) - 1,
+        parseInt(periodMatch[1])
+    )
+    const end = new Date(
+        parseInt(periodMatch[6]),
+        parseInt(periodMatch[5]) - 1,
+        parseInt(periodMatch[4])
+    )
+
+    const diffMs = end.getTime() - start.getTime()
+    if (diffMs <= 0) return 2
+
+    const diffMonths = Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44))
+    return diffMonths > 0 ? diffMonths : 2
+}
+
+export async function processInvoice(formData: FormData) {
     const supabase = await createClient()
-    const files = formData.getAll('pdfs') as File[]
+    const file = formData.get('pdf') as File | null
 
-    if (!files || files.length === 0) return { error: 'No se encontraron archivos.' }
+    if (!file) return { error: 'No se encontró el archivo.' }
 
-    let processedCount = 0;
-    let errorMessages = [];
+    try {
+        const arrayBuffer = await file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
 
-    for (const file of files) {
-        try {
-            const arrayBuffer = await file.arrayBuffer()
-            const buffer = Buffer.from(arrayBuffer)
+        const text = await new Promise<string>((resolve, reject) => {
+            const pdfParser = new PDFParser(null, true)
+            pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData.parserError))
+            pdfParser.on('pdfParser_dataReady', () => {
+                resolve((pdfParser as any).getRawTextContent())
+            })
+            pdfParser.parseBuffer(buffer)
+        })
 
-            const text = await new Promise<string>((resolve, reject) => {
-                // SOLUCIÓN AL ERROR DE TYPESCRIPT: Usamos true en lugar de 1
-                const pdfParser = new PDFParser(null, true);
+        const cleanText = text.replace(/\s+/g, ' ')
 
-                pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
-                pdfParser.on("pdfParser_dataReady", () => {
-                    // Extraemos el texto crudo
-                    resolve((pdfParser as any).getRawTextContent());
-                });
+        const invoiceMatch = cleanText.match(/(?:N[ºo°]\s+de\s+factura|Factura\s+(?:\w+\s+)?n[ºo°]):\s*([A-Z0-9]+)/i)
+        const invoiceNumber = invoiceMatch ? invoiceMatch[1] : `DOC-${Date.now()}`
 
-                pdfParser.parseBuffer(buffer);
-            });
+        const MONTHS: Record<string, string> = {
+            enero:'01', febrero:'02', marzo:'03', abril:'04', mayo:'05', junio:'06',
+            julio:'07', agosto:'08', septiembre:'09', octubre:'10', noviembre:'11', diciembre:'12',
+        }
+        const dateLongMatch = cleanText.match(/Fecha\s+de\s+emisi[oó]n:\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i)
+        const dateShortMatch = cleanText.match(/Fecha\s*(?:de\s*)?emisi[oó]n:\s*(\d{2})\.(\d{2})\.(\d{4})/i)
+        let issueDate = new Date().toISOString().split('T')[0]
+        if (dateLongMatch) {
+            const day   = dateLongMatch[1].padStart(2, '0')
+            const month = MONTHS[dateLongMatch[2].toLowerCase()] ?? '01'
+            const year  = dateLongMatch[3]
+            issueDate = `${year}-${month}-${day}`
+        } else if (dateShortMatch) {
+            issueDate = `${dateShortMatch[3]}-${dateShortMatch[2]}-${dateShortMatch[1]}`
+        }
 
-            const cleanText = text.replace(/\s+/g, ' ');
+        const billingPeriodMonths = extractBillingPeriodMonths(cleanText)
 
-            // --- EXTRACCIÓN AFINADA PARA TOTALENERGIES ---
+        const elecMatch = cleanText.match(/Electricidad\s+([\d,]+)\s*€/i)
+        const elecAmount = elecMatch ? parseFloat(elecMatch[1].replace(',', '.')) : 0
 
-            const invoiceMatch = cleanText.match(/(?:N[ºo°]\s+de\s+factura|Factura\s+(?:\w+\s+)?n[ºo°]):\s*([A-Z0-9]+)/i)
-            const invoiceNumber = invoiceMatch ? invoiceMatch[1] : `DOC-${Date.now()}`
+        const gasMatch = cleanText.match(/Gas\s+([\d,]+)\s*€/i)
+        const gasAmount = gasMatch ? parseFloat(gasMatch[1].replace(',', '.')) : 0
 
-            const MONTHS: Record<string, string> = {
-                enero:'01', febrero:'02', marzo:'03', abril:'04', mayo:'05', junio:'06',
-                julio:'07', agosto:'08', septiembre:'09', octubre:'10', noviembre:'11', diciembre:'12',
-            }
-            // Formato largo: "14 de mayo de 2026"
-            const dateLongMatch = cleanText.match(/Fecha\s+de\s+emisi[oó]n:\s*(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i)
-            // Formato corto: "14.05.2026"
-            const dateShortMatch = cleanText.match(/Fecha\s*(?:de\s*)?emisi[oó]n:\s*(\d{2})\.(\d{2})\.(\d{4})/i)
-            let issueDate = new Date().toISOString().split('T')[0]
-            if (dateLongMatch) {
-                const day   = dateLongMatch[1].padStart(2, '0')
-                const month = MONTHS[dateLongMatch[2].toLowerCase()] ?? '01'
-                const year  = dateLongMatch[3]
-                issueDate = `${year}-${month}-${day}`
-            } else if (dateShortMatch) {
-                issueDate = `${dateShortMatch[3]}-${dateShortMatch[2]}-${dateShortMatch[1]}`
-            }
+        const servMatch = cleanText.match(/Servicios\s+([\d,]+)\s*€/i)
+        const servAmount = servMatch ? parseFloat(servMatch[1].replace(',', '.')) : 0
 
-            // IMPORTES
-            const elecMatch = cleanText.match(/Electricidad\s+([\d,]+)\s*€/i)
-            const elecAmount = elecMatch ? parseFloat(elecMatch[1].replace(',', '.')) : 0
+        const taxesMatch = cleanText.match(/Tasas e impuestos\s+([\d,]+)\s*€/i)
+        const taxesAmount = taxesMatch ? parseFloat(taxesMatch[1].replace(',', '.')) : 0
 
-            const gasMatch = cleanText.match(/Gas\s+([\d,]+)\s*€/i)
-            const gasAmount = gasMatch ? parseFloat(gasMatch[1].replace(',', '.')) : 0
+        const elecKwhMatch = cleanText.match(/(?:Electricidad|Energía).*?([\d,]+)\s*kWh/i) || cleanText.match(/([\d,]+)\s*kWh/i)
+        const elecKwh = elecKwhMatch ? parseFloat(elecKwhMatch[1].replace(',', '.')) : 0
 
-            const servMatch = cleanText.match(/Servicios\s+([\d,]+)\s*€/i)
-            const servAmount = servMatch ? parseFloat(servMatch[1].replace(',', '.')) : 0
+        const kwhMatches = [...cleanText.matchAll(/([\d,]+)\s*kWh/gi)]
+        const gasKwh = kwhMatches.length > 1 ? parseFloat(kwhMatches[1][1].replace(',', '.')) : 0
 
-            const taxesMatch = cleanText.match(/Tasas e impuestos\s+([\d,]+)\s*€/i)
-            const taxesAmount = taxesMatch ? parseFloat(taxesMatch[1].replace(',', '.')) : 0
+        const totalAmount = elecAmount + gasAmount + servAmount + taxesAmount
 
-            // NUEVO: EXTRACCIÓN DE CONSUMOS (kWh)
-            // Buscamos números seguidos de "kWh" cerca de las palabras clave de luz y gas.
-            // Si el formato de tu PDF es muy puñetero, ajustaremos esta regla.
-            const elecKwhMatch = cleanText.match(/(?:Electricidad|Energía).*?([\d,]+)\s*kWh/i) || cleanText.match(/([\d,]+)\s*kWh/i)
-            const elecKwh = elecKwhMatch ? parseFloat(elecKwhMatch[1].replace(',', '.')) : 0
+        if (totalAmount === 0) {
+            return { error: `No detecté los importes en ${file.name}` }
+        }
 
-            // Para el gas, asumiendo que el segundo bloque de kWh suele ser el gas
-            const kwhMatches = [...cleanText.matchAll(/([\d,]+)\s*kWh/gi)]
-            const gasKwh = kwhMatches.length > 1 ? parseFloat(kwhMatches[1][1].replace(',', '.')) : 0
-
-            const totalAmount = elecAmount + gasAmount + servAmount + taxesAmount
-
-            if (totalAmount === 0) {
-                errorMessages.push(`No detecté los importes en ${file.name}`);
-                continue;
-            }
-
-            const invoiceData = {
+        const { error: insertError } = await supabase
+            .from('home_invoices')
+            .insert([{
                 invoice_number: invoiceNumber,
                 issue_date: issueDate,
                 total_amount: totalAmount,
@@ -94,34 +105,21 @@ export async function processMultipleInvoices(formData: FormData) {
                 gas_amount: gasAmount,
                 services_amount: servAmount,
                 taxes_amount: taxesAmount,
-                elec_kwh: elecKwh, // Guardamos el consumo de luz
-                gas_kwh: gasKwh    // Guardamos el consumo de gas
-            }
+                elec_kwh: elecKwh,
+                gas_kwh: gasKwh,
+                billing_period_months: billingPeriodMonths,
+            }])
 
-            // Guardar en Supabase
-            const { error: insertError } = await supabase
-                .from('home_invoices')
-                .insert([invoiceData])
-
-            if (insertError) {
-                // Añade esta línea para ver los fallos en la terminal:
-                console.error("ERROR DE SUPABASE:", insertError);
-                errorMessages.push(`Fallo en base de datos para ${file.name}`);
-            } else {
-                processedCount++;
-            }
-
-        } catch (error) {
-            console.error(`Error leyendo PDF ${file.name}:`, error)
-            errorMessages.push(`Archivo ilegible: ${file.name}`);
+        if (insertError) {
+            console.error('ERROR DE SUPABASE:', insertError)
+            return { error: `Fallo en base de datos para ${file.name}` }
         }
+
+        revalidatePath('/utilities')
+        return { success: true, invoiceNumber }
+
+    } catch (error) {
+        console.error(`Error leyendo PDF ${file.name}:`, error)
+        return { error: `Archivo ilegible: ${file.name}` }
     }
-
-    revalidatePath('/utilities')
-
-    if (errorMessages.length > 0) {
-        return { error: `Procesadas ${processedCount}. Errores: ${errorMessages.join(', ')}` }
-    }
-
-    return { success: true, count: processedCount }
 }

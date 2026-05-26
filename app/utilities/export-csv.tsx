@@ -6,12 +6,13 @@ import { Download } from 'lucide-react'
 export default function ExportCsvButton({ invoices }: { invoices: any[] }) {
   const handleExport = () => {
     // 1. Definir cabeceras (Usamos punto y coma para que Excel en España lo lea bien)
-    const headers = ['Factura', 'Fecha Emision', 'Electricidad', 'Gas Natural', 'Servicios', 'Impuestos', 'Total']
-    
+    const headers = ['Factura', 'Fecha Emision', 'Período (meses)', 'Electricidad', 'Gas Natural', 'Servicios', 'Impuestos', 'Total']
+
     // 2. Mapear datos
     const rows = invoices.map(inv => [
       inv.invoice_number,
       inv.issue_date,
+      inv.billing_period_months ?? 2,
       Number(inv.elec_amount || 0).toFixed(2),
       Number(inv.gas_amount || 0).toFixed(2),
       Number(inv.services_amount || 0).toFixed(2),

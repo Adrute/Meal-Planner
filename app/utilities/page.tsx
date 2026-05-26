@@ -19,16 +19,15 @@ export default async function UtilitiesDashboard() {
     const latestInvoice = hasData ? invoices[0] : null;
     const prevInvoice = hasData && invoices.length > 1 ? invoices[1] : null;
 
-    // 2. Calcular Medias Mensuales
+    // 2. Calcular Medias Mensuales (media ponderada por período de facturación)
     let avgElec = 0, avgGas = 0, avgServ = 0;
     if (hasData) {
-        const totalElec = invoices.reduce((acc, inv) => acc + Number(inv.elec_amount || 0), 0);
-        const totalGas = invoices.reduce((acc, inv) => acc + Number(inv.gas_amount || 0), 0);
-        const totalServ = invoices.reduce((acc, inv) => acc + Number(inv.services_amount || 0), 0);
-
-        avgElec = (totalElec / invoices.length) / 2;
-        avgGas = (totalGas / invoices.length) / 2;
-        avgServ = (totalServ / invoices.length) / 2;
+        const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
+        if (totalMonths > 0) {
+            avgElec = invoices.reduce((s, inv) => s + Number(inv.elec_amount || 0), 0) / totalMonths
+            avgGas  = invoices.reduce((s, inv) => s + Number(inv.gas_amount || 0), 0) / totalMonths
+            avgServ = invoices.reduce((s, inv) => s + Number(inv.services_amount || 0), 0) / totalMonths
+        }
     }
 
     // 3. Tendencias (Comparar última factura con la anterior)
@@ -44,22 +43,8 @@ export default async function UtilitiesDashboard() {
     const trendElec = latestInvoice && prevInvoice ? getTrend(Number(latestInvoice.elec_amount), Number(prevInvoice.elec_amount)) : null;
     const trendGas = latestInvoice && prevInvoice ? getTrend(Number(latestInvoice.gas_amount), Number(prevInvoice.gas_amount)) : null;
 
-    // 4. Preparar datos para la Gráfica Principal
+    // 4. Preparar datos para la Gráfica de Líneas
     const chartData = hasData ? [...invoices].slice(0, 6).reverse() : [];
-    const maxInvoiceAmount = hasData ? Math.max(...chartData.map(i => Number(i.total_amount))) : 100;
-
-    // --- NUEVO: Preparar datos para el Gráfico de Líneas ---
-    const maxValService = hasData ? Math.max(
-        ...chartData.flatMap(i => [Number(i.elec_amount), Number(i.gas_amount), Number(i.services_amount), Number(i.taxes_amount)])
-    ) : 100;
-
-    // Funciones para calcular coordenadas (X: Meses, Y: Importe)
-    const getX = (index: number) => chartData.length === 1 ? 50 : (index / (chartData.length - 1)) * 100;
-    const getY = (val: number | string) => 100 - (Number(val) / (maxValService || 1)) * 100;
-
-    const getPoints = (key: 'elec_amount' | 'gas_amount' | 'services_amount' | 'taxes_amount') => {
-        return chartData.map((inv, i) => `${getX(i)},${getY(inv[key])}`).join(' ');
-    };
 
     return (
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 pb-24 animate-in fade-in">
