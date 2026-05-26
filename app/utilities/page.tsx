@@ -184,6 +184,7 @@ export default async function UtilitiesDashboard() {
                         <thead className="bg-slate-50 text-xs uppercase font-bold text-slate-500 tracking-wider">
                             <tr>
                                 <th className="px-4 py-4 rounded-tl-xl">Fecha Emisión</th>
+                                <th className="px-4 py-4 hidden sm:table-cell">Período</th>
                                 <th className="px-4 py-4">Luz</th>
                                 <th className="px-4 py-4">Gas</th>
                                 <th className="px-4 py-4">Facilita</th>
@@ -198,6 +199,9 @@ export default async function UtilitiesDashboard() {
                                         <td className="px-4 py-4 font-medium text-slate-900">
                                             {new Date(inv.issue_date).toLocaleDateString('es-ES')}
                                         </td>
+                                        <td className="px-4 py-4 hidden sm:table-cell text-slate-500 font-medium">
+                                            {(inv.billing_period_months ?? 1) === 1 ? '1 mes' : `${inv.billing_period_months ?? 1} meses`}
+                                        </td>
                                         <td className="px-4 py-4 text-yellow-600 font-medium">{Number(inv.elec_amount).toFixed(2)} €</td>
                                         <td className="px-4 py-4 text-teal-600 font-medium">{Number(inv.gas_amount).toFixed(2)} €</td>
                                         <td className="px-4 py-4 text-emerald-600 font-medium">{Number(inv.services_amount).toFixed(2)} €</td>
@@ -207,7 +211,7 @@ export default async function UtilitiesDashboard() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400">Sin datos registrados</td>
+                                    <td colSpan={7} className="px-4 py-8 text-center text-slate-400">Sin datos registrados</td>
                                 </tr>
                             )}
                         </tbody>

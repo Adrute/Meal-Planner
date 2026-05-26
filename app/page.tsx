@@ -437,9 +437,9 @@ export default async function HomeDashboard() {
                 </div>
 
                 {alert && (
-                  <div className={`p-4 rounded-xl flex items-start gap-3 border ${alert.type === 'warning' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+                  <div className={`p-4 rounded-xl flex items-start gap-3 border ${alert.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
                     <div className="mt-0.5">
-                      {alert.type === 'warning' ? <AlertTriangle size={18} className="text-emerald-500" /> : <CheckCircle2 size={18} className="text-emerald-500" />}
+                      {alert.type === 'warning' ? <AlertTriangle size={18} className="text-amber-500" /> : <CheckCircle2 size={18} className="text-emerald-500" />}
                     </div>
                     <div>
                       <p className="font-bold text-sm mb-0.5">{alert.title}</p>
