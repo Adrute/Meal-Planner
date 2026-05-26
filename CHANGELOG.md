@@ -1,5 +1,15 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Suministros: período de facturación variable y mejoras de importación
+- Nueva columna `billing_period_months INTEGER NOT NULL DEFAULT 2` en `home_invoices`
+- Parser mejorado (`processInvoice`): extrae el período de facturación del PDF con regex sobre rango de fechas (`DD/MM/YYYY – DD/MM/YYYY`), fallback a 2 meses
+- Fórmula de medias corregida: de `sum / count / 2` a media ponderada `sum(amount) / sum(billing_period_months)`, eliminando el magic number bimestral
+- Importación: envío de un PDF a la vez para evitar el límite de payload de Vercel (~4.5 MB); progreso visual por fichero (pending / processing / ok / error)
+- Nueva columna "Período" en la tabla histórica de `/utilities`
+- Bug visual corregido: alerta de tarifa cara usa amber en lugar de emerald
+- CSV exportado incluye nueva columna "Período (meses)"
+- Documentación: nuevo `docs/features/utilities.md`
+
 ## [2026-05-27] Fix: asignaciones de día en Quests se reseteaban al pasar medianoche
 - Causa: `fmtDate` usaba `toISOString()` (UTC) para calcular el lunes de la semana, dando un día incorrecto entre medianoche y las 02:00 en Madrid (UTC+2)
 - Fix: `fmtDate` ahora usa `getFullYear/getMonth/getDate` (hora local), igual que los métodos que calculan la fecha

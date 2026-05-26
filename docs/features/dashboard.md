@@ -77,11 +77,17 @@ Muestra todos los bonos de `service_passes` en grid de 2 columnas. Para cada bon
 Las Server Actions `consumeSession`, `renewService` y `deleteService` están definidas **directamente en `app/page.tsx`** como funciones async marcadas con `'use server'` (duplicadas respecto a `app/services/page.tsx` — misma lógica).
 
 ## Lógica de cálculo del widget de suministros
+
+Media ponderada por período de facturación (no media simple). Se usa porque TotalEnergies factura con periodicidad variable:
+
 ```ts
-avgElec = sum(inv.elec_amount) / invoices.length / 2  // dividido entre 2 personas
-avgGas  = sum(inv.gas_amount)  / invoices.length / 2
-avgServ = sum(inv.services_amount) / invoices.length / 2
+const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
+avgElec = invoices.reduce((s, inv) => s + Number(inv.elec_amount), 0) / totalMonths
+avgGas  = invoices.reduce((s, inv) => s + Number(inv.gas_amount),  0) / totalMonths
+avgServ = invoices.reduce((s, inv) => s + Number(inv.services_amount), 0) / totalMonths
 ```
+
+`billing_period_months` se extrae del PDF al importar (regex sobre rango de fechas de facturación). Fallback: `2` (bimestral).
 
 ## Análisis automático de tarifa eléctrica
 ```ts
