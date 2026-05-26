@@ -1,5 +1,13 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Suministros: filtro de fechas, paginación y agregación mensual
+- Nuevo `UtilitiesClient.tsx` que centraliza toda la interactividad de `/utilities`
+- Filtro de fechas "Desde / Hasta" precargado al año en curso; las tarjetas de resumen no se ven afectadas
+- Gráfica de evolución alimentada con agregación mensual (clave `YYYY-MM`, suma de importes del mes) en lugar de datos brutos por factura
+- Tabla histórica paginada: selector 10/20/50 filas, contador "Mostrando X–Y de Z facturas", navegación < >
+- CSV exporta solo el rango filtrado (no el histórico completo)
+- Fix UTC en `line-chart.tsx`: etiquetas del eje X calculadas con `getUTC*` para evitar desfases de zona horaria
+
 ## [2026-05-27] Suministros: período de facturación variable y mejoras de importación
 - Nueva columna `billing_period_months INTEGER NOT NULL DEFAULT 2` en `home_invoices`
 - Parser mejorado (`processInvoice`): extrae el período de facturación del PDF con regex sobre rango de fechas (`DD/MM/YYYY – DD/MM/YYYY`), fallback a 2 meses

@@ -102,16 +102,55 @@ El mismo cálculo se replica en el widget de Suministros del dashboard (`app/pag
 | Componente | Archivo | Descripción |
 |------------|---------|-------------|
 | `UtilitiesDashboard` | `app/utilities/page.tsx` | Página principal (Server Component) |
+| `UtilitiesClient` | `app/utilities/UtilitiesClient.tsx` | Lógica interactiva: filtro, agregación, paginación (Client Component) |
 | `ImportInvoicePage` | `app/utilities/import/page.tsx` | Importación de PDFs (Client Component) |
 | `UtilitiesLineChart` | `app/utilities/line-chart.tsx` | Gráfica de evolución por servicio (Recharts) |
-| `ExportCsvButton` | `app/utilities/export-csv.tsx` | Descarga CSV con todas las facturas |
+| `ExportCsvButton` | `app/utilities/export-csv.tsx` | Descarga CSV del rango filtrado |
 | `processInvoice` | `app/utilities/actions.ts` | Server Action de parseo e inserción |
+
+## `UtilitiesClient` — estado interno y lógica
+
+`page.tsx` carga todas las facturas y las pasa como prop a `UtilitiesClient`. El componente gestiona todo lo interactivo en cliente.
+
+### Estado local
+
+| Estado | Tipo | Valor inicial |
+|--------|------|---------------|
+| `dateFrom` | `string` | `YYYY-01-01` (año en curso) |
+| `dateTo` | `string` | fecha de hoy |
+| `pageSize` | `10 \| 20 \| 50` | `10` |
+| `currentPage` | `number` | `1` |
+
+`useEffect` resetea `currentPage` a 1 cuando cambian `dateFrom`, `dateTo` o `pageSize`.
+
+### Filtro de fechas
+
+- Controles "Desde" / "Hasta" con `<input type="date">` preseleccionados al año en curso.
+- Botón "Limpiar" restaura los valores por defecto (`YEAR_START` / `TODAY`).
+- El filtro **solo afecta a la gráfica, la tabla histórica y el CSV** — las tarjetas de resumen (medias, tendencias, última factura) usan las props calculadas en el servidor con todas las facturas.
+
+### Agregación mensual para la gráfica
+
+Las facturas filtradas se agrupan por mes en `aggregatedByMonth`:
+
+- Clave: `YYYY-MM` usando `getUTCFullYear()` / `getUTCMonth()` para evitar desfases de zona horaria.
+- `issue_date` del punto: `${key}-01` (primer día del mes).
+- Los importes y `billing_period_months` de facturas del mismo mes se **suman**. Esto permite mostrar un solo punto por mes aunque haya varias facturas (p. ej. si se importan facturas de luz y gas por separado).
+- El resultado se pasa a `UtilitiesLineChart`.
+
+### Paginación de la tabla histórica
+
+- El selector "Filas" permite elegir 10, 20 o 50 registros por página.
+- Contador: `Mostrando X–Y de Z facturas` visible siempre que haya datos.
+- Navegación con botones `<` / `>` que se deshabilitan en el primer y último página respectivamente.
+- Si solo hay una página, los controles de navegación no se renderizan.
 
 ## Secciones de la página `/utilities`
 
-1. **Tarjetas de resumen** — tres tarjetas (Electricidad, Gas Natural, Facilita) con el importe de la última factura, la media mensual y la tendencia vs factura anterior
-2. **Gráfica de evolución** — `UtilitiesLineChart` con las 6 últimas facturas (Recharts, cliente)
-3. **Histórico de facturas** — tabla con columnas: Fecha Emisión, Período, Luz, Gas, Facilita, Impuestos, Total. Botón de exportación CSV.
+1. **Tarjetas de resumen** — tres tarjetas (Electricidad, Gas Natural, Facilita) con el importe de la última factura, la media mensual ponderada y la tendencia vs factura anterior. No afectadas por el filtro de fechas.
+2. **Filtro de fechas** — controles "Desde" / "Hasta" precargados al año en curso, con botón "Limpiar".
+3. **Gráfica de evolución** — `UtilitiesLineChart` alimentada con la agregación mensual del rango filtrado (Recharts, cliente).
+4. **Histórico de facturas** — tabla paginada (10/20/50) con columnas: Fecha Emisión, Período, Luz, Gas, Facilita, Impuestos, Total. Botón de exportación CSV limitado al rango filtrado.
 
 ### Columna "Período" en la tabla histórica
 ```ts
@@ -127,5 +166,5 @@ El widget de Suministros en el dashboard muestra:
 
 ## Exportación CSV
 
-`ExportCsvButton` genera un CSV separado por punto y coma (compatible con Excel en España) con las columnas:
+`ExportCsvButton` recibe `filteredInvoices` (las facturas del rango seleccionado, no el total). Genera un CSV separado por punto y coma (compatible con Excel en España) con las columnas:
 `Factura`, `Fecha Emision`, `Período (meses)`, `Electricidad`, `Gas Natural`, `Servicios`, `Impuestos`, `Total`
