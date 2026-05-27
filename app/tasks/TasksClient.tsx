@@ -635,7 +635,7 @@ function CalendarView({
           })
           const allInDay = [...dailyTasks, ...scheduledTasks]
           const doneCount = allInDay.filter(t =>
-            t.frequency === 'daily'
+            t.frequency === 'daily' || t.frequency === 'custom'
               ? isDoneOnDate(t, completions, ds)
               : isDoneInWeek(t, completions, weekStart, weekEnd)
           ).length
@@ -668,12 +668,12 @@ function CalendarView({
                       )}
                       <TaskDayRow
                         task={task}
-                        isComplete={task.frequency === 'daily'
+                        isComplete={task.frequency === 'daily' || task.frequency === 'custom'
                           ? isDoneOnDate(task, completions, ds)
                           : isDoneInWeek(task, completions, weekStart, weekEnd)}
                         completedBy={(() => {
                           const tc = completions.filter(c => c.task_id === task.id)
-                          const match = task.frequency === 'daily'
+                          const match = task.frequency === 'daily' || task.frequency === 'custom'
                             ? tc.find(c => c.completed_date === ds)
                             : tc.find(c => c.completed_date >= weekStart && c.completed_date <= weekEnd)
                           return match?.completed_by ?? null
