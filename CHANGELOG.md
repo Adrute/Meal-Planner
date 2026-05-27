@@ -1,5 +1,19 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Seguridad: habilitar RLS en 15 tablas del schema public
+- Detectado que 15 tablas no tenían RLS activo: el endpoint directo de Supabase era accesible con la anon key sin autenticación, saltándose el proxy de Next.js
+- Habilitado `ENABLE ROW LEVEL SECURITY` + política `familia_autenticada` (`FOR ALL TO authenticated USING (true) WITH CHECK (true)`) en todas las tablas afectadas
+- Tablas por módulo:
+  - Finanzas: `bank_transactions`, `category_rules`, `transaction_categories`, `transaction_subcategories`
+  - Suministros: `home_invoices`
+  - Bonos/Servicios: `service_passes`
+  - Recetas: `recipes`, `ingredients`, `recipe_ingredients`
+  - Planificador de comidas: `weekly_plan`
+  - Restaurantes: `restaurants`, `restaurant_lists`, `restaurant_list_items`, `reservations`, `tag_colors`
+- GRANTs explícitos añadidos para la Data API (`GRANT ALL ON ... TO anon, authenticated`) para garantizar compatibilidad desde mayo 2026
+- Nueva sección `## Seguridad — Supabase RLS` en `CLAUDE.md` con la convención obligatoria para tablas nuevas (patrón datos familiares compartidos y patrón datos personales)
+- Migración: `supabase/migrations/20260527_enable_rls_public_tables.sql`
+
 ## [2026-05-27] Suministros: filtro de fechas, paginación y agregación mensual
 - Nuevo `UtilitiesClient.tsx` que centraliza toda la interactividad de `/utilities`
 - Filtro de fechas "Desde / Hasta" precargado al año en curso; las tarjetas de resumen no se ven afectadas
