@@ -120,3 +120,40 @@ const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false })
 **Problema inicial**: Las tablas hijas de viajes (`trip_transport`, etc.) usaban RLS basada en `user_id`, pero los viajes son compartidos entre toda la familia.
 
 **Solución**: Las tablas hijas filtran por `EXISTS (SELECT 1 FROM trips WHERE id = trip_id)` sin `user_id`, y los viajes no tienen `user_id` en los filtros de consulta. Ver commit `516da8b`.
+
+## Seguridad — Supabase RLS
+
+El middleware `proxy.ts` solo protege las rutas de Next.js. El endpoint directo de Supabase (`https://<proyecto>.supabase.co/rest/v1/<tabla>`) es accesible con la anon key sin pasar por Next.js. Sin RLS activo, cualquiera que conozca la anon key puede leer y escribir datos sin autenticación.
+
+**Regla**: toda tabla nueva debe incluir `ENABLE ROW LEVEL SECURITY` + política + GRANT en el mismo commit que la crea.
+
+### Patrón — datos familiares compartidos
+
+Todos los miembros autenticados ven y editan todo (finanzas, recetas, restaurantes, viajes, etc.):
+
+```sql
+ALTER TABLE <tabla> ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "familia_autenticada" ON <tabla>
+  FOR ALL TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+### Patrón — datos personales
+
+Cada usuario solo accede a sus propios registros (salud, wishlist, etc.):
+
+```sql
+ALTER TABLE <tabla> ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "solo_propietario" ON <tabla>
+  FOR ALL
+  USING (auth.uid() = user_id);
+```
+
+### GRANT requerido (desde mayo 2026)
+
+Las tablas nuevas requieren GRANTs explícitos para la Data API. Las existentes los tienen implícitos, pero es buena práctica incluirlos en la misma migración:
+
+```sql
+GRANT ALL ON <tabla> TO anon, authenticated;
+```
