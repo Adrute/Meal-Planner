@@ -116,6 +116,11 @@ export async function sendBonoAgotadoEmail(...) {
 const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false })
 ```
 
+### Quests custom — distinción entre scheduling y completion display
+**Problema**: Las quests de frecuencia `custom` se programan en el calendario mediante `getCustomDayForWeek` (aparecen en un día concreto), pero su completado en ese día debe verificarse con `isDoneOnDate` (fecha exacta), no con `isDoneInWeek` (rango semanal). Al añadir una nueva vista de calendario se agrupó `custom` con el resto de frecuencias no-diarias en un solo ternario, lo que hacía que una quest completada el miércoles apareciera tachada también el sábado (la siguiente fecha de vencimiento calculada).
+
+**Solución**: Tratar `custom` igual que `daily` a efectos de comprobación de completado en la vista calendario: `t.frequency === 'daily' || t.frequency === 'custom' ? isDoneOnDate(...) : isDoneInWeek(...)`. Ver commit `5277c02`.
+
 ### Trips — user_id en tablas hijas
 **Problema inicial**: Las tablas hijas de viajes (`trip_transport`, etc.) usaban RLS basada en `user_id`, pero los viajes son compartidos entre toda la familia.
 

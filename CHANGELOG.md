@@ -1,5 +1,10 @@
 # Changelog — FamilyTools
 
+## [2026-05-27] Fix: quests periódicas (custom) marcan completado por fecha exacta en calendario
+- Corregido bug en la vista Semana (calendario) de `TasksClient.tsx`: las quests de frecuencia `custom` usaban `isDoneInWeek` (rango lunes–domingo) en lugar de `isDoneOnDate` (fecha exacta), lo que hacía que una quest completada el miércoles apareciera tachada también el sábado (su próxima fecha de vencimiento)
+- Afectaba a tres puntos: cálculo de `doneCount`, prop `isComplete` de `TaskDayRow` y cálculo de `completedBy`
+- Solución: añadido `|| t.frequency === 'custom'` en las tres condiciones para que las quests épicas usen `isDoneOnDate`, igual que las diarias
+
 ## [2026-05-27] Seguridad: habilitar RLS en 15 tablas del schema public
 - Detectado que 15 tablas no tenían RLS activo: el endpoint directo de Supabase era accesible con la anon key sin autenticación, saltándose el proxy de Next.js
 - Habilitado `ENABLE ROW LEVEL SECURITY` + política `familia_autenticada` (`FOR ALL TO authenticated USING (true) WITH CHECK (true)`) en todas las tablas afectadas
