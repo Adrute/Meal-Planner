@@ -1,4 +1,4 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, Swords } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon } from 'lucide-react'
 import QuestsWidgetClient from './tasks/QuestsWidgetClient'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
