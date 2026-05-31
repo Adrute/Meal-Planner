@@ -6,6 +6,7 @@ import EvolutionChart from './finances-chart'
 import MonthSelector from './month-selector'
 import CategoryBreakdown, { type CatStat } from './category-breakdown'
 import FinancesHeader from './finances-header'
+import FixedExpensesPanel, { type FixedExpense } from './FixedExpensesPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,11 +38,18 @@ export default async function FinancesPage({
     { data: dateRows },
     { data: rules },
     { data: categoriesRaw },
+    { data: fixedExpensesRaw },
   ] = await Promise.all([
     supabase.from('bank_transactions').select('fecha_operacion').order('fecha_operacion', { ascending: false }),
     supabase.from('category_rules').select('*').order('created_at', { ascending: false }),
     supabase.from('transaction_categories').select('*, transaction_subcategories(*)').order('name'),
+    supabase.from('fixed_expenses').select('id, name, amount, period, category, active').order('name'),
   ])
+
+  const fixedExpenses: FixedExpense[] = (fixedExpensesRaw ?? []).map(e => ({
+    ...e,
+    amount: Number(e.amount),
+  }))
 
   const categories: Category[] = categoriesRaw || []
   const availableMonths = Array.from(new Set((dateRows || []).map(r => r.fecha_operacion.substring(0, 7)))).sort().reverse()
@@ -330,6 +338,9 @@ export default async function FinancesPage({
           />
         </>
       )}
+
+      {/* GASTOS FIJOS */}
+      <FixedExpensesPanel fixedExpenses={fixedExpenses} />
 
       {/* MOVIMIENTOS */}
       <div>

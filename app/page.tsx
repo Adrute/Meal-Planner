@@ -14,21 +14,21 @@ async function FinancesWidget() {
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
 
-  const { data: thisMonth } = await supabase
-    .from('bank_transactions')
-    .select('importe, categoria')
-    .gte('fecha_operacion', `${currentMonth}-01`)
-
-  const { data: prevMonthTx } = await supabase
-    .from('bank_transactions')
-    .select('importe, categoria')
-    .gte('fecha_operacion', `${prevMonth}-01`)
-    .lt('fecha_operacion', `${currentMonth}-01`)
+  const [
+    { data: thisMonth },
+    { data: prevMonthTx },
+    { data: fixedExpenses },
+  ] = await Promise.all([
+    supabase.from('bank_transactions').select('importe, categoria').gte('fecha_operacion', `${currentMonth}-01`),
+    supabase.from('bank_transactions').select('importe, categoria').gte('fecha_operacion', `${prevMonth}-01`).lt('fecha_operacion', `${currentMonth}-01`),
+    supabase.from('fixed_expenses').select('amount, active'),
+  ])
 
   const gastosMes = Math.abs((thisMonth || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
   const ingresosMes = (thisMonth || []).filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
   const gastosPrev = Math.abs((prevMonthTx || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
   const diff = gastosPrev > 0 ? ((gastosMes - gastosPrev) / gastosPrev) * 100 : 0
+  const totalFixed = (fixedExpenses ?? []).filter(e => e.active).reduce((s, e) => s + Number(e.amount), 0)
 
   // Top 3 categorías del mes anterior
   const catMap: Record<string, number> = {}
@@ -77,6 +77,12 @@ async function FinancesWidget() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {totalFixed > 0 && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <span className="text-sm font-medium text-slate-500">Fijos</span>
+                <span className="text-sm font-black text-slate-700">{totalFixed.toFixed(0)} €/mes</span>
               </div>
             )}
           </div>

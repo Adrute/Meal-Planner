@@ -265,3 +265,47 @@ export async function deleteSubcategory(id: string) {
   await supabase.from('transaction_subcategories').delete().eq('id', id)
   revalidatePath('/finances')
 }
+
+// ─── GASTOS FIJOS ─────────────────────────────────────────────────────────────
+
+export async function createFixedExpense(data: {
+  name: string
+  amount: number
+  period: string
+  category: string
+}) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('fixed_expenses').insert(data)
+  if (error) return { error: error.message }
+  revalidatePath('/finances')
+  revalidatePath('/')
+  return { success: true }
+}
+
+export async function updateFixedExpense(id: string, data: {
+  name: string
+  amount: number
+  period: string
+  category: string
+}) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('fixed_expenses').update(data).eq('id', id)
+  if (error) return { error: error.message }
+  revalidatePath('/finances')
+  revalidatePath('/')
+  return { success: true }
+}
+
+export async function deleteFixedExpense(id: string) {
+  const supabase = await createClient()
+  await supabase.from('fixed_expenses').delete().eq('id', id)
+  revalidatePath('/finances')
+  revalidatePath('/')
+}
+
+export async function toggleFixedExpenseActive(id: string, active: boolean) {
+  const supabase = await createClient()
+  await supabase.from('fixed_expenses').update({ active }).eq('id', id)
+  revalidatePath('/finances')
+  revalidatePath('/')
+}
