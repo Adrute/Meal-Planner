@@ -93,12 +93,17 @@ export default function QuestsWidgetClient({
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [pickingId, setPickingId] = useState<string | null>(null)
 
   const refresh = () => startTransition(() => router.refresh())
 
-  const handleComplete = async (task: Task) => {
+  const nonAdminProfiles = profiles.filter(
+    p => p.display_name && p.display_name.toLowerCase() !== 'admin'
+  )
+
+  const handleComplete = async (task: Task, person: string) => {
+    setPickingId(null)
     setTogglingId(task.id)
-    const person = task.assigned_to?.split(',')[0]?.trim() ?? 'N/A'
     await completeTask(task.id, person)
     setTogglingId(null)
     refresh()
@@ -182,27 +187,54 @@ export default function QuestsWidgetClient({
                 {group.pending.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-1.5">
                     {visiblePending.map(task => (
-                      <div
-                        key={task.id}
-                        className={`relative flex items-center gap-1.5 ${style.taskBg} border ${style.taskBorder} rounded-xl px-3 py-1.5`}
-                      >
-                        {togglingId === task.id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-xl">
-                            <Loader2 size={12} className="animate-spin text-slate-400" />
+                      <div key={task.id} className="relative">
+                        {pickingId === task.id ? (
+                          <div className={`flex items-center gap-1 ${style.taskBg} border ${style.taskBorder} rounded-xl px-2 py-1.5`}>
+                            {nonAdminProfiles.map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => handleComplete(task, p.display_name!)}
+                                className={`text-xs font-bold px-2 py-0.5 rounded-lg ${style.taskBg} ${style.taskText} hover:opacity-80 transition-opacity`}
+                              >
+                                {p.display_name}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => handleComplete(task, 'N/A')}
+                              className="text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 hover:opacity-80 transition-opacity"
+                            >
+                              N/A
+                            </button>
+                            <button
+                              onClick={() => setPickingId(null)}
+                              className="text-slate-300 hover:text-slate-500 ml-1 transition-colors"
+                            >
+                              ✕
+                            </button>
                           </div>
-                        )}
-                        <button
-                          onClick={() => handleComplete(task)}
-                          className={`shrink-0 text-slate-300 ${style.checkHover} transition-colors`}
-                          title="Completar"
-                        >
-                          <Shield size={13} />
-                        </button>
-                        <span className={`text-xs font-bold ${style.taskText}`}>{task.title}</span>
-                        {task.assigned_to && (
-                          <span className={`font-normal text-xs opacity-60 ${style.taskText}`}>
-                            · {task.assigned_to.split(',')[0]?.trim()}
-                          </span>
+                        ) : (
+                          <div
+                            className={`relative flex items-center gap-1.5 ${style.taskBg} border ${style.taskBorder} rounded-xl px-3 py-1.5`}
+                          >
+                            {togglingId === task.id && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-xl">
+                                <Loader2 size={12} className="animate-spin text-slate-400" />
+                              </div>
+                            )}
+                            <button
+                              onClick={() => setPickingId(task.id)}
+                              className={`shrink-0 text-slate-300 ${style.checkHover} transition-colors`}
+                              title="Completar"
+                            >
+                              <Shield size={13} />
+                            </button>
+                            <span className={`text-xs font-bold ${style.taskText}`}>{task.title}</span>
+                            {task.assigned_to && (
+                              <span className={`font-normal text-xs opacity-60 ${style.taskText}`}>
+                                · {task.assigned_to.split(',')[0]?.trim()}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}
