@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Swords, Shield, Gem, Crown, ScrollText,
-  ShieldCheck, Check, Loader2, ArrowRight, Plus,
+  ShieldCheck, Loader2, ArrowRight, Plus,
 } from 'lucide-react'
 import Link from 'next/link'
 import { completeTask, uncompleteTask } from './actions'
@@ -196,7 +196,7 @@ export default function QuestsWidgetClient({
                           className={`shrink-0 text-slate-300 ${style.checkHover} transition-colors`}
                           title="Completar"
                         >
-                          <Check size={13} />
+                          <Shield size={13} />
                         </button>
                         <span className={`text-xs font-bold ${style.taskText}`}>{task.title}</span>
                         {task.assigned_to && (
