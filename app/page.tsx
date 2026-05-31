@@ -332,90 +332,12 @@ export default async function HomeDashboard() {
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
-      {/* --- WIDGET 1: MENÚ DE LA SEMANA (ANCHO COMPLETO) --- */}
-      <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-400"><Utensils size={20} /></div>
-            <h2 className="font-bold text-lg text-slate-700">Menú</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-emerald-400 transition-colors">
-              <ShoppingBasket size={16} /> Compra
-            </Link>
-            <Link href="/meals" className="text-slate-300 hover:text-emerald-400 transition-colors">
-              <ArrowRight size={20} />
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {menuDates.map((date, i) => {
-            const dayMeals = (weekMeals || []).filter(m => m.day_date === date)
-            const schoolMenu = (weekSchoolMenus || []).find(s => s.date === date)
-            const almuerzo = dayMeals.find(m => m.meal_type.toLowerCase() === 'almuerzo')
-            const cena = dayMeals.find(m => m.meal_type.toLowerCase() === 'cena')
-            const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })
-            const dayNum = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-            return (
-              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50/60'}`}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</p>
-                <p className="text-[11px] text-slate-400 font-medium mb-3 capitalize">{dayNum}</p>
-
-                <div className="space-y-2.5">
-                  {schoolMenu && (
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <GraduationCap size={10} className="text-teal-400" />
-                        <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Cole</span>
-                      </div>
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">{schoolMenu.first_course}</p>
-                      {schoolMenu.second_course && <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{schoolMenu.second_course}</p>}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <Utensils size={10} className="text-emerald-300" />
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
-                    </div>
-                    {almuerzo ? (
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">
-                        {(almuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <Moon size={10} className="text-emerald-300" />
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
-                    </div>
-                    {cena ? (
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">
-                        {(cena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* --- WIDGET 2: PRÓXIMOS PLANES (RESERVAS + VIAJES) --- */}
-      <div className="mb-6">
-        <UpcomingReservationsWidget />
-      </div>
-
-      {/* --- WIDGET 3: TAREAS --- */}
+      {/* --- WIDGET 1: TAREAS / QUESTS --- */}
       <TasksWidget />
 
+      {/* --- WIDGET 2: BONOS --- */}
       {services && services.length > 0 && (
-        <div className="mt-8 bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm w-full">
+        <div className="mt-0 mb-6 bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm w-full">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-400"><CalendarHeart size={20} /></div>
@@ -519,6 +441,85 @@ export default async function HomeDashboard() {
           </div>
         </div>
       )}
+
+      {/* --- WIDGET 3: MENÚ DE LA SEMANA (ANCHO COMPLETO) --- */}
+      <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-400"><Utensils size={20} /></div>
+            <h2 className="font-bold text-lg text-slate-700">Menú</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-emerald-400 transition-colors">
+              <ShoppingBasket size={16} /> Compra
+            </Link>
+            <Link href="/meals" className="text-slate-300 hover:text-emerald-400 transition-colors">
+              <ArrowRight size={20} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {menuDates.map((date, i) => {
+            const dayMeals = (weekMeals || []).filter(m => m.day_date === date)
+            const schoolMenu = (weekSchoolMenus || []).find(s => s.date === date)
+            const almuerzo = dayMeals.find(m => m.meal_type.toLowerCase() === 'almuerzo')
+            const cena = dayMeals.find(m => m.meal_type.toLowerCase() === 'cena')
+            const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })
+            const dayNum = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+            return (
+              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50/60'}`}>
+                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</p>
+                <p className="text-[11px] text-slate-400 font-medium mb-3 capitalize">{dayNum}</p>
+
+                <div className="space-y-2.5">
+                  {schoolMenu && (
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <GraduationCap size={10} className="text-teal-400" />
+                        <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Cole</span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">{schoolMenu.first_course}</p>
+                      {schoolMenu.second_course && <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{schoolMenu.second_course}</p>}
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Utensils size={10} className="text-emerald-300" />
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
+                    </div>
+                    {almuerzo ? (
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">
+                        {(almuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <Moon size={10} className="text-emerald-300" />
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
+                    </div>
+                    {cena ? (
+                      <p className="text-xs font-semibold text-slate-700 leading-tight">
+                        {(cena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* --- WIDGET 4: PRÓXIMOS PLANES (RESERVAS + VIAJES) --- */}
+      <div className="mb-6">
+        <UpcomingReservationsWidget />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <FinancesWidget />

@@ -1008,31 +1008,36 @@ export default function TasksClient({
             )
             if (completedContracts.length === 0) return null
             return (
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <Trophy size={14} className="text-slate-400" />
-                  <p className="text-xs font-black uppercase tracking-widest shrink-0 text-slate-400">Historial de Contratos</p>
+              <div className="pt-6 border-t border-slate-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <ScrollText size={14} className="text-orange-400 shrink-0" />
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Historial de Contratos</p>
                 </div>
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-50">
+                <div className="space-y-2">
                   {completedContracts.map(task => {
                     const completionDate = localCompletions
                       .filter(c => c.task_id === task.id)
                       .sort((a, b) => b.completed_date.localeCompare(a.completed_date))[0]?.completed_date ?? null
                     return (
-                      <div key={task.id} className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
+                      <div key={task.id} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 group">
+                        <ShieldCheck size={16} className="text-emerald-400 shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-slate-500 line-through">{task.title}</p>
-                          {completionDate && (
-                            <p className="text-xs text-emerald-600 font-medium mt-0.5">
-                              Completado: {new Date(completionDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </p>
-                          )}
+                          <p className="font-bold text-sm text-slate-700">{task.title}</p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                            {completionDate && (
+                              <p className="text-xs text-slate-400">
+                                {new Date(completionDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </p>
+                            )}
+                            {task.assigned_to && (
+                              <p className="text-xs text-slate-400">{task.assigned_to}</p>
+                            )}
+                          </div>
                         </div>
                         <button
                           onClick={() => handleDeleteContract(task.id)}
                           disabled={deletingContractId === task.id}
-                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 opacity-0 group-hover:opacity-100 shrink-0"
                         >
                           {deletingContractId === task.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                         </button>
