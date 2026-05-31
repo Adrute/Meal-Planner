@@ -22,7 +22,8 @@ type Group = { type: string; label: string; pending: Task[]; done: Task[] }
 
 const FREQ_STYLE: Record<string, {
   Icon: React.ElementType
-  chip: string
+  text: string
+  divider: string
   taskBg: string
   taskText: string
   taskBorder: string
@@ -31,7 +32,8 @@ const FREQ_STYLE: Record<string, {
 }> = {
   daily: {
     Icon: Swords,
-    chip: 'bg-sky-50 text-sky-700',
+    text: 'text-sky-600',
+    divider: 'border-sky-200',
     taskBg: 'bg-sky-50',
     taskText: 'text-sky-700',
     taskBorder: 'border-sky-100',
@@ -40,7 +42,8 @@ const FREQ_STYLE: Record<string, {
   },
   weekly: {
     Icon: Shield,
-    chip: 'bg-violet-50 text-violet-700',
+    text: 'text-violet-600',
+    divider: 'border-violet-200',
     taskBg: 'bg-violet-50',
     taskText: 'text-violet-700',
     taskBorder: 'border-violet-100',
@@ -49,7 +52,8 @@ const FREQ_STYLE: Record<string, {
   },
   custom: {
     Icon: Gem,
-    chip: 'bg-amber-50 text-amber-700',
+    text: 'text-amber-600',
+    divider: 'border-amber-200',
     taskBg: 'bg-amber-50',
     taskText: 'text-amber-700',
     taskBorder: 'border-amber-100',
@@ -58,7 +62,8 @@ const FREQ_STYLE: Record<string, {
   },
   annual: {
     Icon: Crown,
-    chip: 'bg-rose-50 text-rose-700',
+    text: 'text-rose-600',
+    divider: 'border-rose-200',
     taskBg: 'bg-rose-50',
     taskText: 'text-rose-700',
     taskBorder: 'border-rose-100',
@@ -67,7 +72,8 @@ const FREQ_STYLE: Record<string, {
   },
   punctual: {
     Icon: ScrollText,
-    chip: 'bg-orange-50 text-orange-700',
+    text: 'text-orange-600',
+    divider: 'border-orange-200',
     taskBg: 'bg-orange-50',
     taskText: 'text-orange-700',
     taskBorder: 'border-orange-100',
@@ -173,15 +179,14 @@ export default function QuestsWidgetClient({
             return (
               <div key={group.type}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shrink-0 ${style.chip}`}>
-                    <GroupIcon size={10} />
+                  <GroupIcon size={11} className={`shrink-0 ${style.text}`} />
+                  <span className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${style.text}`}>
                     {group.label}
                   </span>
-                  {allDone && (
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black ${style.doneBadge}`}>
-                      <ShieldCheck size={10} /> Completado
-                    </span>
-                  )}
+                  <div className={`flex-1 border-t ${style.divider}`} />
+                  <span className={`text-[10px] font-black shrink-0 ${style.text}`}>
+                    {group.done.length}/{group.pending.length + group.done.length}
+                  </span>
                 </div>
 
                 {group.pending.length > 0 && (
