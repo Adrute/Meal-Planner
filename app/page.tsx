@@ -1,4 +1,4 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon } from 'lucide-react'
+import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, Home } from 'lucide-react'
 import QuestsWidgetClient from './tasks/QuestsWidgetClient'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -81,8 +81,11 @@ async function FinancesWidget() {
             )}
             {totalFixed > 0 && (
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span className="text-sm font-medium text-slate-500">Fijos</span>
-                <span className="text-sm font-black text-slate-700">{totalFixed.toFixed(0)} €/mes</span>
+                <div className="flex items-center gap-1.5">
+                  <Home size={13} className="text-slate-400 shrink-0" />
+                  <span className="text-sm font-medium text-slate-500">Fijos</span>
+                </div>
+                <span className="text-sm font-black text-slate-700">{totalFixed.toFixed(0)} €<span className="text-xs font-bold text-slate-400">/mes</span></span>
               </div>
             )}
           </div>
