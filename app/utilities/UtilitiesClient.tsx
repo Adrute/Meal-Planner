@@ -37,8 +37,8 @@ function fmtDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-const TODAY = fmtDate(new Date())
 const YEAR_START = `${new Date().getFullYear()}-01-01`
+const YEAR_END   = `${new Date().getFullYear()}-12-31`
 
 export default function UtilitiesClient({
   invoices,
@@ -62,7 +62,7 @@ export default function UtilitiesClient({
   const hasData = invoices.length > 0
 
   const [dateFrom, setDateFrom] = useState(YEAR_START)
-  const [dateTo, setDateTo] = useState(TODAY)
+  const [dateTo, setDateTo] = useState(YEAR_END)
   const [pageSize, setPageSize] = useState<10 | 20 | 50>(10)
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -219,7 +219,7 @@ export default function UtilitiesClient({
           />
         </label>
         <button
-          onClick={() => { setDateFrom(YEAR_START); setDateTo(TODAY) }}
+          onClick={() => { setDateFrom(YEAR_START); setDateTo(YEAR_END) }}
           className="px-3 py-1.5 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-colors"
         >
           Limpiar
