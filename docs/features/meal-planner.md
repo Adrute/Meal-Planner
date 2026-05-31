@@ -33,7 +33,27 @@ Botón "Generar Cenas IA" en cada `WeekBlock`. Llama a `/api/generate-meal-plan`
 - Recetas guardadas
 - Miembros del hogar con restricciones
 
-La IA (Groq Llama 3.3 70b) propone cenas complementarias al menú escolar (evita repetir proteína/legumbres) y aptas para bebé de 18 meses. Usa recetas existentes si encajan; si no, propone plato nuevo. Los resultados se guardan via `assignMealByName` que crea una receta mínima si no existe.
+La IA (Groq Llama 3.3 70b, `temperature: 0.4`) propone cenas complementarias al menú escolar y aptas para bebé de 18 meses. Usa recetas existentes si encajan; si no, propone plato nuevo. Los resultados se guardan via `assignMealByName` que crea una receta mínima si no existe.
+
+#### Detección determinista de proteínas del cole
+La función `detectProteins` en `route.ts` detecta las proteínas presentes en el menú escolar del día usando un diccionario `PROTEIN_KEYWORDS` con sinónimos por categoría:
+
+| categoría | palabras clave (ejemplos) |
+|---|---|
+| `pollo` | pollo, chicken, ragout pollo, pollo asado |
+| `ternera` | ternera, res, carne picada, albóndiga, filete |
+| `cerdo` | cerdo, lomo, jamón, bacon, chorizo |
+| `pescado` | merluza, salmón, bacalao, atún, dorada, lubina, … |
+| `huevo` | huevo, tortilla, revuelto |
+| `legumbre` | lentejas, garbanzos, alubias, potaje, cocido |
+
+Cada día del menú escolar se convierte en texto con el formato:
+```
+- YYYY-MM-DD: primer plato + segundo | PROHIBIDO en cena: pollo, pescado
+```
+o `sin proteína principal detectada` si no se detecta ninguna.
+
+El prompt indica a la IA que respete estrictamente los `PROHIBIDO en cena: X` de cada día. Esto sustituye al método anterior basado en descripción textual libre, eliminando los errores de desfase de proteínas que producía el enfoque no determinista.
 
 ### Miembros del hogar
 CRUD completo en `HouseholdMembersSection`. Las restricciones se guardan como chips `{food, type}` donde `type` puede ser "alergia", "intolerancia" o "preferencia".

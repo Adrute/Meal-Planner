@@ -1,5 +1,23 @@
 # Changelog — FamilyTools
 
+## [2026-06-01] Dashboard, Quests y IA: reordenación, widget enriquecido, historial contratos y fix proteínas
+
+### Dashboard
+- Nuevo orden de widgets: Quests → Bonos (si los hay) → Menú semanal → Próximos planes → Finanzas + Suministros
+- Widget de Quests reemplazado por `QuestsWidgetClient.tsx`: agrupa por tipo, headers con línea separadora coloreada y contador done/total, picker de persona inline al completar desde el dashboard
+
+### Quests
+- Historial de Contratos: nueva sección en el tab "Misiones Activas" de `TasksClient.tsx` que muestra contratos completados con fecha y asignado; botón eliminar llama a la nueva action `deleteCompletedContract`
+- Épicas atrasadas (`getCustomDayForWeek`): si la quest está retrasada y la semana visible es la actual, se asigna al día de hoy en lugar del lunes
+- Fix calendario: contratos completados excluidos de `unscheduled` y `scheduledTasks` en `CalendarView`
+- Fix icono: chips de quests pendientes en el widget del dashboard usan icono `Shield` en lugar de `Check`
+- Zona horaria Madrid: `toISOString().split('T')[0]` reemplazado por `toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })` en `actions.ts` y helper `madridDate` en `app/page.tsx`
+
+### IA menú
+- Detección determinista de proteínas del menú escolar mediante diccionario `PROTEIN_KEYWORDS` con sinónimos por categoría (pollo, ternera, cerdo, pavo, cordero, pescado, huevo, legumbre)
+- Temperatura reducida a 0.4 para mayor consistencia de respuestas
+- Prompt actualizado: cada día incluye `PROHIBIDO en cena: X` con las proteínas detectadas, con instrucción explícita de no exceptuarlas
+
 ## [2026-05-27] Fix: quests periódicas (custom) marcan completado por fecha exacta en calendario
 - Corregido bug en la vista Semana (calendario) de `TasksClient.tsx`: las quests de frecuencia `custom` usaban `isDoneInWeek` (rango lunes–domingo) en lugar de `isDoneOnDate` (fecha exacta), lo que hacía que una quest completada el miércoles apareciera tachada también el sábado (su próxima fecha de vencimiento)
 - Afectaba a tres puntos: cálculo de `doneCount`, prop `isComplete` de `TaskDayRow` y cálculo de `completedBy`

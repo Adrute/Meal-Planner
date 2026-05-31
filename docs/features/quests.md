@@ -109,21 +109,49 @@ El campo `assigned_to` almacena nombres separados por coma: `"Adrián, Paula"`. 
 | `createTask` | Inserta en `household_tasks`. Si se pasa `last_done_date`, inserta también en `task_completions` |
 | `updateTask` | Actualiza campos de la tarea |
 | `deleteTask` | Elimina la quest (las completions en cascada o quedan huérfanas) |
-| `completeTask` | Inserta en `task_completions` con fecha de hoy y la persona indicada |
-| `uncompleteTask` | Elimina completions del período correspondiente a la frecuencia (`today`, `week`, `year`, `recent`, `all`) |
+| `completeTask` | Inserta en `task_completions` con fecha en zona horaria Madrid y la persona indicada |
+| `uncompleteTask` | Elimina completions del período correspondiente a la frecuencia (`today`, `week`, `year`, `recent`, `all`). Fechas calculadas en zona horaria Madrid |
+| `uncompleteTaskOnDate` | Elimina la completion de una fecha concreta (usada desde el calendario) |
 | `setTaskWeekDay` | Upsert manual en `task_week_assignments` para el día de la semana |
 | `setTaskWeekAssignee` | Upsert manual en `task_week_assignments` para el asignado |
+| `deleteCompletedContract` | Elimina todas las completions de un contrato (`task_completions`) y luego la quest (`household_tasks`). Usado desde el historial de contratos completados |
 
 ## Widget en el Dashboard
-`TasksWidget` en `app/page.tsx` (aparece como "Quests esta semana"):
-- Icono Swords en la cabecera del widget
-- Carga solo quests `daily` y `weekly` con sus completions de la semana actual
-- Muestra barra de progreso, contador y chips de misiones pendientes (máx. 6, con "+N más")
-- Mensaje vacío: "Sin misiones registradas" (en lugar del antiguo "Sin tareas registradas")
-- Se filtra `Admin` de la lista de perfiles con `filterProfiles`
+`TasksWidget` en `app/page.tsx` renderiza `QuestsWidgetClient` (componente cliente en `app/tasks/QuestsWidgetClient.tsx`):
+- Cabecera con icono Shield, título "Quests" y subtítulo "X completadas · Y pendientes"
+- Barra de progreso global (lime-400 → emerald-400 cuando 100%)
+- Agrupa las misiones por frecuencia con headers coloreados: icono RPG + etiqueta + línea separadora del color del grupo + contador `done/total`
+- Cada grupo muestra chips de misiones pendientes (máx. 5, con "+N más" enlazado a `/tasks`) y chips de completadas (máx. 2, tachadas)
+- Chips pendientes usan el icono Shield con el tono de color del grupo; al hacer clic abre picker de persona inline; al seleccionar persona llama a `completeTask` y refresca
+- Se filtra el perfil `Admin` con `filterProfiles`
+- Si todo completado: mensaje "¡Todo al día!" con ShieldCheck; si no hay misiones: "Sin misiones registradas"
+- Los datos que carga `TasksWidget` incluyen todas las frecuencias (no solo `daily`/`weekly`): las épicas solo si su próxima fecha de vencimiento es ≤ hoy; los contratos solo si no están completados
+
+## Historial de Contratos completados
+En el tab "Misiones Activas" (`pending`), debajo de los grupos de misiones activas, aparece la sección "Historial de Contratos" si hay contratos con completion:
+- Lista de contratos completados (quests `punctual` con al menos una completion)
+- Muestra título, fecha de completado (formateada) y asignado si existe
+- Botón eliminar visible en hover → llama a `deleteCompletedContract`
+- Los contratos completados quedan excluidos del grupo de "Contratos" activos y del calendario semanal
 
 ## Lógica de próxima fecha (quests periódicas)
 ```ts
 nextDueDate = lastCompletionDate + custom_interval_days
 ```
 Si nunca se ha completado → vence hoy. Si la fecha de vencimiento ya pasó → aparece al inicio de la semana en el calendario.
+
+### Épicas atrasadas en el calendario (`getCustomDayForWeek`)
+Cuando una quest épica está atrasada (su `nextDue` es anterior al `weekStart` de la semana visible), la lógica es:
+- Si la semana visible es la semana actual y hoy cae dentro de ella → se asigna al día correspondiente a hoy
+- Si la semana visible es una semana pasada → se asigna al lunes
+
+Esto evita que épicas muy atrasadas aparezcan el lunes de semanas futuras o pasadas en las que el usuario está navegando.
+
+## Zona horaria Madrid
+Todas las fechas del módulo usan la zona horaria Europe/Madrid para evitar desfases UTC:
+- `actions.ts` (`completeTask`, `uncompleteTask`): `new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })`
+- `app/page.tsx` (`TasksWidget`, `HomeDashboard`): helper `madridDate` con `toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })`
+- `TasksClient.tsx`: `fmtDate` usa `getFullYear/getMonth/getDate` (hora local del navegador)
+
+## Filtro de contratos completados en el calendario
+En `CalendarView`, la lista `scheduledTasks` de cada día excluye los contratos completados (`punctual` con `isDone = true`) para que no aparezcan en el mapa semanal una vez cerrados. Igualmente, la sección `unscheduled` excluye contratos completados.
