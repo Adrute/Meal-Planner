@@ -128,6 +128,13 @@ export async function setTaskWeekDay(taskId: string, weekStart: string, dayOfWee
   return { success: true }
 }
 
+export async function deleteCompletedContract(id: string) {
+  const supabase = await createClient()
+  await supabase.from('task_completions').delete().eq('task_id', id)
+  await supabase.from('household_tasks').delete().eq('id', id)
+  revalidatePath('/tasks')
+}
+
 export async function setTaskWeekAssignee(taskId: string, weekStart: string, assignedTo: string | null) {
   const supabase = await createClient()
   const { data: existing } = await supabase.from('task_week_assignments')

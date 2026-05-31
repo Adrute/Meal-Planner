@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import {
   createTask, updateTask, deleteTask, completeTask, uncompleteTask, uncompleteTaskOnDate,
-  setTaskWeekDay, setTaskWeekAssignee,
+  setTaskWeekDay, setTaskWeekAssignee, deleteCompletedContract,
 } from './actions'
 
 type Task = {
@@ -129,6 +129,11 @@ function getCustomDayForWeek(task: Task, completions: Completion[], weekStart: s
   const nextDue = getNextDueDate(task, completions)
   if (!nextDue || nextDue > weekEnd) return null
   if (nextDue >= weekStart) return DAYS[(new Date(nextDue + 'T12:00:00').getDay() + 6) % 7]
+  // overdue: si hoy cae en esta semana, mostrar en hoy; si no (semana pasada), mostrar en lunes
+  const today = fmtDate(new Date())
+  if (today >= weekStart && today <= weekEnd) {
+    return DAYS[(new Date(today + 'T12:00:00').getDay() + 6) % 7]
+  }
   return DAYS[0]
 }
 
@@ -743,6 +748,7 @@ export default function TasksClient({
   const [editing,  setEditing]      = useState<Task | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deletingContractId, setDeletingContractId] = useState<string | null>(null)
   const [localCompletions,     setLocalCompletions]     = useState<Completion[]>(completions)
   const [localWeekAssignments, setLocalWeekAssignments] = useState<WeekAssignment[]>(weekAssignments)
 
@@ -835,6 +841,14 @@ export default function TasksClient({
     setDeletingId(id)
     await deleteTask(id)
     setDeletingId(null)
+    refresh()
+  }
+
+  const handleDeleteContract = async (id: string) => {
+    if (!confirm('¿Borrar este contrato del historial?')) return
+    setDeletingContractId(id)
+    await deleteCompletedContract(id)
+    setDeletingContractId(null)
     refresh()
   }
 
@@ -937,6 +951,9 @@ export default function TasksClient({
             const { sunday } = getWeekRange()
             const freqTasks = (byFreq[freq] ?? [])
               .filter(t => {
+                if (t.frequency === 'punctual') {
+                  return localCompletions.filter(c => c.task_id === t.id).length === 0
+                }
                 if (t.frequency !== 'custom') return true
                 const nextDue = getNextDueDate(t, localCompletions)
                 return !nextDue || nextDue <= sunday
@@ -983,6 +1000,49 @@ export default function TasksClient({
               </div>
             )
           })}
+
+          {/* Historial de Contratos completados */}
+          {(() => {
+            const completedContracts = (byFreq['punctual'] ?? []).filter(t =>
+              localCompletions.filter(c => c.task_id === t.id).length > 0
+            )
+            if (completedContracts.length === 0) return null
+            return (
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <Trophy size={14} className="text-slate-400" />
+                  <p className="text-xs font-black uppercase tracking-widest shrink-0 text-slate-400">Historial de Contratos</p>
+                </div>
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-50">
+                  {completedContracts.map(task => {
+                    const completionDate = localCompletions
+                      .filter(c => c.task_id === task.id)
+                      .sort((a, b) => b.completed_date.localeCompare(a.completed_date))[0]?.completed_date ?? null
+                    return (
+                      <div key={task.id} className="flex items-center gap-3 px-4 py-3">
+                        <div className="w-2 h-2 rounded-full shrink-0 bg-emerald-400" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-slate-500 line-through">{task.title}</p>
+                          {completionDate && (
+                            <p className="text-xs text-emerald-600 font-medium mt-0.5">
+                              Completado: {new Date(completionDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteContract(task.id)}
+                          disabled={deletingContractId === task.id}
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          {deletingContractId === task.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
