@@ -65,7 +65,7 @@ export async function deleteTask(id: string) {
 
 export async function completeTask(taskId: string, completedBy: string, date?: string) {
   const supabase = await createClient()
-  const completedDate = date ?? new Date().toISOString().split('T')[0]
+  const completedDate = date ?? new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })
   const { error } = await supabase.from('task_completions').insert({
     task_id: taskId,
     completed_date: completedDate,
@@ -86,17 +86,17 @@ export async function uncompleteTask(taskId: string, period: string) {
   const supabase = await createClient()
   let query = supabase.from('task_completions').delete().eq('task_id', taskId)
 
+  const madridDate = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })
   if (period === 'today') {
-    const today = new Date().toISOString().split('T')[0]
-    query = query.eq('completed_date', today)
+    query = query.eq('completed_date', madridDate(new Date()))
   } else if (period === 'week') {
     const now = new Date()
     const day = now.getDay() || 7
     const monday = new Date(now); monday.setDate(now.getDate() - day + 1)
     const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
     query = query
-      .gte('completed_date', monday.toISOString().split('T')[0])
-      .lte('completed_date', sunday.toISOString().split('T')[0])
+      .gte('completed_date', madridDate(monday))
+      .lte('completed_date', madridDate(sunday))
   } else if (period === 'year') {
     const year = new Date().getFullYear()
     query = query.gte('completed_date', `${year}-01-01`).lte('completed_date', `${year}-12-31`)

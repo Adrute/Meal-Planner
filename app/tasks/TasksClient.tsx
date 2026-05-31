@@ -603,6 +603,7 @@ function CalendarView({
   const unscheduled = tasks.filter(t =>
     t.frequency !== 'daily' &&
     t.frequency !== 'custom' &&
+    !isDone(t, completions) &&
     getEffectiveDay(t, weekStart, weekAssignments) === null
   )
 
@@ -636,6 +637,7 @@ function CalendarView({
           const scheduledTasks = tasks.filter(t => {
             if (t.frequency === 'daily') return false
             if (t.frequency === 'custom') return getCustomDayForWeek(t, completions, weekStart, weekEnd) === dayName
+            if (t.frequency === 'punctual' && isDone(t, completions)) return false
             return getEffectiveDay(t, weekStart, weekAssignments) === dayName
           })
           const allInDay = [...dailyTasks, ...scheduledTasks]
