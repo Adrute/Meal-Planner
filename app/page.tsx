@@ -400,69 +400,6 @@ export default async function HomeDashboard() {
       {/* --- WIDGET 3: TAREAS --- */}
       <TasksWidget />
 
-      {/* --- FILA 4: FINANZAS + SUMINISTROS --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-        {/* WIDGET 3: FINANZAS */}
-        <FinancesWidget />
-
-        {/* WIDGET 4: SUMINISTROS */}
-        <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-lime-100 shadow-sm flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-lime-100 p-2.5 rounded-xl text-lime-400"><Zap size={20} /></div>
-                <h2 className="font-bold text-lg text-slate-700">Suministros</h2>
-              </div>
-              <Link href="/utilities" className="text-slate-300 hover:text-lime-400 transition-colors">
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-
-            {hasInvoices ? (
-              <>
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Luz/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgElec.toFixed(0)}€</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Gas/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgGas.toFixed(0)}€</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Serv/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgServ.toFixed(0)}€</span>
-                  </div>
-                </div>
-
-                {alert && (
-                  <div className={`p-4 rounded-xl flex items-start gap-3 border ${alert.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
-                    <div className="mt-0.5">
-                      {alert.type === 'warning' ? <AlertTriangle size={18} className="text-amber-500" /> : <CheckCircle2 size={18} className="text-emerald-500" />}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm mb-0.5">{alert.title}</p>
-                      <p className="text-xs opacity-90 leading-relaxed">{alert.message}</p>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center h-full flex flex-col justify-center">
-                <span className="text-sm text-slate-400 font-medium block mb-2">Sin datos analizados</span>
-                <Link href="/utilities/import" className="text-emerald-600 text-xs font-bold hover:underline">Importar primera factura &rarr;</Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-      </div>
-      {/* --- FIN DE FINANZAS + SUMINISTROS --- */}
-
-
-
-      {/* --- INICIO DEL MÓDULO DE BONOS (VISTA DETALLADA) --- */}
       {services && services.length > 0 && (
         <div className="mt-8 bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm w-full">
           <div className="flex items-center justify-between mb-6">
@@ -513,7 +450,6 @@ export default async function HomeDashboard() {
                       </div>
                     </div>
 
-                    {/* Barra de progreso de sesiones consumidas */}
                     <div className="mb-6">
                       <div className="flex justify-between text-sm font-bold mb-2">
                         <span className="text-slate-700">Consumidas: {service.used_sessions}</span>
@@ -529,7 +465,6 @@ export default async function HomeDashboard() {
                       </div>
                     </div>
 
-                    {/* HISTORIAL DE FECHAS CONSUMIDAS */}
                     {service.session_dates && service.session_dates.length > 0 && (
                       <div className="mb-6 pt-4 border-t border-slate-200">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Historial de sesiones</p>
@@ -544,7 +479,6 @@ export default async function HomeDashboard() {
                     )}
                   </div>
 
-                  {/* BOTONERAS DE ACCIÓN CON SELECTOR DE FECHA */}
                   <div className="mt-auto">
                     {isExhausted ? (
                       <form action={renewService} className="w-full flex gap-2">
@@ -571,7 +505,60 @@ export default async function HomeDashboard() {
           </div>
         </div>
       )}
-      {/* --- FIN DEL MÓDULO DE BONOS --- */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <FinancesWidget />
+
+        <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-lime-100 shadow-sm flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-lime-100 p-2.5 rounded-xl text-lime-400"><Zap size={20} /></div>
+                <h2 className="font-bold text-lg text-slate-700">Suministros</h2>
+              </div>
+              <Link href="/utilities" className="text-slate-300 hover:text-lime-400 transition-colors">
+                <ArrowRight size={20} />
+              </Link>
+            </div>
+
+            {hasInvoices ? (
+              <>
+                <div className="grid grid-cols-3 gap-2 mb-6">
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Luz/mes</span>
+                    <span className="font-black text-slate-800 text-lg">{avgElec.toFixed(0)}€</span>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Gas/mes</span>
+                    <span className="font-black text-slate-800 text-lg">{avgGas.toFixed(0)}€</span>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Serv/mes</span>
+                    <span className="font-black text-slate-800 text-lg">{avgServ.toFixed(0)}€</span>
+                  </div>
+                </div>
+
+                {alert && (
+                  <div className={`p-4 rounded-xl flex items-start gap-3 border ${alert.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+                    <div className="mt-0.5">
+                      {alert.type === 'warning' ? <AlertTriangle size={18} className="text-amber-500" /> : <CheckCircle2 size={18} className="text-emerald-500" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm mb-0.5">{alert.title}</p>
+                      <p className="text-xs opacity-90 leading-relaxed">{alert.message}</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center h-full flex flex-col justify-center">
+                <span className="text-sm text-slate-400 font-medium block mb-2">Sin datos analizados</span>
+                <Link href="/utilities/import" className="text-emerald-600 text-xs font-bold hover:underline">Importar primera factura &rarr;</Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
     </div>
   )

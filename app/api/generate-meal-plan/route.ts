@@ -16,11 +16,33 @@ type SchoolItem = {
 
 type Recipe = { id: string; name: string }
 
-// Maps a school meal description to the protein/food groups it contains
+const PROTEIN_KEYWORDS: Record<string, string[]> = {
+  'pollo':      ['pollo', 'chicken', 'ragout pollo', 'pollo asado', 'pollo guisado'],
+  'ternera':    ['ternera', 'res', 'buey', 'carne picada', 'albóndiga', 'filete'],
+  'cerdo':      ['cerdo', 'lomo', 'costilla', 'jamón', 'bacon', 'chorizo'],
+  'pavo':       ['pavo'],
+  'cordero':    ['cordero'],
+  'pescado':    ['pescado', 'merluza', 'salmón', 'bacalao', 'atún', 'dorada', 'lubina', 'sardina', 'boquerón', 'palometa', 'rodaballo', 'rape', 'mero', 'lenguado'],
+  'huevo':      ['huevo', 'tortilla', 'revuelto', 'omelette'],
+  'legumbre':   ['lentejas', 'garbanzos', 'alubias', 'judías', 'potaje', 'cocido', 'fabada'],
+}
+
+function detectProteins(text: string): string[] {
+  const lower = text.toLowerCase()
+  return Object.entries(PROTEIN_KEYWORDS)
+    .filter(([, keywords]) => keywords.some(k => lower.includes(k)))
+    .map(([protein]) => protein)
+}
+
 function buildDayContext(date: string, item: SchoolItem | undefined): string {
-  if (!item) return `- ${date}: sin menú escolar registrado → propón cena equilibrada`
+  if (!item) return `- ${date}: sin menú escolar → propón cena equilibrada libremente`
   const courses = [item.first_course, item.second_course].filter(Boolean).join(' + ')
-  return `- ${date}: ${courses} (postre: ${item.dessert ?? '-'})`
+  const allText = [item.first_course, item.second_course].filter(Boolean).join(' ')
+  const proteins = detectProteins(allText)
+  const forbidden = proteins.length > 0
+    ? `PROHIBIDO en cena: ${proteins.join(', ')}`
+    : 'sin proteína principal detectada'
+  return `- ${date}: ${courses} | ${forbidden}`
 }
 
 function buildMembersText(members: Member[]): string {
@@ -74,7 +96,7 @@ export async function POST(req: NextRequest) {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       response_format: { type: 'json_object' },
-      temperature: 0.7,
+      temperature: 0.4,
       messages: [
         {
           role: 'system',
@@ -86,6 +108,7 @@ export async function POST(req: NextRequest) {
 ${membersText}
 
 MENÚ DEL COMEDOR ESCOLAR esta semana (lo que comen los niños al mediodía):
+Cada línea incluye "PROHIBIDO en cena" con las proteínas detectadas ese día. Respétalo SIN excepciones.
 ${schoolMenuText}
 
 MIS RECETAS GUARDADAS (úsalas cuando encajen):
@@ -95,19 +118,17 @@ TAREA: Propón la CENA para cada día listado arriba.
 
 REGLAS — síguelas en este orden de prioridad:
 
-1. RESTRICCIONES (prioridad máxima, sin excepciones)
+1. RESTRICCIONES ALIMENTARIAS (prioridad máxima, sin excepciones)
    - ALERGIA: ese alimento NUNCA puede aparecer en la cena, ni como ingrediente secundario
    - INTOLERANCIA: ese alimento no debe aparecer en ningún caso
    - Preferencia: intenta evitarlo salvo que no haya alternativa razonable
 
-2. COMPLEMENTAR EL MENÚ DEL COLE (por día)
-   Analiza qué grupos de alimentos comió cada niño en el colegio y evita repetirlos en la cena:
-   - Huevos/tortilla/revuelto → NO más huevos en cena (tortilla = huevos)
-   - Carne (pollo, ternera, cerdo, pavo…) → prefiere pescado, legumbres o huevo en cena
-   - Pescado → prefiere carne o huevo en cena
-   - Legumbres (lentejas, garbanzos, alubias…) → NO legumbres en cena
-   - Pasta/arroz/patata → evita repetir ese mismo carbohidrato en cena
-   - Si no hay menú escolar ese día → propón cena equilibrada libremente
+2. NO REPETIR PROTEÍNA DEL COLE (obligatorio, sin excepciones)
+   Cada día tiene marcado "PROHIBIDO en cena" con la proteína detectada en el menú escolar.
+   Si ese día pone "PROHIBIDO en cena: pollo" → la cena NO puede contener pollo ni preparaciones de pollo.
+   Si pone "PROHIBIDO en cena: pescado" → la cena NO puede contener ningún pescado.
+   Si pone "PROHIBIDO en cena: huevo" → la cena NO puede contener huevo (tampoco tortilla ni revuelto).
+   Si pone "PROHIBIDO en cena: legumbre" → la cena NO puede contener lentejas, garbanzos ni alubias.
 
 3. APTO PARA BEBÉ (si hay niño/a en la familia)
    - Sin picante, sin sal añadida en exceso
