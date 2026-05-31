@@ -90,9 +90,10 @@ export async function uncompleteTask(taskId: string, period: string) {
   if (period === 'today') {
     query = query.eq('completed_date', madridDate(new Date()))
   } else if (period === 'week') {
-    const now = new Date()
-    const day = now.getDay() || 7
-    const monday = new Date(now); monday.setDate(now.getDate() - day + 1)
+    const todayStr = madridDate(new Date())
+    const todayD = new Date(todayStr + 'T12:00:00')
+    const day = todayD.getDay() || 7
+    const monday = new Date(todayD); monday.setDate(todayD.getDate() - day + 1)
     const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
     query = query
       .gte('completed_date', madridDate(monday))

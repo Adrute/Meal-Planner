@@ -121,11 +121,12 @@ const madridDate = (d: Date = new Date()) =>
 
 async function TasksWidget() {
   const supabase = await createClient()
-  const now = new Date()
-  const today = madridDate(now)
-  const year = new Date(today).getFullYear()
-  const todayDow = now.getDay() || 7
-  const monday = new Date(now); monday.setDate(now.getDate() - todayDow + 1)
+  const today = madridDate()
+  // Parse today at noon UTC so getDay()/getDate() are unambiguous on any server timezone
+  const todayD = new Date(today + 'T12:00:00')
+  const year = todayD.getFullYear()
+  const todayDow = todayD.getDay() || 7
+  const monday = new Date(todayD); monday.setDate(todayD.getDate() - todayDow + 1)
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6)
   const monStr = madridDate(monday)
   const sunStr = madridDate(sunday)
@@ -205,11 +206,12 @@ export const dynamic = 'force-dynamic'
 export default async function HomeDashboard() {
   const supabase = await createClient()
   const today = madridDate()
+  const todayBase = new Date(today + 'T12:00:00')
 
   // 0. Menú de los próximos 4 días
   const menuDates = Array.from({ length: 4 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + i)
+    const d = new Date(todayBase)
+    d.setDate(todayBase.getDate() + i)
     return madridDate(d)
   })
 
