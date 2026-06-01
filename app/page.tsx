@@ -17,18 +17,16 @@ async function FinancesWidget() {
   const [
     { data: thisMonth },
     { data: prevMonthTx },
-    { data: fixedExpenses },
   ] = await Promise.all([
-    supabase.from('bank_transactions').select('importe, categoria').gte('fecha_operacion', `${currentMonth}-01`),
+    supabase.from('bank_transactions').select('importe, categoria, is_fixed').gte('fecha_operacion', `${currentMonth}-01`),
     supabase.from('bank_transactions').select('importe, categoria').gte('fecha_operacion', `${prevMonth}-01`).lt('fecha_operacion', `${currentMonth}-01`),
-    supabase.from('fixed_expenses').select('amount, active'),
   ])
 
   const gastosMes = Math.abs((thisMonth || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
   const ingresosMes = (thisMonth || []).filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
   const gastosPrev = Math.abs((prevMonthTx || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
   const diff = gastosPrev > 0 ? ((gastosMes - gastosPrev) / gastosPrev) * 100 : 0
-  const totalFixed = (fixedExpenses ?? []).filter(e => e.active).reduce((s, e) => s + Number(e.amount), 0)
+  const totalFixed = (thisMonth || []).filter(t => t.is_fixed && t.importe < 0).reduce((s, t) => s + Math.abs(Number(t.importe)), 0)
 
   // Top 3 categorías del mes anterior
   const catMap: Record<string, number> = {}

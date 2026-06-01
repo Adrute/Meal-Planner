@@ -6,14 +6,14 @@ import * as XLSX from 'xlsx'
 import {
   updateTransaction, deleteTransaction,
   createRule, deleteRule, reapplyRules,
-  bulkUpdateCategory, toggleNeedsReview,
+  bulkUpdateCategory, toggleNeedsReview, toggleFixed,
 } from './actions'
 import { CATEGORY_COLORS, type Category } from './constants'
 import {
   Upload, Loader2, Pencil, Check, X,
   ChevronDown, Search, Filter, BookMarked, RefreshCw, Tag, ArrowRight,
   Download, FileText, FileSpreadsheet, CheckSquare, Square, Flag, ClipboardList,
-  Layers, Trash2,
+  Layers, Trash2, Bookmark,
 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import CategoriesManager from './categories-manager'
@@ -28,6 +28,7 @@ type Transaction = {
   subcategoria: string | null
   tarjeta: string | null
   needs_review?: boolean
+  is_fixed?: boolean
 }
 
 type Rule = { id: string; pattern: string; categoria: string; subcategoria: string | null }
@@ -337,6 +338,8 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const [isDeleting, setIsDeleting] = useState(false)
   const [isFlagging, setIsFlagging] = useState(false)
   const [flagged, setFlagged] = useState(t.needs_review ?? false)
+  const [isFixing, setIsFixing] = useState(false)
+  const [isFixed, setIsFixed] = useState(t.is_fixed ?? false)
 
   const handleToggleFlag = async () => {
     setIsFlagging(true)
@@ -344,6 +347,15 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
     await toggleNeedsReview(t.id, !flagged)
     router.refresh()
     setIsFlagging(false)
+  }
+
+  const handleToggleFixed = async () => {
+    setIsFixing(true)
+    const next = !isFixed
+    setIsFixed(next)
+    await toggleFixed(t.id, next)
+    router.refresh()
+    setIsFixing(false)
   }
 
   // Subcategorías disponibles para la categoría seleccionada
@@ -382,7 +394,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const isIncome = t.importe > 0
 
   return (
-    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-teal-50/60' : ''} ${flagged && !isSelected ? 'bg-lime-50/40' : ''}`}>
+    <div className={`transition-colors group ${isDeleting ? 'opacity-40' : ''} ${isSelected ? 'bg-teal-50/60' : ''} ${isFixed && !isSelected ? 'bg-teal-50/30' : ''} ${flagged && !isSelected && !isFixed ? 'bg-lime-50/40' : ''}`}>
       <div className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50">
 
         {/* Checkbox selección */}
@@ -463,6 +475,16 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
             </>
           ) : (
             <>
+              {t.importe < 0 && (
+                <button
+                  onClick={handleToggleFixed}
+                  disabled={isFixing}
+                  title={isFixed ? 'Quitar de fijos' : 'Marcar como gasto fijo'}
+                  className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${isFixed ? 'text-teal-500' : 'text-slate-200 hover:text-teal-400 opacity-0 group-hover:opacity-100'}`}
+                >
+                  {isFixing ? <Loader2 size={14} className="animate-spin" /> : <Bookmark size={14} />}
+                </button>
+              )}
               {!hideFlag && (
                 <button
                   onClick={handleToggleFlag}
