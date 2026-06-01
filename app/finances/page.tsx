@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
-import { Wallet, TrendingDown, TrendingUp, ArrowUpDown, CalendarDays, PiggyBank, Bookmark } from 'lucide-react'
+import { Wallet, TrendingDown, TrendingUp, ArrowUpDown, CalendarDays, PiggyBank } from 'lucide-react'
 import { type Category } from './constants'
 import FinancesUI from './finances-ui'
 import EvolutionChart from './finances-chart'
 import MonthSelector from './month-selector'
 import CategoryBreakdown, { type CatStat } from './category-breakdown'
 import FinancesHeader from './finances-header'
+import FixedPatternsPanel from './fixed-patterns-panel'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,11 +38,15 @@ export default async function FinancesPage({
     { data: dateRows },
     { data: rules },
     { data: categoriesRaw },
+    { data: fixedPatternsRaw },
   ] = await Promise.all([
     supabase.from('bank_transactions').select('fecha_operacion').order('fecha_operacion', { ascending: false }),
     supabase.from('category_rules').select('*').order('created_at', { ascending: false }),
     supabase.from('transaction_categories').select('*, transaction_subcategories(*)').order('name'),
+    supabase.from('fixed_patterns').select('id, pattern, label').order('created_at', { ascending: false }),
   ])
+
+  const fixedPatterns = fixedPatternsRaw ?? []
 
   const categories: Category[] = categoriesRaw || []
   const availableMonths = Array.from(new Set((dateRows || []).map(r => r.fecha_operacion.substring(0, 7)))).sort().reverse()
@@ -336,39 +341,20 @@ export default async function FinancesPage({
       )}
 
       {/* GASTOS FIJOS */}
-      {totalFixed > 0 && !isAllTime && (
-        <div className="bg-white rounded-2xl border border-teal-100 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Bookmark size={16} className="text-teal-500" />
-            <h3 className="text-sm font-black uppercase tracking-widest text-teal-600">Gastos Fijos · {labelMonth(selectedMonth)}</h3>
-          </div>
-          <div className="flex items-baseline gap-2 mb-5">
-            <span className="text-3xl font-black text-slate-900">{totalFixed.toFixed(2)} €</span>
-            <span className="text-sm text-slate-500 font-medium">marcados como fijos este mes</span>
-          </div>
-          <div className="space-y-2 mb-5">
-            {fixedTransactions.sort((a, b) => Number(a.importe) - Number(b.importe)).map(t => (
-              <div key={t.id} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
-                <div>
-                  <p className="text-sm font-bold text-slate-700">{t.concepto}</p>
-                  <p className="text-[10px] text-slate-400">{t.categoria}{t.subcategoria ? ` · ${t.subcategoria}` : ''}</p>
-                </div>
-                <span className="text-sm font-black text-slate-800 shrink-0">{Math.abs(Number(t.importe)).toFixed(2)} €</span>
-              </div>
-            ))}
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Fondo de emergencia</p>
-            <div className="grid grid-cols-3 gap-3">
-              {[3, 6, 12].map(m => (
-                <div key={m} className={`rounded-xl p-3 text-center border ${m === 6 ? 'bg-teal-50 border-teal-200' : 'bg-slate-50 border-slate-100'}`}>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{m} meses{m === 6 ? ' ★' : ''}</p>
-                  <p className={`text-lg font-black ${m === 6 ? 'text-teal-700' : 'text-slate-700'}`}>{(totalFixed * m).toFixed(0)} €</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {(!isAllTime && (totalFixed > 0 || fixedPatterns.length > 0)) && (
+        <FixedPatternsPanel
+          patterns={fixedPatterns}
+          totalFixed={totalFixed}
+          fixedTransactions={fixedTransactions.map(t => ({
+            id: t.id,
+            concepto: t.concepto,
+            categoria: t.categoria,
+            subcategoria: t.subcategoria,
+            importe: Number(t.importe),
+          }))}
+          selectedMonth={selectedMonth}
+          labelMonth={labelMonth(selectedMonth)}
+        />
       )}
 
       {/* MOVIMIENTOS */}

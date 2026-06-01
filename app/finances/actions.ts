@@ -110,6 +110,12 @@ export async function importTransactions(lines: string[]) {
       if (upsertError) return { error: `Error al guardar: ${upsertError.message}` }
       const count = upserted?.length ?? 0
       const skipped = transactions.length - count
+      const { data: fixedPatternsU } = await supabase.from('fixed_patterns').select('pattern')
+      if (fixedPatternsU && fixedPatternsU.length > 0) {
+        for (const fp of fixedPatternsU) {
+          await supabase.from('bank_transactions').update({ is_fixed: true }).eq('concepto_original', fp.pattern).lt('importe', 0)
+        }
+      }
       revalidatePath('/finances'); revalidatePath('/')
       return { success: true, count, skipped }
     }
@@ -128,6 +134,17 @@ export async function importTransactions(lines: string[]) {
 
   if (count > 0 && (dbCount === 0 || dbCount === null)) {
     return { error: `Se insertaron ${count} filas pero el SELECT devuelve 0. Probable problema de RLS (política de lectura en bank_transactions).` }
+  }
+
+  // Aplicar patrones de gastos fijos a los movimientos recién importados
+  const { data: fixedPatterns } = await supabase.from('fixed_patterns').select('pattern')
+  if (fixedPatterns && fixedPatterns.length > 0) {
+    for (const fp of fixedPatterns) {
+      await supabase.from('bank_transactions')
+        .update({ is_fixed: true })
+        .eq('concepto_original', fp.pattern)
+        .lt('importe', 0)
+    }
   }
 
   revalidatePath('/finances')
@@ -268,9 +285,26 @@ export async function deleteSubcategory(id: string) {
 
 // ─── GASTOS FIJOS ─────────────────────────────────────────────────────────────
 
-export async function toggleFixed(id: string, value: boolean) {
+export async function toggleFixed(id: string, value: boolean, conceptoOriginal: string) {
   const supabase = await createClient()
   await supabase.from('bank_transactions').update({ is_fixed: value }).eq('id', id)
+  if (value) {
+    // Guardar patrón para auto-detectar en futuros imports
+    await supabase.from('fixed_patterns')
+      .upsert({ pattern: conceptoOriginal }, { onConflict: 'pattern', ignoreDuplicates: true })
+    // Marcar retroactivamente todos los movimientos con el mismo concepto_original
+    await supabase.from('bank_transactions')
+      .update({ is_fixed: true })
+      .eq('concepto_original', conceptoOriginal)
+      .lt('importe', 0)
+  }
+  revalidatePath('/finances')
+  revalidatePath('/')
+}
+
+export async function deleteFixedPattern(id: string) {
+  const supabase = await createClient()
+  await supabase.from('fixed_patterns').delete().eq('id', id)
   revalidatePath('/finances')
   revalidatePath('/')
 }

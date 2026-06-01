@@ -353,7 +353,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
     setIsFixing(true)
     const next = !isFixed
     setIsFixed(next)
-    await toggleFixed(t.id, next)
+    await toggleFixed(t.id, next, t.concepto_original)
     router.refresh()
     setIsFixing(false)
   }
