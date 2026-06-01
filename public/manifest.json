@@ -1,6 +1,6 @@
 {
-  "name": "FamilyTools",
-  "short_name": "FamilyTools",
+  "name": "FamilyDashboard",
+  "short_name": "FamilyDashboard",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f0fdf4",

@@ -7,7 +7,7 @@ import AppNavigation from '@/components/AppNavigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FamilyTools',
+  title: 'FamilyDashboard',
   description: 'Gestión integral de la familia, comidas y finanzas',
   manifest: '/manifest.json',
   icons: {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'FamilyTools',
+    title: 'FamilyDashboard',
     statusBarStyle: 'black-translucent',
   },
 }
