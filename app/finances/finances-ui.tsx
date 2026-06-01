@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import {
@@ -340,6 +340,7 @@ export function TransactionRow({ transaction: t, categories, isSelected = false,
   const [flagged, setFlagged] = useState(t.needs_review ?? false)
   const [isFixing, setIsFixing] = useState(false)
   const [isFixed, setIsFixed] = useState(t.is_fixed ?? false)
+  useEffect(() => { setIsFixed(t.is_fixed ?? false) }, [t.is_fixed])
 
   const handleToggleFlag = async () => {
     setIsFlagging(true)

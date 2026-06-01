@@ -65,13 +65,14 @@ school_menu_items.select('date, first_course, second_course, dessert').in('date'
 - Gasto total del mes actual (suma de transacciones negativas)
 - Porcentaje de variación vs mes anterior (verde si baja, rojo si sube)
 - Top 3 categorías del mes anterior por importe
+- Fila "Fijos X €/mes": suma de transacciones con `is_fixed = true` e `importe < 0` del mes actual (si `totalFixed > 0`)
 - Si no hay datos: placeholder con enlace a importar
 - Enlace → `/finances`
 
 **Datos cargados:**
 ```ts
-bank_transactions.select('importe, categoria').gte(currentMonth-01)  // mes actual
-bank_transactions.select('importe, categoria').gte/lt(prevMonth)      // mes anterior
+bank_transactions.select('importe, categoria, is_fixed').gte(currentMonth-01)  // mes actual
+bank_transactions.select('importe, categoria').gte/lt(prevMonth)               // mes anterior
 ```
 
 ### Widget 6 — Suministros

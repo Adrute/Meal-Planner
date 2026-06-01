@@ -1,5 +1,13 @@
 # Changelog — FamilyTools
 
+## [2026-06-02] Finanzas: refactor gastos fijos — flag en transacciones + patrones de auto-detección
+- Eliminada tabla `fixed_expenses`; reemplazada por columna `is_fixed BOOLEAN` en `bank_transactions` (migración `20260601_bank_transactions_is_fixed.sql`)
+- Nueva tabla `fixed_patterns` con `UNIQUE(pattern)`, RLS y GRANT para persistir patrones de detección automática (migración `20260601_fixed_patterns.sql`)
+- `toggleFixed(id, value, conceptoOriginal, concepto)` en `actions.ts`: marca la transacción, guarda el patrón (recortando fechas finales del banco con `toFixedPattern()`), y aplica retroactivamente ILIKE starts-with sobre el histórico
+- `importTransactions` aplica los patrones activos a los movimientos recién importados para auto-marcar fijos sin intervención manual
+- Nuevo Client Component `FixedPatternsPanel` (`app/finances/fixed-patterns-panel.tsx`): muestra total fijo del mes, desglose por transacción, calculadora de fondo de emergencia (3/6/12 meses) y lista de patrones activos con botón de eliminar
+- Widget de Finanzas en el dashboard usa `is_fixed` de `bank_transactions` (ya no consulta `fixed_expenses`)
+
 ## [2026-06-01] Dashboard, Quests y IA: reordenación, widget enriquecido, historial contratos y fix proteínas
 
 ### Dashboard
