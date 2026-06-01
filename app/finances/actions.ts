@@ -113,7 +113,7 @@ export async function importTransactions(lines: string[]) {
       const { data: fixedPatternsU } = await supabase.from('fixed_patterns').select('pattern')
       if (fixedPatternsU && fixedPatternsU.length > 0) {
         for (const fp of fixedPatternsU) {
-          await supabase.from('bank_transactions').update({ is_fixed: true }).eq('concepto_original', fp.pattern).lt('importe', 0)
+          await supabase.from('bank_transactions').update({ is_fixed: true }).ilike('concepto_original', `${fp.pattern}%`).lt('importe', 0)
         }
       }
       revalidatePath('/finances'); revalidatePath('/')
@@ -142,7 +142,7 @@ export async function importTransactions(lines: string[]) {
     for (const fp of fixedPatterns) {
       await supabase.from('bank_transactions')
         .update({ is_fixed: true })
-        .eq('concepto_original', fp.pattern)
+        .ilike('concepto_original', `${fp.pattern}%`)
         .lt('importe', 0)
     }
   }
@@ -285,17 +285,23 @@ export async function deleteSubcategory(id: string) {
 
 // ─── GASTOS FIJOS ─────────────────────────────────────────────────────────────
 
-export async function toggleFixed(id: string, value: boolean, conceptoOriginal: string) {
+// Elimina fechas finales del banco como " 31/03/26" o " 31/03/2026" para obtener la parte estable
+function toFixedPattern(conceptoOriginal: string): string {
+  return conceptoOriginal.replace(/\s+\d{2}\/\d{2}\/\d{2,4}\s*$/, '').trim()
+}
+
+export async function toggleFixed(id: string, value: boolean, conceptoOriginal: string, concepto: string) {
   const supabase = await createClient()
   await supabase.from('bank_transactions').update({ is_fixed: value }).eq('id', id)
   if (value) {
-    // Guardar patrón para auto-detectar en futuros imports
+    const pattern = toFixedPattern(conceptoOriginal)
+    // Guardar patrón (label = nombre limpio que puso el usuario)
     await supabase.from('fixed_patterns')
-      .upsert({ pattern: conceptoOriginal }, { onConflict: 'pattern', ignoreDuplicates: true })
-    // Marcar retroactivamente todos los movimientos con el mismo concepto_original
+      .upsert({ pattern, label: concepto }, { onConflict: 'pattern' })
+    // Marcar retroactivamente todos los movimientos que empiecen con ese patrón
     await supabase.from('bank_transactions')
       .update({ is_fixed: true })
-      .eq('concepto_original', conceptoOriginal)
+      .ilike('concepto_original', `${pattern}%`)
       .lt('importe', 0)
   }
   revalidatePath('/finances')
