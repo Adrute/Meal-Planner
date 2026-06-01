@@ -7,8 +7,17 @@ import AppNavigation from '@/components/AppNavigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Family Dashboard',
+  title: 'FamilyTools',
   description: 'Gestión integral de la familia, comidas y finanzas',
+  manifest: '/manifest.json',
+  icons: {
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'FamilyTools',
+    statusBarStyle: 'black-translucent',
+  },
 }
 
 const ADMIN_EMAIL = 'claudrian1992@gmail.com'
