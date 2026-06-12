@@ -84,7 +84,7 @@ Las tarjetas de misiones en el tab "Esta semana" tienen fondo claro por frecuenc
 - Muestra quests diarias en cada día
 - Muestra quests no diarias en el día asignado (`task_week_assignments` > `household_tasks.day_of_week`)
 - Sección "Sin asignar esta semana" para quests sin día para la semana visible
-- Las quests periódicas (`custom`) aparecen en el día en que vencen (o el lunes si ya han vencido)
+- Las quests periódicas (`custom`) aparecen en el día en que vencen; si ya han vencido y la semana visible es la actual, avanzan día a día hasta hoy mientras no se completen
 
 ## Componentes principales (`TasksClient.tsx`)
 | componente | descripción |
@@ -138,14 +138,14 @@ En el tab "Misiones Activas" (`pending`), debajo de los grupos de misiones activ
 ```ts
 nextDueDate = lastCompletionDate + custom_interval_days
 ```
-Si nunca se ha completado → vence hoy. Si la fecha de vencimiento ya pasó → aparece al inicio de la semana en el calendario.
+Si nunca se ha completado → vence hoy. Al completarla, la próxima fecha se recalcula desde la fecha real de completado (no desde la fecha de vencimiento original), por lo que la periodicidad "reinicia" desde el día en que se hace la tarea.
 
 ### Épicas atrasadas en el calendario (`getCustomDayForWeek`)
-Cuando una quest épica está atrasada (su `nextDue` es anterior al `weekStart` de la semana visible), la lógica es:
-- Si la semana visible es la semana actual y hoy cae dentro de ella → se asigna al día correspondiente a hoy
-- Si la semana visible es una semana pasada → se asigna al lunes
+Cuando una quest épica está atrasada (su `nextDue` es anterior a hoy y aún no se ha completado), la lógica es:
+- Si la semana visible es la semana actual y hoy cae dentro de ella → se asigna al día correspondiente a hoy (avanza día a día mientras siga sin completarse)
+- Si la semana visible es una semana pasada (hoy no cae en ella) → se asigna al día de la semana de `nextDue` (su fecha de vencimiento original)
 
-Esto evita que épicas muy atrasadas aparezcan el lunes de semanas futuras o pasadas en las que el usuario está navegando.
+Esto hace que una épica retrasada "siga" al día actual en la semana en curso, en vez de quedarse fija en su día de vencimiento original.
 
 ## Zona horaria Madrid
 Todas las fechas del módulo usan la zona horaria Europe/Madrid para evitar desfases UTC:
