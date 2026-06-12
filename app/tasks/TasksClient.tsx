@@ -128,13 +128,12 @@ function getNextDueDate(task: Task, completions: Completion[]): string | null {
 function getCustomDayForWeek(task: Task, completions: Completion[], weekStart: string, weekEnd: string): string | null {
   const nextDue = getNextDueDate(task, completions)
   if (!nextDue || nextDue > weekEnd) return null
-  if (nextDue >= weekStart) return DAYS[(new Date(nextDue + 'T12:00:00').getDay() + 6) % 7]
-  // overdue: si hoy cae en esta semana, mostrar en hoy; si no (semana pasada), mostrar en lunes
   const today = fmtDate(new Date())
-  if (today >= weekStart && today <= weekEnd) {
+  // Vencida: si hoy cae en esta semana, avanza día a día hasta hoy
+  if (nextDue < today && today >= weekStart && today <= weekEnd) {
     return DAYS[(new Date(today + 'T12:00:00').getDay() + 6) % 7]
   }
-  return DAYS[0]
+  return DAYS[(new Date(nextDue + 'T12:00:00').getDay() + 6) % 7]
 }
 
 // ── Quest form ──────────────────────────────────────────────────────────────────
