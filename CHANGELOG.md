@@ -1,5 +1,9 @@
 # Changelog — FamilyTools
 
+## [2026-06-13] Quests: misiones épicas avanzan día a día si quedan vencidas
+- `getCustomDayForWeek` (`app/tasks/TasksClient.tsx`) ya no fija la misión retrasada en su día de vencimiento original cuando ese día queda dentro de la semana actual; ahora se reubica en el día de hoy mientras no se complete, avanzando con cada día que pasa
+- Al completarla, `getNextDueDate` sigue calculando la próxima fecha desde la fecha real de completado, por lo que la periodicidad reinicia desde ese momento
+
 ## [2026-06-02] Finanzas: refactor gastos fijos — flag en transacciones + patrones de auto-detección
 - Eliminada tabla `fixed_expenses`; reemplazada por columna `is_fixed BOOLEAN` en `bank_transactions` (migración `20260601_bank_transactions_is_fixed.sql`)
 - Nueva tabla `fixed_patterns` con `UNIQUE(pattern)`, RLS y GRANT para persistir patrones de detección automática (migración `20260601_fixed_patterns.sql`)
