@@ -1,5 +1,11 @@
 # Changelog — FamilyTools
 
+## [2026-07-05] Recetas: exportar recetario a Markdown
+- Nuevo botón "Exportar" en la cabecera del recetario
+- Descarga un `.md` (`recetas-YYYY-MM-DD.md`) con todas las recetas que tienen ingredientes registrados
+- Excluye recetas sin ingredientes; incluye nombre, categoría, tiempo, favorita, ingredientes y pasos
+- Implementado como `GET /api/recipes/export`, sin estado en cliente
+
 ## [2026-07-05] Planificador: importar menú generado por IA (semana suelta o mes completo)
 - Nuevo botón "Importar menú IA" (violeta) en la cabecera del planificador
 - Panel con textarea donde pegar el JSON producido por Gemini (u otra IA)
