@@ -11,7 +11,7 @@ import {
 } from './actions'
 import {
   Plus, X, ChefHat, CalendarPlus, Utensils, Moon, Search, Trash2,
-  CheckCircle2, Loader2, Sparkles, GraduationCap, Info,
+  CheckCircle2, Loader2, Sparkles, GraduationCap, Info, ClipboardPaste,
 } from 'lucide-react'
 
 type Recipe = { id: string; name: string }
@@ -201,6 +201,10 @@ function WeekBlock({
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationResult, setGenerationResult] = useState<string | null>(null)
   const [aiNoteModal, setAiNoteModal] = useState<{ name: string; notes: string } | null>(null)
+  const [showImportPanel, setShowImportPanel] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResult, setImportResult] = useState<string | null>(null)
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -254,6 +258,38 @@ function WeekBlock({
     }
   }
 
+  const handleImportAiMenu = async () => {
+    setIsImporting(true)
+    setImportResult(null)
+    const DAY_KEYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+    try {
+      const parsed = JSON.parse(importText.trim())
+      let count = 0
+      for (let i = 0; i < 7; i++) {
+        const key = DAY_KEYS[i]
+        const dateStr = format(addDays(startOfWeekDate, i), 'yyyy-MM-dd')
+        const day = parsed[key]
+        if (!day) continue
+        if (day.almuerzo?.trim()) {
+          await assignMealByName(dateStr, 'Almuerzo', day.almuerzo.trim(), null, null)
+          count++
+        }
+        if (day.cena?.trim()) {
+          await assignMealByName(dateStr, 'Cena', day.cena.trim(), null, null)
+          count++
+        }
+      }
+      setImportResult(`✓ ${count} platos importados`)
+      setImportText('')
+      setShowImportPanel(false)
+      startTransition(() => router.refresh())
+    } catch {
+      setImportResult('Error: JSON inválido. Revisa el formato.')
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   return (
     <section className="bg-white rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 border border-slate-200 shadow-sm transition-all hover:shadow-md">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
@@ -287,6 +323,22 @@ function WeekBlock({
             )}
           </div>
 
+          {/* Importar menú IA */}
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={() => { setShowImportPanel(p => !p); setImportResult(null) }}
+              className="flex items-center gap-2 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-4 py-2 rounded-xl transition-all shadow-sm shadow-violet-200"
+            >
+              <ClipboardPaste size={14} />
+              Importar menú IA
+            </button>
+            {importResult && (
+              <span className={`text-[10px] font-bold ${importResult.startsWith('✓') ? 'text-violet-600' : 'text-red-500'}`}>
+                {importResult}
+              </span>
+            )}
+          </div>
+
           <button
             onClick={handleRemoveWeekClick}
             disabled={isRemovingWeek}
@@ -297,6 +349,36 @@ function WeekBlock({
           </button>
         </div>
       </div>
+
+      {/* Panel de importación desde IA externa */}
+      {showImportPanel && (
+        <div className="mb-6 p-4 bg-violet-50 rounded-2xl border border-violet-100">
+          <p className="text-xs font-bold text-violet-700 mb-2">Pega aquí el JSON generado por Gemini:</p>
+          <textarea
+            value={importText}
+            onChange={e => setImportText(e.target.value)}
+            rows={6}
+            placeholder={'{\n  "lunes": {"almuerzo": "...", "cena": "..."},\n  "martes": {"almuerzo": "...", "cena": "..."},\n  ...\n}'}
+            className="w-full text-xs font-mono bg-white border border-violet-200 rounded-xl p-3 resize-y focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-700"
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={() => { setShowImportPanel(false); setImportText(''); setImportResult(null) }}
+              className="text-xs font-bold text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleImportAiMenu}
+              disabled={isImporting || !importText.trim()}
+              className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-4 py-1.5 rounded-xl transition-all disabled:opacity-50"
+            >
+              {isImporting ? <Loader2 size={12} className="animate-spin" /> : <ClipboardPaste size={12} />}
+              {isImporting ? 'Importando...' : 'Importar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4 auto-rows-fr">
         {days.map(day => {
