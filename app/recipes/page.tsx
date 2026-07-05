@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, Clock, BookOpen, Star } from 'lucide-react'
+import { Plus, Clock, BookOpen, Star, Download } from 'lucide-react'
 
 type Recipe = {
   id: string
@@ -68,13 +68,23 @@ export default async function RecipesPage({
             {recipes?.length || 0} platos guardados
           </p>
         </div>
-        <Link
-          href="/recipes/new"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-200 shadow-lg active:scale-95 transition-all"
-        >
-          <Plus size={18} />
-          <span className="hidden md:inline">Nueva Receta</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <a
+            href="/api/recipes/export"
+            className="text-slate-600 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 active:scale-95 transition-all"
+            title="Exportar recetas con ingredientes"
+          >
+            <Download size={18} />
+            <span className="hidden md:inline">Exportar</span>
+          </a>
+          <Link
+            href="/recipes/new"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-emerald-200 shadow-lg active:scale-95 transition-all"
+          >
+            <Plus size={18} />
+            <span className="hidden md:inline">Nueva Receta</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filtros */}
