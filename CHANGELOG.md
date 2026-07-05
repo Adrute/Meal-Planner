@@ -1,5 +1,10 @@
 # Changelog — FamilyTools
 
+## [2026-07-06] CLAUDE.md: pipeline de agentes obligatorio
+- Nueva sección "Flujo de trabajo con agentes": toda tarea pasa primero por `architect` (informe + OK explícito del usuario) antes de implementar
+- Cambios de UI/UX se delegan siempre a `frontend-stylist`; lógica de negocio/DB a `feature-developer`; `quality-reviewer` siempre antes de mergear
+- Motivo: una sesión previa implementó cambios sin pasar por el arquitecto ni delegar el UX, ya que el flujo Git documentado no mencionaba el uso de los agentes especializados
+
 ## [2026-07-05] Planificador + Recetas: enlace por nombre e importación mejorada
 - `assignMealByName` busca ahora la receta existente por nombre (ILIKE) antes de crear una nueva, enlazando correctamente el slot del plan con la receta del recetario si el nombre coincide
 - Nueva action `deleteEmptyRecipes` + componente `EmptyRecipesPanel`: panel colapsable en el recetario que lista las recetas sin ingredientes con checkboxes; permite seleccionar y eliminar las no deseadas en un solo clic

@@ -7,14 +7,26 @@
 - **Email**: Resend API — lazy init dentro de la función, nunca a nivel de módulo
 - **Estilos**: Tailwind CSS
 
+## Flujo de trabajo con agentes (OBLIGATORIO — SIN EXCEPCIONES)
+
+> ⚠️ Ninguna tarea empieza a implementarse directamente en la sesión principal, sin importar su tamaño.
+
+Para **cualquier tarea**, en este orden:
+1. Invocar el agente `architect` para que analice el alcance (ficheros afectados, esquema de BD, riesgos, plan) — nunca escribe código.
+2. Presentar el informe del `architect` al usuario y **esperar su OK explícito antes de implementar** — PARAR AQUÍ.
+3. Con el plan aprobado, crear la rama (ver flujo Git) y delegar la implementación según el tipo de cambio:
+   - Lógica de negocio, Server Actions, DB → agente `feature-developer`
+   - UI, Tailwind, componentes visuales, cualquier cambio de UX → agente `frontend-stylist` (nunca implementar UI directamente en la sesión principal, ni siquiera ajustes pequeños)
+4. Antes de mergear, invocar siempre `quality-reviewer` para documentación y revisión final.
+
 ## Flujo de trabajo Git (OBLIGATORIO — SIN EXCEPCIONES)
 
 > ⚠️ **NUNCA** hacer merge a main ni `git push` hasta que el usuario dé el OK explícito. Aplica a toda tarea, por pequeña que sea.
 
 Antes de empezar cualquier tarea:
-1. **Crear rama** con prefijo según tipo: `feat/`, `fix/`, `refactor/`, `chore/`
-2. **Hacer el trabajo** en esa rama
-3. Al terminar: avisar al usuario para que pruebe en local — **PARAR AQUÍ**
+1. **Crear rama** con prefijo según tipo: `feat/`, `fix/`, `refactor/`, `chore/` (tras la aprobación del plan del `architect`)
+2. **Hacer el trabajo** en esa rama, delegando a `feature-developer` / `frontend-stylist` según corresponda
+3. Al terminar: invocar `quality-reviewer` y avisar al usuario para que pruebe en local — **PARAR AQUÍ**
 4. Cuando el usuario dé el **OK explícito** ("ok", "publica", "mergea", etc.): merge a main, push y borrar la rama local
 
 ```bash
