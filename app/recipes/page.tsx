@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Clock, BookOpen, Star, Download } from 'lucide-react'
+import EmptyRecipesPanel from './EmptyRecipesPanel'
 
 type Recipe = {
   id: string
@@ -58,6 +59,14 @@ export default async function RecipesPage({
 
   const totalFavorites = (recipes || []).filter(r => r.is_favorite).length
 
+  const { data: allWithCount } = await supabase
+    .from('recipes')
+    .select('id, name, recipe_ingredients(count)')
+    .order('name')
+  const emptyRecipes = (allWithCount ?? [])
+    .filter((r: any) => (r.recipe_ingredients?.[0]?.count ?? 0) === 0)
+    .map((r: any) => ({ id: r.id as string, name: r.name as string }))
+
   return (
     <div className="p-4 md:p-8 pb-24">
       {/* Cabecera */}
@@ -86,6 +95,8 @@ export default async function RecipesPage({
           </Link>
         </div>
       </div>
+
+      <EmptyRecipesPanel recipes={emptyRecipes} />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-8">

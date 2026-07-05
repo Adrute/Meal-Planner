@@ -48,12 +48,22 @@ export async function assignMealByName(
   let recipeId = existingRecipeId
 
   if (!recipeId) {
-    const { data } = await supabase
+    const { data: existing } = await supabase
       .from('recipes')
-      .insert([{ name: recipeName }])
       .select('id')
-      .single()
-    recipeId = data?.id ?? null
+      .ilike('name', recipeName.trim())
+      .maybeSingle()
+
+    if (existing) {
+      recipeId = existing.id
+    } else {
+      const { data } = await supabase
+        .from('recipes')
+        .insert([{ name: recipeName.trim() }])
+        .select('id')
+        .single()
+      recipeId = data?.id ?? null
+    }
   }
 
   if (!recipeId) return { error: 'No se pudo crear la receta' }

@@ -122,3 +122,12 @@ export async function deleteRecipe(id: string) {
   revalidatePath('/recipes')
   redirect('/recipes')
 }
+
+export async function deleteEmptyRecipes(ids: string[]) {
+  if (!ids.length) return { deleted: 0 }
+  const supabase = await createClient()
+  const { error } = await supabase.from('recipes').delete().in('id', ids)
+  if (error) return { error: error.message }
+  revalidatePath('/recipes')
+  return { deleted: ids.length }
+}
