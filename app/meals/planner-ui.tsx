@@ -96,17 +96,18 @@ export default function PlannerContainer({
     setIsImporting(true)
     setImportResult(null)
     try {
-      const parsed: Array<{ fecha: string; almuerzo?: string; cena?: string }> = JSON.parse(importText.trim())
+      type MealSlot = { nombre: string; id: string | null }
+      const parsed: Array<{ fecha: string; almuerzo?: MealSlot; cena?: MealSlot }> = JSON.parse(importText.trim())
       if (!Array.isArray(parsed)) throw new Error('Debe ser un array JSON')
       let count = 0
       for (const day of parsed) {
         if (!day.fecha) continue
-        if (day.almuerzo?.trim()) {
-          await assignMealByName(day.fecha, 'Almuerzo', day.almuerzo.trim(), null, null)
+        if (day.almuerzo?.nombre?.trim()) {
+          await assignMealByName(day.fecha, 'Almuerzo', day.almuerzo.nombre.trim(), day.almuerzo.id ?? null, null)
           count++
         }
-        if (day.cena?.trim()) {
-          await assignMealByName(day.fecha, 'Cena', day.cena.trim(), null, null)
+        if (day.cena?.nombre?.trim()) {
+          await assignMealByName(day.fecha, 'Cena', day.cena.nombre.trim(), day.cena.id ?? null, null)
           count++
         }
       }
@@ -167,7 +168,7 @@ export default function PlannerContainer({
             value={importText}
             onChange={e => setImportText(e.target.value)}
             rows={8}
-            placeholder={'[\n  {"fecha": "2026-07-07", "almuerzo": "Lentejas estofadas", "cena": "Tortilla de patatas"},\n  {"fecha": "2026-07-08", "almuerzo": "Pollo al horno", "cena": "Sopa de fideos"},\n  ...\n]'}
+            placeholder={'[\n  {\n    "fecha": "2026-07-07",\n    "almuerzo": {"nombre": "Quesadilla", "id": "uuid-o-null"},\n    "cena": {"nombre": "Tortilla de patatas", "id": "uuid-o-null"}\n  },\n  ...\n]'}
             className="w-full text-xs font-mono bg-white border border-violet-200 rounded-xl p-3 resize-y focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-700"
           />
           <div className="flex justify-end gap-2 mt-3">

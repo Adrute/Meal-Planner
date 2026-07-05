@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data: recipes, error } = await supabase
     .from('recipes')
-    .select('name, category, prep_time, is_favorite, steps, recipe_ingredients(amount, ingredients(name))')
+    .select('id, name, category, prep_time, is_favorite, steps, recipe_ingredients(amount, ingredients(name))')
     .order('name', { ascending: true })
 
   if (error) return NextResponse.json({ error: 'Error cargando recetas' }, { status: 500 })
@@ -22,6 +22,7 @@ export async function GET() {
 
   for (const r of withIngredients as any[]) {
     lines.push(`## ${r.name}`)
+    lines.push(`**ID:** ${r.id}`)
 
     const meta: string[] = []
     if (r.category) meta.push(`**Categoría:** ${r.category}`)
