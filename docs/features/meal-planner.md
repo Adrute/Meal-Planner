@@ -33,7 +33,7 @@ Botón "Generar Cenas IA" en cada `WeekBlock`. Llama a `/api/generate-meal-plan`
 - Recetas guardadas
 - Miembros del hogar con restricciones
 
-La IA (Groq Llama 3.3 70b, `temperature: 0.4`) propone cenas complementarias al menú escolar y aptas para bebé de 18 meses. Usa recetas existentes si encajan; si no, propone plato nuevo. Los resultados se guardan via `assignMealByName` que crea una receta mínima si no existe.
+La IA (Groq Llama 3.3 70b, `temperature: 0.4`) propone cenas complementarias al menú escolar y aptas para bebé de 18 meses. Usa recetas existentes si encajan; si no, propone plato nuevo. Los resultados se guardan via `assignMealByName` que busca primero la receta por nombre exacto (ILIKE) y, si no la encuentra, crea una receta mínima.
 
 #### Detección determinista de proteínas del cole
 La función `detectProteins` en `route.ts` detecta las proteínas presentes en el menú escolar del día usando un diccionario `PROTEIN_KEYWORDS` con sinónimos por categoría:
@@ -54,6 +54,15 @@ Cada día del menú escolar se convierte en texto con el formato:
 o `sin proteína principal detectada` si no se detecta ninguna.
 
 El prompt indica a la IA que respete estrictamente los `PROHIBIDO en cena: X` de cada día. Esto sustituye al método anterior basado en descripción textual libre, eliminando los errores de desfase de proteínas que producía el enfoque no determinista.
+
+### Importación de menú desde IA externa
+Botón "Importar menú IA" (violeta) en la cabecera del planificador. Abre un panel con un `<textarea>` donde pegar el JSON producido por Gemini u otra IA externa. El handler `handleImportAiMenu` en `planner-ui.tsx` lo procesa en cliente:
+
+1. Parsea el array JSON. Cada elemento tiene la forma `{"fecha": "YYYY-MM-DD", "almuerzo": {"nombre": "...", "id": "uuid-o-null"}, "cena": {"nombre": "...", "id": "uuid-o-null"}}`.
+2. Por cada slot con nombre, llama a `assignMealByName` pasando el `id` si se conoce (evita la búsqueda ILIKE) o `null` si no.
+3. Las semanas que contienen fechas nuevas se añaden automáticamente al panel visible.
+
+Funciona para cualquier rango de días (semana suelta o mes completo). Sobreescribe slots existentes.
 
 ### Miembros del hogar
 CRUD completo en `HouseholdMembersSection`. Las restricciones se guardan como chips `{food, type}` donde `type` puede ser "alergia", "intolerancia" o "preferencia".

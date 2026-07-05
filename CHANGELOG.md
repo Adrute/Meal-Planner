@@ -13,9 +13,10 @@
 ## [2026-07-05] Planificador: importar menú generado por IA (semana suelta o mes completo)
 - Nuevo botón "Importar menú IA" (violeta) en la cabecera del planificador
 - Panel con textarea donde pegar el JSON producido por Gemini (u otra IA)
-- Formato: array con objetos `{"fecha": "YYYY-MM-DD", "almuerzo": "...", "cena": "..."}`; funciona para cualquier rango de días
+- Formato: array con objetos `{"fecha": "YYYY-MM-DD", "almuerzo": {"nombre": "...", "id": "uuid-o-null"}, "cena": {"nombre": "...", "id": "uuid-o-null"}}`; el campo `id` permite enlazar directamente con la receta del recetario si se conoce
 - Al importar un mes completo las semanas aparecen automáticamente en el planificador
 - Sobreescribe slots existentes; convive sin cambios con el flujo de PDF escolar y con "Generar Cenas IA" de Groq
+- `assignMealByName` busca la receta por nombre exacto (ILIKE) antes de crear una nueva, y acepta `existingRecipeId` para saltarse la búsqueda cuando ya se conoce el ID
 
 ## [2026-06-13] Quests: misiones épicas avanzan día a día si quedan vencidas
 - `getCustomDayForWeek` (`app/tasks/TasksClient.tsx`) ya no fija la misión retrasada en su día de vencimiento original cuando ese día queda dentro de la semana actual; ahora se reubica en el día de hoy mientras no se complete, avanzando con cada día que pasa

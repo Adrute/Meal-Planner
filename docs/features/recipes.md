@@ -32,3 +32,9 @@ Unidades soportadas: g, kg, ml, cl, dl, l, tazas, cucharadas, cucharaditas, uds,
 
 ### Borrar receta
 `DeleteRecipeButton` (client component) confirma con `window.confirm` antes de llamar la Server Action `deleteRecipe`, que elimina primero `recipe_ingredients` y luego `recipes`.
+
+### Exportar recetario
+Botón "Exportar" en la cabecera del listado. Descarga un fichero `.md` (`recetas-YYYY-MM-DD.md`) mediante `GET /api/recipes/export`. El endpoint autentica al usuario con `supabase.auth.getUser()` (401 si no autenticado), filtra las recetas que tienen al menos un ingrediente y genera Markdown con nombre, ID, categoría, tiempo, favorita, ingredientes y pasos.
+
+### Panel de recetas vacías
+`EmptyRecipesPanel` (client component) se renderiza en la cabecera del listado cuando existen recetas sin ingredientes. La `page.tsx` hace una consulta adicional con `recipe_ingredients(count)` para obtener el subconjunto vacío. El panel es colapsable; la cabecera (con contador y botón eliminar) permanece siempre visible. La selección es por checkboxes; la action `deleteEmptyRecipes(ids)` borra por lote con `.delete().in('id', ids)` y llama `revalidatePath('/recipes')`.
