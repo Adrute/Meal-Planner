@@ -1,11 +1,11 @@
 # Changelog — FamilyTools
 
-## [2026-07-05] Planificador: importar menú semanal generado por IA externa
-- Nuevo botón "Importar menú IA" (violeta) en cada semana del planificador de comidas
-- Al pulsarlo se despliega un textarea donde pegar el JSON producido por Gemini (u otra IA)
-- Formato esperado: objeto con claves `lunes`…`domingo`, cada una con `almuerzo` y `cena`
-- Llama a `assignMealByName` para los 14 slots (sobreescribe si ya había plan)
-- Convive sin cambios con el flujo de PDF escolar y con el botón "Generar Cenas IA" de Groq
+## [2026-07-05] Planificador: importar menú generado por IA (semana suelta o mes completo)
+- Nuevo botón "Importar menú IA" (violeta) en la cabecera del planificador
+- Panel con textarea donde pegar el JSON producido por Gemini (u otra IA)
+- Formato: array con objetos `{"fecha": "YYYY-MM-DD", "almuerzo": "...", "cena": "..."}`; funciona para cualquier rango de días
+- Al importar un mes completo las semanas aparecen automáticamente en el planificador
+- Sobreescribe slots existentes; convive sin cambios con el flujo de PDF escolar y con "Generar Cenas IA" de Groq
 
 ## [2026-06-13] Quests: misiones épicas avanzan día a día si quedan vencidas
 - `getCustomDayForWeek` (`app/tasks/TasksClient.tsx`) ya no fija la misión retrasada en su día de vencimiento original cuando ese día queda dentro de la semana actual; ahora se reubica en el día de hoy mientras no se complete, avanzando con cada día que pasa
