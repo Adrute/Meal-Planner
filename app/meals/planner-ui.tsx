@@ -180,9 +180,9 @@ export default function PlannerContainer({
             <button
               onClick={handleImportAiMenu}
               disabled={isImporting || !importText.trim()}
-              className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-5 py-2 rounded-xl transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-5 py-2 rounded-xl transition-all disabled:opacity-50 whitespace-nowrap min-w-[110px] justify-center"
             >
-              {isImporting ? <Loader2 size={12} className="animate-spin" /> : <ClipboardPaste size={12} />}
+              {isImporting ? <Loader2 size={12} className="animate-spin shrink-0" /> : <ClipboardPaste size={12} className="shrink-0" />}
               {isImporting ? 'Importando...' : 'Importar'}
             </button>
           </div>
