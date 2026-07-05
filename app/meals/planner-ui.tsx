@@ -38,6 +38,12 @@ export default function PlannerContainer({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<{ date: Date; type: 'Almuerzo' | 'Cena' } | null>(null)
   const [tempSelectedDate, setTempSelectedDate] = useState<string>('')
+  const [showImportPanel, setShowImportPanel] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResult, setImportResult] = useState<string | null>(null)
+  const router = useRouter()
+  const [, startTransition] = useTransition()
 
   useMemo(() => {
     if (initialPlan.length > 0) {
@@ -86,6 +92,35 @@ export default function PlannerContainer({
     }
   }
 
+  const handleImportAiMenu = async () => {
+    setIsImporting(true)
+    setImportResult(null)
+    try {
+      const parsed: Array<{ fecha: string; almuerzo?: string; cena?: string }> = JSON.parse(importText.trim())
+      if (!Array.isArray(parsed)) throw new Error('Debe ser un array JSON')
+      let count = 0
+      for (const day of parsed) {
+        if (!day.fecha) continue
+        if (day.almuerzo?.trim()) {
+          await assignMealByName(day.fecha, 'Almuerzo', day.almuerzo.trim(), null, null)
+          count++
+        }
+        if (day.cena?.trim()) {
+          await assignMealByName(day.fecha, 'Cena', day.cena.trim(), null, null)
+          count++
+        }
+      }
+      setImportResult(`✓ ${count} platos importados`)
+      setImportText('')
+      setShowImportPanel(false)
+      startTransition(() => router.refresh())
+    } catch {
+      setImportResult('Error: JSON inválido. Revisa el formato.')
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   return (
     <div className="space-y-12 animate-in fade-in pb-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-6">
@@ -93,16 +128,66 @@ export default function PlannerContainer({
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Planificador</h1>
           <p className="text-slate-500 font-medium">Gestiona tus menús semanales</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 shadow-xl hover:shadow-2xl transition-all active:scale-95 group"
-        >
-          <div className="bg-slate-700 rounded-lg p-1 group-hover:bg-slate-600 transition-colors">
-            <CalendarPlus size={18} />
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={() => { setShowImportPanel(p => !p); setImportResult(null) }}
+              className="flex items-center gap-2 text-sm font-bold bg-violet-600 text-white hover:bg-violet-700 px-5 py-3 rounded-xl transition-all shadow-sm shadow-violet-200 active:scale-95"
+            >
+              <ClipboardPaste size={18} />
+              Importar menú IA
+            </button>
+            {importResult && (
+              <span className={`text-[10px] font-bold ${importResult.startsWith('✓') ? 'text-violet-600' : 'text-red-500'}`}>
+                {importResult}
+              </span>
+            )}
           </div>
-          <span>Añadir Semana</span>
-        </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 shadow-xl hover:shadow-2xl transition-all active:scale-95 group"
+          >
+            <div className="bg-slate-700 rounded-lg p-1 group-hover:bg-slate-600 transition-colors">
+              <CalendarPlus size={18} />
+            </div>
+            <span>Añadir Semana</span>
+          </button>
+        </div>
       </div>
+
+      {/* Panel de importación desde IA externa (Gemini u otra) */}
+      {showImportPanel && (
+        <div className="mb-4 p-5 bg-violet-50 rounded-2xl border border-violet-100">
+          <p className="text-sm font-bold text-violet-800 mb-1">Importar menú generado por IA</p>
+          <p className="text-xs text-violet-500 mb-3">
+            Pega el JSON con las fechas exactas. Funciona para una semana o un mes completo.
+            Las semanas nuevas aparecen automáticamente.
+          </p>
+          <textarea
+            value={importText}
+            onChange={e => setImportText(e.target.value)}
+            rows={8}
+            placeholder={'[\n  {"fecha": "2026-07-07", "almuerzo": "Lentejas estofadas", "cena": "Tortilla de patatas"},\n  {"fecha": "2026-07-08", "almuerzo": "Pollo al horno", "cena": "Sopa de fideos"},\n  ...\n]'}
+            className="w-full text-xs font-mono bg-white border border-violet-200 rounded-xl p-3 resize-y focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-700"
+          />
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              onClick={() => { setShowImportPanel(false); setImportText(''); setImportResult(null) }}
+              className="text-xs font-bold text-slate-400 hover:text-slate-600 px-3 py-2 rounded-lg hover:bg-slate-100 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleImportAiMenu}
+              disabled={isImporting || !importText.trim()}
+              className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-5 py-2 rounded-xl transition-all disabled:opacity-50"
+            >
+              {isImporting ? <Loader2 size={12} className="animate-spin" /> : <ClipboardPaste size={12} />}
+              {isImporting ? 'Importando...' : 'Importar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {visibleWeeks.length === 0 && (
         <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
@@ -201,10 +286,6 @@ function WeekBlock({
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationResult, setGenerationResult] = useState<string | null>(null)
   const [aiNoteModal, setAiNoteModal] = useState<{ name: string; notes: string } | null>(null)
-  const [showImportPanel, setShowImportPanel] = useState(false)
-  const [importText, setImportText] = useState('')
-  const [isImporting, setIsImporting] = useState(false)
-  const [importResult, setImportResult] = useState<string | null>(null)
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -258,38 +339,6 @@ function WeekBlock({
     }
   }
 
-  const handleImportAiMenu = async () => {
-    setIsImporting(true)
-    setImportResult(null)
-    const DAY_KEYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
-    try {
-      const parsed = JSON.parse(importText.trim())
-      let count = 0
-      for (let i = 0; i < 7; i++) {
-        const key = DAY_KEYS[i]
-        const dateStr = format(addDays(startOfWeekDate, i), 'yyyy-MM-dd')
-        const day = parsed[key]
-        if (!day) continue
-        if (day.almuerzo?.trim()) {
-          await assignMealByName(dateStr, 'Almuerzo', day.almuerzo.trim(), null, null)
-          count++
-        }
-        if (day.cena?.trim()) {
-          await assignMealByName(dateStr, 'Cena', day.cena.trim(), null, null)
-          count++
-        }
-      }
-      setImportResult(`✓ ${count} platos importados`)
-      setImportText('')
-      setShowImportPanel(false)
-      startTransition(() => router.refresh())
-    } catch {
-      setImportResult('Error: JSON inválido. Revisa el formato.')
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
   return (
     <section className="bg-white rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 border border-slate-200 shadow-sm transition-all hover:shadow-md">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
@@ -323,22 +372,6 @@ function WeekBlock({
             )}
           </div>
 
-          {/* Importar menú IA */}
-          <div className="flex flex-col items-end gap-1">
-            <button
-              onClick={() => { setShowImportPanel(p => !p); setImportResult(null) }}
-              className="flex items-center gap-2 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-4 py-2 rounded-xl transition-all shadow-sm shadow-violet-200"
-            >
-              <ClipboardPaste size={14} />
-              Importar menú IA
-            </button>
-            {importResult && (
-              <span className={`text-[10px] font-bold ${importResult.startsWith('✓') ? 'text-violet-600' : 'text-red-500'}`}>
-                {importResult}
-              </span>
-            )}
-          </div>
-
           <button
             onClick={handleRemoveWeekClick}
             disabled={isRemovingWeek}
@@ -349,36 +382,6 @@ function WeekBlock({
           </button>
         </div>
       </div>
-
-      {/* Panel de importación desde IA externa */}
-      {showImportPanel && (
-        <div className="mb-6 p-4 bg-violet-50 rounded-2xl border border-violet-100">
-          <p className="text-xs font-bold text-violet-700 mb-2">Pega aquí el JSON generado por Gemini:</p>
-          <textarea
-            value={importText}
-            onChange={e => setImportText(e.target.value)}
-            rows={6}
-            placeholder={'{\n  "lunes": {"almuerzo": "...", "cena": "..."},\n  "martes": {"almuerzo": "...", "cena": "..."},\n  ...\n}'}
-            className="w-full text-xs font-mono bg-white border border-violet-200 rounded-xl p-3 resize-y focus:outline-none focus:ring-2 focus:ring-violet-300 text-slate-700"
-          />
-          <div className="flex justify-end gap-2 mt-2">
-            <button
-              onClick={() => { setShowImportPanel(false); setImportText(''); setImportResult(null) }}
-              className="text-xs font-bold text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleImportAiMenu}
-              disabled={isImporting || !importText.trim()}
-              className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 px-4 py-1.5 rounded-xl transition-all disabled:opacity-50"
-            >
-              {isImporting ? <Loader2 size={12} className="animate-spin" /> : <ClipboardPaste size={12} />}
-              {isImporting ? 'Importando...' : 'Importar'}
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4 auto-rows-fr">
         {days.map(day => {
