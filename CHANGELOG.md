@@ -1,5 +1,9 @@
 # Changelog — FamilyTools
 
+## [2026-07-05] Planificador + Recetas: enlace por nombre e importación mejorada
+- `assignMealByName` busca ahora la receta existente por nombre (ILIKE) antes de crear una nueva, enlazando correctamente el slot del plan con la receta del recetario si el nombre coincide
+- Nueva action `deleteEmptyRecipes` + componente `EmptyRecipesPanel`: panel colapsable en el recetario que lista las recetas sin ingredientes con checkboxes; permite seleccionar y eliminar las no deseadas en un solo clic
+
 ## [2026-07-05] Recetas: exportar recetario a Markdown
 - Nuevo botón "Exportar" en la cabecera del recetario
 - Descarga un `.md` (`recetas-YYYY-MM-DD.md`) con todas las recetas que tienen ingredientes registrados
