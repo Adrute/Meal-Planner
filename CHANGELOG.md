@@ -1,5 +1,12 @@
 # Changelog — FamilyTools
 
+## [2026-07-13] Home: rediseño a centro de mando + launcher
+- `app/page.tsx` reescrito: mantiene el widget de Quests, elimina los widgets de Finanzas, Bonos, Menú de 4 días y Próximos planes (`UpcomingReservationsWidget`, ahora eliminado por quedar huérfano)
+- Nueva franja de avisos accionables (`lib/dashboard-alerts.ts` → `getDashboardAlerts`): bono agotado (uno por bono), factura de luz cara (`elec_amount/elec_kwh > 0.16 €/kWh`), viaje que empieza dentro de 48h
+- Nueva grid de accesos directos (`LAUNCHER_ITEMS`) a los 12 módulos de la app, sin gating por permisos
+- Server Actions de bonos (`addService`, `deleteService`, `consumeSession`, `renewService`) consolidadas en `app/services/actions.ts`, resolviendo la duplicación entre dashboard y `/services` documentada en "Lessons Learned" de `CLAUDE.md`
+- Docs actualizadas: `docs/features/dashboard.md`, `docs/features/services-bonos.md`, `docs/features/restaurants.md`, `docs/features/trips.md`
+
 ## [2026-07-06] CLAUDE.md: pipeline de agentes obligatorio
 - Nueva sección "Flujo de trabajo con agentes": toda tarea pasa primero por `architect` (informe + OK explícito del usuario) antes de implementar
 - Cambios de UI/UX se delegan siempre a `frontend-stylist`; lógica de negocio/DB a `feature-developer`; `quality-reviewer` siempre antes de mergear

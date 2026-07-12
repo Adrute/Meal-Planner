@@ -1,7 +1,7 @@
 # Servicios & Bonos
 
 ## Página
-`app/services/page.tsx` — Server Component con Server Actions
+`app/services/page.tsx` — Server Component. Server Actions en `app/services/actions.ts`.
 
 ## Modelo de datos — `service_passes`
 | Campo | Tipo | Descripción |
@@ -14,7 +14,8 @@
 | `last_payment_date` | date | Fecha del último pago |
 | `session_dates` | text[] | Historial de fechas de sesiones consumidas |
 
-## Server Actions
+## Server Actions (`app/services/actions.ts`)
+Hasta 2026-07-13 estaban duplicadas entre `app/page.tsx` (dashboard) y `app/services/page.tsx`, con el riesgo de que un cambio de lógica se aplicara en un sitio y se olvidara en el otro (ver "Lessons Learned" en `CLAUDE.md`). Se consolidaron en `app/services/actions.ts`, y tanto la página de bonos como la home importan desde ahí. La home (`/`) ya no gestiona bonos directamente: en su lugar muestra un aviso por bono agotado que enlaza a `/services` (ver [dashboard.md](./dashboard.md)).
 
 ### `addService`
 Crea un nuevo bono con `used_sessions = 0` y `session_dates = []`.
@@ -34,11 +35,7 @@ Elimina el registro completo.
 ## Notificación email
 Ver [email-notifications.md](./email-notifications.md)
 
-El mismo bono puede agotarse desde dos sitios:
-- `/services` — `consumeSession` en `app/services/page.tsx`
-- Dashboard `/` — `consumeSession` en `app/page.tsx`
-
-Ambas funciones son idénticas y llaman a `sendBonoAgotadoEmail`.
+Un bono solo puede consumirse desde `/services` (`consumeSession` en `app/services/actions.ts`), que llama a `sendBonoAgotadoEmail` cuando se agota.
 
 ## UI
 - Barra de progreso visual (verde → rojo al agotarse)

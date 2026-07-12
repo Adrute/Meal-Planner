@@ -113,12 +113,12 @@ export async function sendBonoAgotadoEmail(...) {
 
 **Solución**: Parser determinista que detecta las cabeceras de semana (5 números consecutivos ascendentes) y los marcadores de postre como anclas. Más robusto y predecible. Ver commits `36cf142` y `f4ae647`.
 
-### Server Actions duplicadas entre dashboard y módulo
-**Patrón observado**: `consumeSession`, `renewService` y `deleteService` están definidas tanto en `app/page.tsx` como en `app/services/page.tsx` con lógica idéntica.
+### Server Actions duplicadas entre dashboard y módulo — RESUELTO
+**Patrón observado**: `consumeSession`, `renewService` y `deleteService` estaban definidas tanto en `app/page.tsx` como en `app/services/page.tsx` con lógica idéntica.
 
 **Riesgo**: Si se modifica la lógica en un sitio, hay que acordarse de hacerlo en el otro.
 
-**Solución futura**: Extraer a `app/services/actions.ts` e importar desde ambas páginas.
+**Solución**: Extraídas a `app/services/actions.ts`, importadas desde `app/services/page.tsx`. La home ya no gestiona bonos directamente (rediseño a launcher del 2026-07-13): en su lugar muestra un aviso por bono agotado. Si vuelve a aparecer este patrón en otro módulo, aplicar la misma extracción a un `actions.ts` compartido.
 
 ### Órdenes Leaflet / SSR
 **Problema**: Leaflet accede a `window` en el import y falla en SSR de Next.js.
@@ -132,6 +132,11 @@ const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false })
 **Problema**: Las quests de frecuencia `custom` se programan en el calendario mediante `getCustomDayForWeek` (aparecen en un día concreto), pero su completado en ese día debe verificarse con `isDoneOnDate` (fecha exacta), no con `isDoneInWeek` (rango semanal). Al añadir una nueva vista de calendario se agrupó `custom` con el resto de frecuencias no-diarias en un solo ternario, lo que hacía que una quest completada el miércoles apareciera tachada también el sábado (la siguiente fecha de vencimiento calculada).
 
 **Solución**: Tratar `custom` igual que `daily` a efectos de comprobación de completado en la vista calendario: `t.frequency === 'daily' || t.frequency === 'custom' ? isDoneOnDate(...) : isDoneInWeek(...)`. Ver commit `5277c02`.
+
+### Fecha "hoy" calculada en UTC en vez de Europe/Madrid
+**Problema**: `lib/dashboard-alerts.ts` calcula `today`/`in48h` con `new Date().toISOString().split('T')[0]`, que usa UTC. El resto de la app (helper `madridDate` en `app/page.tsx`, `actions.ts` de quests) usa `toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })` precisamente para evitar este desajuste (ver "Zona horaria Madrid" en `docs/features/quests.md`). Como Madrid va por delante de UTC, hay una ventana diaria (aprox. 22:00–24:00 UTC) en la que la fecha UTC va un día por detrás de la fecha real en Madrid, lo que puede adelantar o retrasar en un día la aparición de avisos con ventana temporal (p. ej. "viaje en 48h").
+
+**Solución**: Usar siempre el helper de fecha en zona Europe/Madrid ya establecido en el proyecto para cualquier cálculo de "hoy" con lógica de negocio, nunca `new Date().toISOString()`.
 
 ### Trips — user_id en tablas hijas
 **Problema inicial**: Las tablas hijas de viajes (`trip_transport`, etc.) usaban RLS basada en `user_id`, pero los viajes son compartidos entre toda la familia.

@@ -7,10 +7,12 @@ Aplicación de gestión familiar todo-en-uno. Construida con Next.js 15, Supabas
 ## Módulos
 
 ### Dashboard (/)
-Página de inicio con resumen de todos los módulos:
-- **Widget de Finanzas**: gasto del mes actual, comparativa con el mes anterior (%) y top 3 categorías de gasto del mes pasado
-- **Widget de Reservas**: próximas reservas en restaurantes
-- **Widget de Bonos**: bonos activos con su estado de sesiones y acceso rápido para consumir sesiones
+Centro de mando + launcher:
+- **Quests**: resumen de tareas pendientes/completadas por frecuencia, con completado rápido
+- **Avisos**: tarjetas accionables cuando hay algo que requiere atención — bono agotado, factura de luz cara, viaje que empieza en menos de 48h
+- **Accesos directos**: grid con enlace a los 12 módulos de la app
+
+Ver [docs/features/dashboard.md](./docs/features/dashboard.md) para el detalle.
 
 ---
 
@@ -125,7 +127,7 @@ Mapa interactivo de restaurantes con gestión de listas y reservas.
 **Reservas:**
 - Crear reservas con fecha y hora
 - Las reservas pasadas se eliminan automáticamente al cargar la página
-- Las próximas reservas aparecen en el widget del Dashboard
+- Consultar próximas reservas en `/restaurants/reservations`
 
 **Gestión de restaurantes:**
 - Añadir, editar y eliminar restaurantes
@@ -181,7 +183,7 @@ Proveedor: **Resend**
 
 | Notificación | Cuándo se dispara |
 |---|---|
-| Bono agotado | Al consumir la última sesión de un bono (desde `/services` o desde el Dashboard) |
+| Bono agotado | Al consumir la última sesión de un bono, desde `/services` |
 
 Destinatario: variable de entorno `NOTIFY_EMAIL` (default: `claudrian1992@gmail.com`)
 

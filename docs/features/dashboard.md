@@ -4,26 +4,19 @@
 `/` — página principal de la app
 
 ## Archivo
-`app/page.tsx` — Server Component con Server Actions inline para los bonos
+`app/page.tsx` — Server Component. Desde el rediseño de 2026-07-13 funciona como centro de mando + launcher, no como panel de widgets por módulo.
 
-## Orden de widgets
+## Estructura de la página
 
-1. Quests (ancho completo)
-2. Bonos (solo si hay bonos activos, ancho completo)
-3. Menú de los próximos 4 días (ancho completo)
-4. Próximos planes — reservas + viajes (ancho completo)
-5. Finanzas + Suministros (grid 2 columnas)
+1. Cabecera de saludo
+2. **Quests** (ancho completo) — igual que antes del rediseño
+3. **Avisos** — franja de tarjetas accionables, solo si hay algún aviso activo
+4. **Launcher** — grid de accesos directos a los 12 módulos de la app
 
-## Widgets
+Los widgets de Finanzas, Bonos (con sus formularios de consumo/renovación), Menú de 4 días y Próximos planes (`UpcomingReservationsWidget`) se eliminaron de la home en este rediseño. Esa información sigue disponible en sus páginas de módulo (`/finances`, `/services`, `/meals`, `/restaurants/reservations`, `/trips`); lo que antes eran widgets ahora se resume, cuando aplica, como aviso accionable.
 
-### Widget 1 — Quests (ancho completo)
-`TasksWidget` (función async inline en `app/page.tsx`) → renderiza `QuestsWidgetClient` (componente cliente en `app/tasks/QuestsWidgetClient.tsx`):
-- Cabecera con icono Shield, título "Quests" y subtítulo "X completadas · Y pendientes"
-- Barra de progreso global (lime → emerald cuando 100%)
-- Agrupa las misiones por frecuencia con headers coloreados: icono RPG + etiqueta + línea separadora del color del grupo + contador `done/total`
-- Chips de misiones pendientes (máx. 5 por grupo, con "+N más" → `/tasks`) y chips de completadas (máx. 2, tachadas)
-- Al hacer clic en un chip pendiente → picker de persona inline; al seleccionar persona llama a `completeTask` y refresca
-- Carga todas las frecuencias: épicas solo si `nextDue ≤ hoy`; contratos solo si sin completion
+## Widget — Quests (ancho completo)
+Sin cambios respecto a antes del rediseño. `TasksWidget` (función async inline en `app/page.tsx`) → renderiza `QuestsWidgetClient` (componente cliente en `app/tasks/QuestsWidgetClient.tsx`). Ver detalle completo en [quests.md](./quests.md#widget-en-el-dashboard).
 
 **Datos cargados:**
 ```ts
@@ -32,76 +25,29 @@ task_completions.select('task_id, completed_date, completed_by').gte('YYYY-01-01
 profiles.select('id, display_name, email')
 ```
 
-### Widget 2 — Bonos (solo si hay bonos activos)
-Muestra todos los bonos de `service_passes` en grid de 2 columnas. Para cada bono:
-- Nombre, fecha/importe de último pago
-- Barra de progreso verde → roja al agotarse
-- Historial de fechas de sesiones consumidas
-- Form de "Consumir sesión" (con selector de fecha) si quedan sesiones
-- Form de "Nuevo Pago" si está agotado
-- Botón eliminar (visible en hover)
+## Avisos (`getDashboardAlerts`)
+Lógica en `lib/dashboard-alerts.ts`, invocada desde `HomeDashboard`. Devuelve un array de `DashboardAlert` (`{ type: 'warning', title, message, href }`) que se renderiza como tarjetas ámbar con enlace directo al módulo correspondiente. Si el array está vacío, la sección no se muestra.
 
-Las Server Actions `consumeSession`, `renewService` y `deleteService` están definidas **directamente en `app/page.tsx`** como funciones async marcadas con `'use server'` (duplicadas respecto a `app/services/page.tsx` — misma lógica).
+No hay gating por permisos: los avisos se muestran a cualquier usuario autenticado, igual que el resto de la home.
 
-### Widget 3 — Menú (ancho completo)
-- Muestra hoy + próximos 3 días en grid de 4 columnas (2 en móvil)
-- Por cada día: menú del cole (si existe en `school_menu_items`), almuerzo y cena del planificador
-- Icono de cesta con enlace directo a `/shopping-list`
-- Enlace → `/meals`
+### Tipos de aviso
+
+**Bono agotado** — uno por cada bono de `service_passes` con `used_sessions >= total_sessions` (sin agrupar, un aviso por bono). Enlaza a `/services`.
+
+**Factura de luz cara** — a partir de la última factura de `home_invoices` (por `issue_date` descendente): si `elec_amount / elec_kwh > 0.16 €/kWh` genera un aviso. Enlaza a `/utilities`. A diferencia del antiguo widget de Suministros, no hay confirmación visual cuando la tarifa está bien (ya no se anuncia lo que va bien, solo lo accionable).
+
+**Viaje en 48h** — viajes de `trips` con `start_date` estrictamente mayor que hoy y menor o igual que hoy+48h (el viaje aún no ha empezado). Enlaza a `/trips`.
 
 **Datos cargados:**
 ```ts
-weekly_plan.select('meal_type, day_date, recipes(name)').in('day_date', menuDates)
-school_menu_items.select('date, first_course, second_course, dessert').in('date', menuDates)
+service_passes.select('id, service_name, used_sessions, total_sessions')
+home_invoices.select('elec_amount, elec_kwh, issue_date').order('issue_date', desc).limit(1)
+trips.select('id, title, destination, start_date').gt('start_date', today).lte('start_date', in48h)
 ```
 
-### Widget 4 — Próximos planes
-`UpcomingReservationsWidget` (componente async en `components/UpcomingReservationsWidget.tsx`):
-- Próximas reservas de restaurantes (con fecha, hora y nombre del local)
-- Próximo viaje: tarjeta con destino y fechas + contadores de viajes por estado (Deseos / Planificando / Confirmados)
+> Nota de zona horaria: `today`/`in48h` en `lib/dashboard-alerts.ts` se calculan con `new Date().toISOString().split('T')[0]` (UTC), no con el helper `madridDate` (`toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })`) que usa el resto de la app (ver [quests.md](./quests.md#zona-horaria-madrid)). Esto puede desplazar el aviso de "viaje en 48h" en la ventana horaria en la que UTC y Madrid caen en fechas distintas (aprox. 22:00–24:00 UTC). Pendiente de alinear con el resto de la app.
 
-### Widget 5 — Finanzas
-`FinancesWidget` (función async inline en `app/page.tsx`):
-- Gasto total del mes actual (suma de transacciones negativas)
-- Porcentaje de variación vs mes anterior (verde si baja, rojo si sube)
-- Top 3 categorías del mes anterior por importe
-- Fila "Fijos X €/mes": suma de transacciones con `is_fixed = true` e `importe < 0` del mes actual (si `totalFixed > 0`)
-- Si no hay datos: placeholder con enlace a importar
-- Enlace → `/finances`
+## Launcher (`LAUNCHER_ITEMS`)
+Grid de 12 accesos directos (3 columnas en móvil, 4 en tablet, 6 en desktop), cada uno con icono, color y enlace al módulo: Comidas, Finanzas, Recetas, Suministros, Bonos, Compra, Restaurantes, Viajes, Salud, Deseos, Ingredientes, Quests.
 
-**Datos cargados:**
-```ts
-bank_transactions.select('importe, categoria, is_fixed').gte(currentMonth-01)  // mes actual
-bank_transactions.select('importe, categoria').gte/lt(prevMonth)               // mes anterior
-```
-
-### Widget 6 — Suministros
-- Medias de luz/gas/servicios por mes (calculadas sobre todas las facturas)
-- Alerta automática de tarifa: si `elec_amount / elec_kwh > 0.16 €/kWh` → aviso de tarifa cara; si no → confirmación de tarifa optimizada
-- Si no hay datos: enlace a importar primera factura
-- Enlace → `/utilities`
-
-**Datos cargados:**
-```ts
-home_invoices.select('*').order('issue_date', { ascending: false })
-```
-
-## Lógica de cálculo del widget de suministros
-
-Media ponderada por período de facturación (no media simple). Se usa porque TotalEnergies factura con periodicidad variable:
-
-```ts
-const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
-avgElec = invoices.reduce((s, inv) => s + Number(inv.elec_amount), 0) / totalMonths
-avgGas  = invoices.reduce((s, inv) => s + Number(inv.gas_amount),  0) / totalMonths
-avgServ = invoices.reduce((s, inv) => s + Number(inv.services_amount), 0) / totalMonths
-```
-
-`billing_period_months` se extrae del PDF al importar (regex sobre rango de fechas de facturación). Fallback: `2` (bimestral).
-
-## Análisis automático de tarifa eléctrica
-```ts
-pricePerKwh = latestInvoice.elec_amount / latestInvoice.elec_kwh
-MARKET_THRESHOLD = 0.16  // €/kWh
-```
-Si supera el umbral → alerta amarilla. Si está por debajo → confirmación verde.
+Sin gating por permisos (decisión de producto): todos los tiles se muestran a cualquier usuario autenticado, independientemente de sus permisos en `user_metadata.permissions`. El tile de Ingredientes no tiene permission key propia — la ruta `/ingredients` no está en `PROTECTED_ROUTES` de `proxy.ts` (situación preexistente, no introducida por este rediseño).

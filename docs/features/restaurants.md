@@ -122,7 +122,7 @@ Lista cronológica de todas las reservas futuras, con datos del restaurante asoc
 | `addRestaurant` | Inserta nuevo restaurante |
 | `updateRestaurant` | Actualiza campos del restaurante |
 | `deleteRestaurant` | Elimina el restaurante (form action con `FormData`) |
-| `addReservation` | Crea reserva y revalida el layout (para el widget del dashboard) |
+| `addReservation` | Crea reserva |
 | `cancelReservation` | Elimina reserva |
 | `updateReservationDate` | Cambia la fecha de una reserva |
 | `createList` | Crea nueva lista |
@@ -130,7 +130,5 @@ Lista cronológica de todas las reservas futuras, con datos del restaurante asoc
 | `toggleList` | Añade o elimina un restaurante de una lista |
 | `updateTagColor` | Upsert en `tag_colors` para el color de una etiqueta |
 
-## Widget en el Dashboard
-`UpcomingReservationsWidget` en `components/UpcomingReservationsWidget.tsx`:
-- Muestra las próximas reservas ordenadas por fecha
-- En la misma tarjeta aparece el próximo viaje (ver módulo Viajes)
+## Dashboard
+Desde el rediseño de la home de 2026-07-13 (ver [dashboard.md](./dashboard.md)) ya no existe un widget de próximas reservas en `/`. El componente `UpcomingReservationsWidget` se eliminó por quedar huérfano. Las reservas próximas se consultan en `/restaurants/reservations`.

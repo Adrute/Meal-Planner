@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CheckCircle2, AlertCircle, Plus, Trash2, CalendarHeart } from 'lucide-react'
-import { revalidatePath } from 'next/cache'
 import SubmitButton from '@/components/SubmitButton'
-import { sendBonoAgotadoEmail } from '@/lib/email'
+import { addService, deleteService, consumeSession, renewService } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,88 +15,6 @@ export default async function ServicesDashboard() {
     .from('service_passes')
     .select('*')
     .order('created_at', { ascending: true })
-
-  async function addService(formData: FormData) {
-    'use server'
-    const service_name = formData.get('service_name') as string
-    const total_sessions = Number(formData.get('total_sessions'))
-    const amount_paid = Number(formData.get('amount_paid'))
-    const payment_date = formData.get('payment_date') as string || new Date().toISOString().split('T')[0]
-    
-    const supabase = await createClient()
-    
-    if (service_name && total_sessions > 0) {
-      await supabase.from('service_passes').insert([{
-        service_name,
-        total_sessions,
-        used_sessions: 0,
-        amount_paid,
-        last_payment_date: payment_date,
-        session_dates: [] // Iniciamos el historial de fechas vacío
-      }])
-      revalidatePath('/services')
-      revalidatePath('/')
-    }
-  }
-
-  async function deleteService(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const supabase = await createClient()
-    await supabase.from('service_passes').delete().eq('id', id)
-    revalidatePath('/services')
-    revalidatePath('/')
-  }
-
-  async function consumeSession(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const consume_date = formData.get('consume_date') as string
-    const supabase = await createClient()
-
-    const { data } = await supabase
-      .from('service_passes')
-      .select('used_sessions, total_sessions, session_dates, service_name, amount_paid')
-      .eq('id', id)
-      .single()
-
-    if (data) {
-      const currentDates = data.session_dates || []
-      currentDates.push(consume_date)
-      const newUsed = data.used_sessions + 1
-
-      await supabase.from('service_passes').update({
-        used_sessions: newUsed,
-        session_dates: currentDates,
-      }).eq('id', id)
-
-      // Enviar email si el bono se agota con esta sesión
-      console.log(`[Bono] ${data.service_name}: ${newUsed}/${data.total_sessions} sesiones`)
-      if (newUsed >= data.total_sessions) {
-        console.log(`[Bono] Agotado, enviando email a ${process.env.NOTIFY_EMAIL ?? 'claudrian1992@gmail.com'}`)
-        await sendBonoAgotadoEmail(data.service_name, data.total_sessions, data.amount_paid)
-      }
-    }
-
-    revalidatePath('/services')
-    revalidatePath('/')
-  }
-
-  async function renewService(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const renewal_date = formData.get('renewal_date') as string
-    const supabase = await createClient()
-    
-    await supabase.from('service_passes').update({ 
-      used_sessions: 0, 
-      last_payment_date: renewal_date,
-      session_dates: [] // Al renovar, el historial de sesiones vuelve a cero
-    }).eq('id', id)
-    
-    revalidatePath('/services')
-    revalidatePath('/')
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 animate-in fade-in pb-24 md:pb-12">

@@ -1,114 +1,11 @@
-import { Utensils, Wallet, Zap, ArrowRight, ShoppingBasket, AlertTriangle, CheckCircle2, CalendarHeart, Plus, Trash2, AlertCircle, TrendingDown, GraduationCap, Moon, Home } from 'lucide-react'
+import {
+  AlertTriangle, ArrowRight, Utensils, Wallet, BookOpen, Zap, CalendarHeart,
+  ShoppingBasket, UtensilsCrossed, Plane, HeartPulse, Gift, Tags, Swords,
+} from 'lucide-react'
 import QuestsWidgetClient from './tasks/QuestsWidgetClient'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-import SubmitButton from '@/components/SubmitButton'
-import UpcomingReservationsWidget from '@/components/UpcomingReservationsWidget'
-import { sendBonoAgotadoEmail } from '@/lib/email'
-
-async function FinancesWidget() {
-  const supabase = await createClient()
-  const now = new Date()
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
-
-  const [
-    { data: thisMonth },
-    { data: prevMonthTx },
-  ] = await Promise.all([
-    supabase.from('bank_transactions').select('importe, categoria, is_fixed').gte('fecha_operacion', `${currentMonth}-01`),
-    supabase.from('bank_transactions').select('importe, categoria').gte('fecha_operacion', `${prevMonth}-01`).lt('fecha_operacion', `${currentMonth}-01`),
-  ])
-
-  const gastosMes = Math.abs((thisMonth || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
-  const ingresosMes = (thisMonth || []).filter(t => t.importe > 0).reduce((s, t) => s + Number(t.importe), 0)
-  const gastosPrev = Math.abs((prevMonthTx || []).filter(t => t.importe < 0).reduce((s, t) => s + Number(t.importe), 0))
-  const diff = gastosPrev > 0 ? ((gastosMes - gastosPrev) / gastosPrev) * 100 : 0
-  const totalFixed = (thisMonth || []).filter(t => t.is_fixed && t.importe < 0).reduce((s, t) => s + Math.abs(Number(t.importe)), 0)
-
-  // Top 3 categorías del mes anterior
-  const catMap: Record<string, number> = {}
-  for (const t of (prevMonthTx || []).filter(t => t.importe < 0)) {
-    catMap[t.categoria] = (catMap[t.categoria] || 0) + Math.abs(Number(t.importe))
-  }
-  const top3Cats = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 3)
-
-  const hasData = (thisMonth || []).length > 0 || (prevMonthTx || []).length > 0
-
-  return (
-    <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-teal-100 shadow-sm flex flex-col justify-between h-full">
-      <div>
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="bg-teal-100 p-2.5 rounded-xl text-teal-400"><Wallet size={20} /></div>
-            <h2 className="font-bold text-lg text-slate-700">Finanzas</h2>
-          </div>
-          <Link href="/finances" className="text-slate-300 hover:text-teal-400 transition-colors">
-            <ArrowRight size={20} />
-          </Link>
-        </div>
-
-        {hasData ? (
-          <div className="space-y-4 mb-6">
-            <div>
-              <span className="text-sm font-medium text-slate-500">Gasto este mes</span>
-              <div className="flex items-end gap-2 mt-1">
-                <span className="text-4xl font-black text-slate-900">{gastosMes.toFixed(0)} €</span>
-              </div>
-              {gastosPrev > 0 && (
-                <p className={`text-xs font-bold mt-1 ${diff > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                  {diff > 0 ? '▲' : '▼'} {Math.abs(diff).toFixed(1)}% vs mes anterior
-                </p>
-              )}
-            </div>
-            {top3Cats.length > 0 && (
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Top categorías · mes anterior</p>
-                <div className="space-y-2">
-                  {top3Cats.map(([cat, amount], i) => (
-                    <div key={cat} className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-300 w-4 shrink-0">{i + 1}</span>
-                      <span className="text-sm font-bold text-slate-700 flex-1 truncate">{cat}</span>
-                      <span className="text-sm font-black text-slate-800 shrink-0">{amount.toFixed(0)} €</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {totalFixed > 0 && (
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <div className="flex items-center gap-1.5">
-                  <Home size={13} className="text-slate-400 shrink-0" />
-                  <span className="text-sm font-medium text-slate-500">Fijos</span>
-                </div>
-                <span className="text-sm font-black text-slate-700">{totalFixed.toFixed(0)} €<span className="text-xs font-bold text-slate-400">/mes</span></span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="mb-6">
-            <span className="text-sm font-medium text-slate-500">Gasto este mes</span>
-            <div className="mt-1">
-              <span className="text-4xl font-black text-slate-900">-- €</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {hasData ? (
-        <Link href="/finances" className="w-full py-3 bg-teal-50 text-teal-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-teal-100 transition-colors border border-teal-100">
-          <TrendingDown size={18} /> Ver movimientos
-        </Link>
-      ) : (
-        <Link href="/finances" className="w-full py-3 bg-teal-50 text-teal-500 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-teal-100 transition-colors border border-teal-100">
-          Conectar movimientos →
-        </Link>
-      )}
-    </div>
-  )
-}
+import { getDashboardAlerts } from '@/lib/dashboard-alerts'
 
 function getNextDueDateServer(
   task: { custom_interval_days: number | null },
@@ -208,384 +105,84 @@ async function TasksWidget() {
   )
 }
 
+const LAUNCHER_ITEMS = [
+  { key: 'meals',       href: '/meals',          label: 'Comidas',      icon: Utensils,        iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+  { key: 'finances',    href: '/finances',       label: 'Finanzas',     icon: Wallet,          iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'recipes',     href: '/recipes',        label: 'Recetas',      icon: BookOpen,        iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'utilities',   href: '/utilities',      label: 'Suministros',  icon: Zap,             iconBg: 'bg-lime-100',    iconColor: 'text-lime-600' },
+  { key: 'services',    href: '/services',       label: 'Bonos',        icon: CalendarHeart,   iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+  { key: 'shopping',    href: '/shopping-list',  label: 'Compra',       icon: ShoppingBasket,  iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'restaurants', href: '/restaurants',    label: 'Restaurantes', icon: UtensilsCrossed, iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'trips',       href: '/trips',          label: 'Viajes',       icon: Plane,           iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+  { key: 'health',      href: '/health',         label: 'Salud',        icon: HeartPulse,      iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'wishlist',    href: '/wishlist',       label: 'Deseos',       icon: Gift,            iconBg: 'bg-green-100',   iconColor: 'text-green-600' },
+  { key: 'ingredients', href: '/ingredients',    label: 'Ingredientes', icon: Tags,            iconBg: 'bg-teal-100',    iconColor: 'text-teal-600' },
+  { key: 'tasks',       href: '/tasks',          label: 'Quests',       icon: Swords,          iconBg: 'bg-lime-100',    iconColor: 'text-lime-600' },
+]
+
 export const dynamic = 'force-dynamic'
 
 export default async function HomeDashboard() {
-  const supabase = await createClient()
-  const today = madridDate()
-  const todayBase = new Date(today + 'T12:00:00')
-
-  // 0. Menú de los próximos 4 días
-  const menuDates = Array.from({ length: 4 }, (_, i) => {
-    const d = new Date(todayBase)
-    d.setDate(todayBase.getDate() + i)
-    return madridDate(d)
-  })
-
-  const [{ data: weekMeals }, { data: weekSchoolMenus }] = await Promise.all([
-    supabase
-      .from('weekly_plan')
-      .select('meal_type, day_date, recipes(name)')
-      .in('day_date', menuDates),
-    supabase
-      .from('school_menu_items')
-      .select('date, first_course, second_course, dessert')
-      .in('date', menuDates),
-  ])
-
-  // 1. Cargar facturas
-  const { data: invoices } = await supabase
-    .from('home_invoices')
-    .select('*')
-    .order('issue_date', { ascending: false })
-
-  const hasInvoices = invoices && invoices.length > 0;
-  const latestInvoice = hasInvoices ? invoices[0] : null;
-
-  let avgElec = 0, avgGas = 0, avgServ = 0;
-  if (hasInvoices) {
-    const totalMonths = invoices.reduce((s, inv) => s + (inv.billing_period_months ?? 2), 0)
-    if (totalMonths > 0) {
-      avgElec = invoices.reduce((s, inv) => s + Number(inv.elec_amount || 0), 0) / totalMonths
-      avgGas  = invoices.reduce((s, inv) => s + Number(inv.gas_amount || 0), 0) / totalMonths
-      avgServ = invoices.reduce((s, inv) => s + Number(inv.services_amount || 0), 0) / totalMonths
-    }
-  }
-
-  // Análisis automático de Luz
-  let alert = null;
-  if (latestInvoice && latestInvoice.elec_kwh > 0) {
-    const pricePerKwh = Number(latestInvoice.elec_amount) / Number(latestInvoice.elec_kwh);
-    const MARKET_THRESHOLD = 0.16;
-
-    if (pricePerKwh > MARKET_THRESHOLD) {
-      alert = {
-        type: 'warning',
-        title: 'Revisa tu tarifa de Luz',
-        message: `Estás pagando la luz a ${pricePerKwh.toFixed(3)} €/kWh. El mercado ronda los ${MARKET_THRESHOLD} €. Podrías estar pagando de más.`
-      };
-    } else {
-      alert = {
-        type: 'success',
-        title: 'Tarifa Optimizada',
-        message: `Pagas la luz a ${pricePerKwh.toFixed(3)} €/kWh. Estás por debajo del mercado regulado.`
-      };
-    }
-  }
-
-  // 2. Cargar Bonos
-  const { data: services } = await supabase
-    .from('service_passes')
-    .select('*')
-    .order('created_at', { ascending: true })
-
-  // 3. Acciones de Bonos (Ejecutadas directamente desde el Dashboard)
-  async function deleteService(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const supabaseServer = await createClient()
-    await supabaseServer.from('service_passes').delete().eq('id', id)
-    revalidatePath('/')
-    revalidatePath('/services')
-  }
-
-  async function consumeSession(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const consume_date = formData.get('consume_date') as string
-    const supabaseServer = await createClient()
-
-    const { data } = await supabaseServer
-      .from('service_passes')
-      .select('used_sessions, total_sessions, session_dates, service_name, amount_paid')
-      .eq('id', id)
-      .single()
-
-    if (data) {
-      const currentDates = data.session_dates || []
-      currentDates.push(consume_date)
-      const newUsed = data.used_sessions + 1
-
-      await supabaseServer.from('service_passes').update({
-        used_sessions: newUsed,
-        session_dates: currentDates,
-      }).eq('id', id)
-
-      if (newUsed >= data.total_sessions) {
-        await sendBonoAgotadoEmail(data.service_name, data.total_sessions, data.amount_paid)
-      }
-    }
-    revalidatePath('/')
-    revalidatePath('/services')
-  }
-
-  async function renewService(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const renewal_date = formData.get('renewal_date') as string
-    const supabaseServer = await createClient()
-
-    await supabaseServer.from('service_passes').update({
-      used_sessions: 0,
-      last_payment_date: renewal_date,
-      session_dates: []
-    }).eq('id', id)
-
-    revalidatePath('/')
-    revalidatePath('/services')
-  }
+  const alerts = await getDashboardAlerts()
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-16 animate-in fade-in">
 
-      <header className="mb-10">
+      <header className="mb-8">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Hola, <span className="text-emerald-400">Familia</span>
         </h1>
         <p className="text-slate-500 font-medium mt-2 text-lg">Tu resumen del hogar actualizado a hoy.</p>
       </header>
 
-      {/* --- WIDGET 1: TAREAS / QUESTS --- */}
+      {/* --- WIDGET: TAREAS / QUESTS --- */}
       <TasksWidget />
 
-      {/* --- WIDGET 2: BONOS --- */}
-      {services && services.length > 0 && (
-        <div className="mt-0 mb-6 bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm w-full">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-400"><CalendarHeart size={20} /></div>
-              <h2 className="font-bold text-lg text-slate-700">Estado de los Bonos</h2>
-            </div>
-            <Link href="/services" className="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1 text-sm font-bold">
-              Configurar <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {services.map((service) => {
-              const isExhausted = service.used_sessions >= service.total_sessions;
-              const remaining = service.total_sessions - service.used_sessions;
-              const progressPercent = (service.used_sessions / service.total_sessions) * 100;
-
-              return (
-                <div key={service.id} className="bg-slate-50 rounded-3xl p-6 md:p-8 border border-slate-200 flex flex-col justify-between group relative overflow-hidden">
-
-                  {isExhausted && (
-                    <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[9px] font-black uppercase tracking-widest text-center py-0.5 shadow-sm">
-                      Renovación
-                    </div>
-                  )}
-
-                  <div className={isExhausted ? 'mt-3' : ''}>
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h2 className="font-bold text-xl text-slate-800">{service.service_name}</h2>
-                        <p className="text-sm text-slate-400 mt-1">
-                          Pagado: {new Date(service.last_payment_date).toLocaleDateString('es-ES')} ({Number(service.amount_paid).toFixed(2)}€)
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {isExhausted ? (
-                          <div className="bg-red-50 text-red-600 p-2 rounded-xl"><AlertCircle size={24} /></div>
-                        ) : (
-                          <div className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"><CheckCircle2 size={24} /></div>
-                        )}
-                        <form action={deleteService}>
-                          <input type="hidden" name="id" value={service.id} />
-                          <SubmitButton iconOnly className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar bono">
-                            <Trash2 size={18} />
-                          </SubmitButton>
-                        </form>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <div className="flex justify-between text-sm font-bold mb-2">
-                        <span className="text-slate-700">Consumidas: {service.used_sessions}</span>
-                        <span className={isExhausted ? 'text-red-500' : 'text-emerald-500'}>
-                          Quedan: {remaining}
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${isExhausted ? 'bg-red-500' : 'bg-emerald-500'}`}
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {service.session_dates && service.session_dates.length > 0 && (
-                      <div className="mb-6 pt-4 border-t border-slate-200">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Historial de sesiones</p>
-                        <div className="flex flex-wrap gap-2">
-                          {service.session_dates.map((date: string, i: number) => (
-                            <span key={i} className="bg-white text-slate-500 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200">
-                              {new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-auto">
-                    {isExhausted ? (
-                      <form action={renewService} className="w-full flex gap-2">
-                        <input type="hidden" name="id" value={service.id} />
-                        <input type="date" name="renewal_date" defaultValue={today} required className="px-3 py-3 rounded-xl border border-slate-200 text-sm outline-none text-slate-600 bg-white" title="Fecha del nuevo pago" />
-                        <SubmitButton className="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800" loadingText="Renovando...">
-                          Nuevo Pago
-                        </SubmitButton>
-                      </form>
-                    ) : (
-                      <form action={consumeSession} className="w-full flex gap-2">
-                        <input type="hidden" name="id" value={service.id} />
-                        <input type="date" name="consume_date" defaultValue={today} required className="px-3 py-3 rounded-xl border border-slate-200 text-sm outline-none text-slate-600 bg-white" title="Fecha de la sesión" />
-                        <SubmitButton className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-100 shadow-sm" loadingText="Consumiendo...">
-                          <Plus size={18} /> Consumir
-                        </SubmitButton>
-                      </form>
-                    )}
-                  </div>
-
+      {/* --- AVISOS --- */}
+      {alerts.length > 0 && (
+        <div className="mb-8">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2 ml-1">
+            Avisos
+          </p>
+          <div className={`grid grid-cols-1 gap-3 ${alerts.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : ''}`}>
+            {alerts.map((alert, i) => (
+              <Link
+                key={i}
+                href={alert.href}
+                className="group flex items-start gap-3 p-4 rounded-2xl border border-amber-200 bg-amber-50 hover:bg-amber-100/70 hover:border-amber-300 transition-colors"
+              >
+                <div className="bg-amber-100 group-hover:bg-amber-200 p-2 rounded-xl text-amber-600 shrink-0 transition-colors">
+                  <AlertTriangle size={16} />
                 </div>
-              )
-            })}
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-sm text-amber-900">{alert.title}</p>
+                  <p className="text-xs text-amber-700/90 leading-relaxed mt-0.5">{alert.message}</p>
+                </div>
+                <ArrowRight size={16} className="text-amber-400 group-hover:text-amber-600 shrink-0 mt-1 transition-colors" />
+              </Link>
+            ))}
           </div>
         </div>
       )}
 
-      {/* --- WIDGET 3: MENÚ DE LA SEMANA (ANCHO COMPLETO) --- */}
-      <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-400"><Utensils size={20} /></div>
-            <h2 className="font-bold text-lg text-slate-700">Menú</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/shopping-list" className="flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-emerald-400 transition-colors">
-              <ShoppingBasket size={16} /> Compra
+      {/* --- LAUNCHER --- */}
+      <p className="text-sm font-black text-slate-700 mb-3 ml-1">Accesos directos</p>
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+        {LAUNCHER_ITEMS.map(item => {
+          const Icon = item.icon
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              className="group flex flex-col items-center justify-center gap-2.5 py-6 px-2 rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-md hover:border-emerald-200 active:scale-95 transition-all"
+            >
+              <div className={`p-3 rounded-2xl ${item.iconBg} ${item.iconColor} group-hover:scale-105 transition-transform`}>
+                <Icon size={22} />
+              </div>
+              <span className="text-xs md:text-sm font-bold text-slate-700 text-center leading-tight">{item.label}</span>
             </Link>
-            <Link href="/meals" className="text-slate-300 hover:text-emerald-400 transition-colors">
-              <ArrowRight size={20} />
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {menuDates.map((date, i) => {
-            const dayMeals = (weekMeals || []).filter(m => m.day_date === date)
-            const schoolMenu = (weekSchoolMenus || []).find(s => s.date === date)
-            const almuerzo = dayMeals.find(m => m.meal_type.toLowerCase() === 'almuerzo')
-            const cena = dayMeals.find(m => m.meal_type.toLowerCase() === 'cena')
-            const label = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })
-            const dayNum = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-            return (
-              <div key={date} className={`rounded-2xl p-4 border ${i === 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50/60'}`}>
-                <p className={`text-xs font-black uppercase tracking-widest mb-0.5 ${i === 0 ? 'text-emerald-400' : 'text-slate-400'}`}>{label}</p>
-                <p className="text-[11px] text-slate-400 font-medium mb-3 capitalize">{dayNum}</p>
-
-                <div className="space-y-2.5">
-                  {schoolMenu && (
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <GraduationCap size={10} className="text-teal-400" />
-                        <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Cole</span>
-                      </div>
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">{schoolMenu.first_course}</p>
-                      {schoolMenu.second_course && <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{schoolMenu.second_course}</p>}
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <Utensils size={10} className="text-emerald-300" />
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Almuerzo</span>
-                    </div>
-                    {almuerzo ? (
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">
-                        {(almuerzo.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <Moon size={10} className="text-emerald-300" />
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cena</span>
-                    </div>
-                    {cena ? (
-                      <p className="text-xs font-semibold text-slate-700 leading-tight">
-                        {(cena.recipes as unknown as { name: string } | null)?.name ?? 'Sin nombre'}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-300 italic">Sin planificar</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* --- WIDGET 4: PRÓXIMOS PLANES (RESERVAS + VIAJES) --- */}
-      <div className="mb-6">
-        <UpcomingReservationsWidget />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <FinancesWidget />
-
-        <div className="bg-white/80 rounded-3xl p-6 md:p-8 border border-lime-100 shadow-sm flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-lime-100 p-2.5 rounded-xl text-lime-400"><Zap size={20} /></div>
-                <h2 className="font-bold text-lg text-slate-700">Suministros</h2>
-              </div>
-              <Link href="/utilities" className="text-slate-300 hover:text-lime-400 transition-colors">
-                <ArrowRight size={20} />
-              </Link>
-            </div>
-
-            {hasInvoices ? (
-              <>
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Luz/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgElec.toFixed(0)}€</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Gas/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgGas.toFixed(0)}€</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Serv/mes</span>
-                    <span className="font-black text-slate-800 text-lg">{avgServ.toFixed(0)}€</span>
-                  </div>
-                </div>
-
-                {alert && (
-                  <div className={`p-4 rounded-xl flex items-start gap-3 border ${alert.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
-                    <div className="mt-0.5">
-                      {alert.type === 'warning' ? <AlertTriangle size={18} className="text-amber-500" /> : <CheckCircle2 size={18} className="text-emerald-500" />}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm mb-0.5">{alert.title}</p>
-                      <p className="text-xs opacity-90 leading-relaxed">{alert.message}</p>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center h-full flex flex-col justify-center">
-                <span className="text-sm text-slate-400 font-medium block mb-2">Sin datos analizados</span>
-                <Link href="/utilities/import" className="text-emerald-600 text-xs font-bold hover:underline">Importar primera factura &rarr;</Link>
-              </div>
-            )}
-          </div>
-        </div>
+          )
+        })}
       </div>
 
     </div>

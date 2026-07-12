@@ -82,7 +82,5 @@ Server Actions para todas las operaciones CRUD de trips y entidades hijas.
 `createTrip` hace `redirect(/trips/${id})` tras el insert.
 `prefillChecklist` inserta 16 items comunes agrupados por categoría.
 
-## Dashboard widget
-En `components/UpcomingReservationsWidget.tsx`:
-- Muestra el próximo viaje más cercano (cualquier estado excepto `completed`, `end_date >= hoy`)
-- Bajo la tarjeta, contadores de viajes por estado (Deseos / Planificando / Confirmados)
+## Dashboard
+Desde el rediseño de la home de 2026-07-13 (ver [dashboard.md](./dashboard.md)) ya no existe un widget de próximo viaje en `/`. El componente `UpcomingReservationsWidget` que lo mostraba se eliminó por quedar huérfano. En su lugar, la home muestra un aviso accionable si algún viaje empieza dentro de las próximas 48h (`start_date > hoy` y `<= hoy+48h`), calculado en `lib/dashboard-alerts.ts`.
