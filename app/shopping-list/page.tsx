@@ -11,6 +11,7 @@ export default async function ShoppingListPage() {
     .from('shopping_list_items')
     .select('*')
     .order('store', { ascending: true })
+    .order('position', { ascending: true })
     .order('created_at', { ascending: true })
 
   // Tiendas únicas del catálogo de ingredientes para el selector manual

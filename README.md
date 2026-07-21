@@ -35,7 +35,9 @@ Catálogo de recetas del hogar:
 ### Lista de Compra (`/shopping-list`)
 Lista de la compra compartida:
 - Añadir artículos manualmente indicando tienda
-- Los artículos se agrupan por tienda (obtenida del catálogo de ingredientes)
+- Los artículos se agrupan por tienda (obtenida del catálogo de ingredientes) y, dentro de cada tienda, por subgrupos de texto libre (pasillos)
+- Orden manual por drag & drop dentro de cada tienda, incluyendo mover productos entre subgrupos o crear un subgrupo nuevo al soltar
+- Importar del planificador semanal hace merge (conserva orden, subgrupo y marcado de lo que ya estaba)
 - Marcar artículos como comprados
 - Las tiendas disponibles en el selector vienen del campo `preferred_store` de los ingredientes
 

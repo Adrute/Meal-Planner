@@ -1,5 +1,13 @@
 # Changelog — FamilyTools
 
+## [2026-07-22] Orden manual y subgrupos en la lista de la compra
+- Columnas `subgroup` (text) y `position` (integer) en `shopping_list_items`, con backfill de `position` para filas existentes
+- RLS activada en `shopping_list_items` (política `familia_autenticada` + GRANT) — la tabla no tenía protección y era accesible sin autenticación vía la Data API
+- Drag & drop por tienda con `@dnd-kit`; `reorderItems` recalcula `position` para reordenar dentro de un mismo subgrupo
+- Subgrupos de texto libre editables inline (`setSubgroup`), con su propio bloque de orden dentro de cada tienda
+- Ampliación del drag & drop: ahora se puede arrastrar un producto de un subgrupo a otro (incluido "sin subgrupo"), y soltarlo en la zona "+ Nuevo subgrupo" crea uno nuevo al vuelo. Un único `DndContext` por tienda (antes uno por subgrupo) y nueva Server Action `moveItemToSubgroup` que actualiza el subgrupo y recalcula `position` del destino de forma atómica
+- `importWeekIngredients` reescrita como merge: conserva `subgroup`, `position` y `checked` de los ingredientes que siguen en el plan semanal; antes borraba y reinsertaba todos los importados en cada pulsación
+
 ## [2026-07-13] Home: rediseño a centro de mando + launcher
 - `app/page.tsx` reescrito: mantiene el widget de Quests, elimina los widgets de Finanzas, Bonos, Menú de 4 días y Próximos planes (`UpcomingReservationsWidget`, ahora eliminado por quedar huérfano)
 - Nueva franja de avisos accionables (`lib/dashboard-alerts.ts` → `getDashboardAlerts`): bono agotado (uno por bono), factura de luz cara (`elec_amount/elec_kwh > 0.16 €/kWh`), viaje que empieza dentro de 48h
